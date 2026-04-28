@@ -8,9 +8,9 @@
   border-radius: 50%;
   backdrop-filter: blur(4px);
   -webkit-backdrop-filter: blur(4px);
-  /* Above gallery edge-click zones (z-index 5) and the range slider (6) so the
-     burger always wins clicks. Stays below MenuPopup (50). */
-  z-index: 10;
+  /* Above MenuPopup (50) when the menu is open, so the close (X) state of the
+     burger stays clickable on top of the overlay. */
+  z-index: 60;
   transition: background-color 0.5s linear;
 }
 
