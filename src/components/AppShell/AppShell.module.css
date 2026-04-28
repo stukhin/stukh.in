@@ -1,0 +1,31 @@
+.desktopMenu {
+  position: absolute;
+  bottom: 65px;
+  right: 67px;
+  z-index: 3;
+}
+
+.desktopSocials {
+  position: absolute;
+  bottom: 65px;
+  left: 70px;
+  z-index: 3;
+}
+
+.menuLight :global(a) {
+  color: #fff;
+}
+
+.menuDark :global(a) {
+  color: #000;
+}
+
+.socialsLight :global(.tg),
+.socialsLight :global(.inst) {
+  filter: brightness(1.4);
+}
+
+.socialsDark :global(.tg),
+.socialsDark :global(.inst) {
+  filter: invert(1);
+}

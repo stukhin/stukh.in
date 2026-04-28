@@ -1,0 +1,68 @@
+.preloader {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  background-color: #fff;
+  opacity: 1;
+  transition: opacity 0.4s ease-in;
+}
+
+.preloader.hiding {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* Logo keeps its top-left position from Logo.module.css */
+.logo {
+  z-index: 1;
+}
+
+/* Outline "LOADING" text that fills via four conic-gradient backgrounds
+   clipped to the text glyphs. The animation grows two horizontal fills,
+   then swaps to two vertical fills, looping every 2s. */
+.loader {
+  width: fit-content;
+  font-size: 28px;
+  font-family: system-ui, sans-serif;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: transparent;
+  -webkit-text-stroke: 1px #000;
+  letter-spacing: 0.04em;
+  --g: conic-gradient(#000 0 0) no-repeat text;
+  background:
+    var(--g) 0,
+    var(--g) 100%,
+    var(--g) 0 0,
+    var(--g) 0 100%;
+  animation: l5 2s linear infinite;
+}
+
+@media (min-width: 1025px) {
+  .loader {
+    font-size: 50px;
+    -webkit-text-stroke-width: 1.5px;
+  }
+}
+
+.loader::before {
+  content: "Loading";
+}
+
+@keyframes l5 {
+  0%, 100% {
+    background-size: 0 100%, 0 100%, 100% 0, 100% 0;
+  }
+  50% {
+    background-size: 55% 100%, 55% 100%, 100% 0, 100% 0;
+  }
+  50.01% {
+    background-size: 0 100%, 0 100%, 100% 55%, 100% 55%;
+  }
+}

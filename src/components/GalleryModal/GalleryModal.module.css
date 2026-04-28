@@ -1,0 +1,191 @@
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #141414;
+  z-index: 4;
+  visibility: hidden;
+  opacity: 0;
+  transition: opacity 0.25s ease-in;
+  padding: 40px 180px;
+}
+
+.modal.open {
+  visibility: visible;
+  opacity: 1;
+}
+
+@media (max-width: 1024px) {
+  .modal {
+    padding: 0;
+  }
+}
+
+.container {
+  position: relative;
+  height: 100%;
+  width: 100%;
+}
+
+.picture {
+  position: absolute;
+  margin: 0 auto;
+  display: block;
+  height: 100%;
+  width: 100%;
+  object-fit: contain;
+  transform: scale(0.6);
+  transition: transform 0.3s ease-in, opacity 0.3s ease-in,
+    visibility 0.3s ease-in;
+  opacity: 1;
+  left: 0;
+  top: 0;
+}
+
+.modal.open .picture {
+  transform: scale(1);
+}
+
+.buttons {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 100%;
+  visibility: hidden;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease-in;
+  transition-delay: 0.3s;
+}
+
+.modal.open .buttons {
+  visibility: visible;
+  opacity: 1;
+  pointer-events: auto;
+}
+
+@media (min-width: 1025px) {
+  .buttons {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    top: 81px;
+    right: 75px;
+    left: auto;
+    width: 50px;
+    height: auto;
+  }
+}
+
+.actionButtons {
+  display: flex;
+}
+
+@media (min-width: 1025px) {
+  .actionButtons {
+    flex-direction: column;
+  }
+  .actionButtons button + button {
+    margin-top: 30px;
+  }
+}
+
+@media (min-width: 598px) and (max-width: 1024px) {
+  .actionButtons {
+    position: absolute;
+    top: 65px;
+    left: 60px;
+    right: 65px;
+    display: flex;
+    flex-direction: row-reverse;
+    justify-content: space-between;
+  }
+}
+
+@media (max-width: 597px) {
+  .actionButtons {
+    position: absolute;
+    top: 40px;
+    left: 40px;
+    right: 42px;
+    display: flex;
+    flex-direction: row-reverse;
+    justify-content: space-between;
+  }
+}
+
+.resizeButtons {
+  display: flex;
+  flex-direction: column;
+}
+
+.resizeButtons button + button {
+  margin-top: 24px;
+}
+
+@media (min-width: 1025px) {
+  .resizeButtons {
+    margin-top: 147px;
+  }
+}
+
+@media (min-width: 598px) and (max-width: 1024px) {
+  .resizeButtons {
+    position: absolute;
+    bottom: 70px;
+    right: 71px;
+  }
+}
+
+@media (max-width: 597px) {
+  .resizeButtons {
+    position: absolute;
+    bottom: 50px;
+    right: 51px;
+  }
+}
+
+.button {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 50px;
+  width: 50px;
+  cursor: none;
+}
+
+.button:hover svg path,
+.button.active svg path {
+  stroke: #6495ed;
+}
+
+/* Close button = black circle with cross */
+.close {
+  background-color: #000;
+  border-radius: 50%;
+  z-index: 5;
+}
+
+.close .bar {
+  position: absolute;
+  left: 15px;
+  width: 20px;
+  height: 3px;
+  border-radius: 1px;
+  background-color: #fff;
+  transition: all 0.5s ease-in-out;
+}
+
+.close .bar:first-child {
+  top: 20px;
+  transform: translateY(5px) rotate(45deg);
+}
+
+.close .bar:nth-child(2) {
+  top: 28px;
+  transform: translateY(-3px) rotate(-45deg);
+}

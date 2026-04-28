@@ -1,0 +1,13 @@
+.nature {
+  position: relative;
+  height: 100vh;
+  background: #151616;
+  background-image: url(/images/misc/bg_nature.jpg);
+  background-repeat: no-repeat;
+  background-size: cover;
+  overflow-x: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  overflow: hidden;
+}

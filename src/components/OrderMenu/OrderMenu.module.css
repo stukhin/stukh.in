@@ -1,0 +1,56 @@
+.orderMenu {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  opacity: 1;
+  transition: opacity 0.25s ease-out;
+  z-index: 2;
+}
+
+.orderMenu ul {
+  display: flex;
+  flex-direction: row;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+@media (min-width: 1025px) {
+  .orderMenu {
+    top: 681px;
+  }
+  .orderMenu ul li + li {
+    margin-left: 45px;
+  }
+}
+
+@media (min-width: 598px) and (max-width: 1024px) {
+  .orderMenu {
+    top: 603px;
+  }
+  .orderMenu ul {
+    flex-direction: column;
+    text-align: center;
+  }
+  .orderMenu ul li + li {
+    margin-top: 28px;
+  }
+}
+
+@media (max-width: 597px) {
+  .orderMenu {
+    top: 409px;
+  }
+  .orderMenu ul {
+    flex-direction: column;
+    text-align: center;
+  }
+  .orderMenu ul li + li {
+    margin-top: 28px;
+  }
+}
+
+.orderMenu.hidden {
+  opacity: 0;
+  transition: opacity 0.25s ease-in;
+}

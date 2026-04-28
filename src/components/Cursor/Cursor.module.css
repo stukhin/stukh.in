@@ -1,0 +1,69 @@
+.cursor {
+  width: 16px;
+  height: 16px;
+  border: 2px solid #fefefe;
+  border-radius: 100%;
+  background-color: transparent;
+  position: fixed;
+  left: 150px;
+  top: 150px;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  transition: width 0.15s ease, height 0.15s ease,
+    border-radius 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
+  z-index: 9999;
+}
+
+.dark {
+  border: 2px solid #424242;
+  background-color: transparent;
+}
+
+.hover {
+  width: 6px;
+  height: 6px;
+}
+
+/* Arrow shapes: use box-shadow to draw the two edges of an L that — when
+   rotated — becomes an arrowhead. Matches the original site. */
+.arrowLeft {
+  width: 10px;
+  height: 10px;
+  border: none;
+  border-radius: 0;
+  outline: none;
+  box-shadow: -2px 2px 0 #fefefe;
+  transform: translate(-50%, -50%) rotate(45deg);
+}
+
+.arrowRight {
+  width: 10px;
+  height: 10px;
+  border: none;
+  border-radius: 0;
+  outline: none;
+  box-shadow: -2px 2px 0 #fefefe;
+  transform: translate(-50%, -50%) rotate(-135deg);
+}
+
+.dark.arrowLeft,
+.dark.arrowRight {
+  box-shadow: -2px 2px 0 #424242;
+}
+
+/* "Picture" cursor: shown when hovering an active gallery frame (signals click
+   to open the full-screen modal). Matches the original picture.svg icon. */
+.picture {
+  border: none;
+  width: 28px;
+  height: 28px;
+  background-image: url(/icons/picture.dd122c30.svg);
+  background-repeat: no-repeat;
+  background-size: contain;
+}
+
+@media (hover: none), (max-width: 597px) {
+  .cursor {
+    display: none;
+  }
+}

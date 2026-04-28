@@ -1,0 +1,59 @@
+.burger {
+  position: absolute;
+  top: 40px;
+  right: 40px;
+  display: block;
+  height: 50px;
+  width: 50px;
+  border-radius: 50%;
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  /* Above gallery edge-click zones (z-index 5) and the range slider (6) so the
+     burger always wins clicks. Stays below MenuPopup (50). */
+  z-index: 10;
+  transition: background-color 0.5s linear;
+}
+
+.burger.open {
+  background-color: transparent !important;
+}
+
+.burger.open .line:nth-child(1) {
+  transform: translateY(5px) rotate(45deg);
+}
+
+.burger.open .line:nth-child(2) {
+  transform: translateY(-3px) rotate(-45deg);
+}
+
+.line {
+  position: absolute;
+  left: 15px;
+  width: 20px;
+  height: 3px;
+  border-radius: 1px;
+  transform: rotate(0);
+  transition: transform 0.5s ease-in-out;
+}
+
+.line:nth-child(1) {
+  top: 20px;
+}
+
+.line:nth-child(2) {
+  top: 28px;
+}
+
+@media (min-width: 598px) and (max-width: 1024px) {
+  .burger {
+    top: 65px;
+    right: 65px;
+  }
+}
+
+@media (min-width: 1025px) {
+  .burger {
+    top: 82px;
+    right: 70px;
+  }
+}

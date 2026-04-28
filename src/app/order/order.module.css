@@ -1,0 +1,78 @@
+.order {
+  position: relative;
+  color: #000;
+  background-color: #fff;
+  min-height: 100vh;
+}
+
+.burger {
+  z-index: 2;
+  position: fixed;
+  will-change: top;
+}
+
+@media (min-width: 1025px) {
+  .burger {
+    top: 81px;
+    right: 75px;
+  }
+}
+
+.header {
+  position: relative;
+  height: 755px;
+  overflow: hidden;
+}
+
+@media (min-width: 598px) and (max-width: 1024px) {
+  .header {
+    height: 825px;
+  }
+}
+
+@media (max-width: 597px) {
+  .header {
+    height: 600px;
+  }
+}
+
+@media (max-width: 1024px) {
+  .header::after {
+    background: linear-gradient(
+      0deg,
+      #fff,
+      hsla(0, 0%, 78%, 0.5) 26%,
+      hsla(0, 0%, 67%, 0.5) 50%,
+      hsla(0, 0%, 58%, 0.5) 77%,
+      rgba(93, 93, 93, 0.3)
+    );
+    content: "";
+    position: absolute;
+    top: 0;
+    bottom: -1px;
+    left: 0;
+    right: 0;
+    pointer-events: none;
+  }
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  background-color: #fff;
+  padding: 0 12px;
+}
+
+.buttonUp {
+  position: fixed;
+  bottom: 39px;
+  right: 40px;
+  z-index: 3;
+}
+
+@media (min-width: 1025px) {
+  .buttonUp {
+    bottom: 79px;
+    right: 75px;
+  }
+}

@@ -1,0 +1,212 @@
+[
+  {
+    "title": "Forms",
+    "location": "Russia 2020",
+    "prices": [
+      {
+        "size": "20 x 30 см",
+        "price": "3 000 ₽"
+      },
+      {
+        "size": "30 x 40 см",
+        "price": "4 000 ₽"
+      },
+      {
+        "size": "40 x 50 см",
+        "price": "5 000 ₽"
+      },
+      {
+        "size": "50 x 60 см",
+        "price": "7 000 ₽"
+      },
+      {
+        "size": "120 х 80 см",
+        "price": "12 000 ₽"
+      },
+      {
+        "size": "140 х 90 см",
+        "price": "14 000 ₽"
+      }
+    ]
+  },
+  {
+    "title": "Parlament",
+    "location": "Russia 2020",
+    "prices": [
+      {
+        "size": "20 x 30 см",
+        "price": "3 000 ₽"
+      },
+      {
+        "size": "30 x 40 см",
+        "price": "4 000 ₽"
+      },
+      {
+        "size": "40 x 50 см",
+        "price": "5 000 ₽"
+      },
+      {
+        "size": "50 x 60 см",
+        "price": "7 000 ₽"
+      },
+      {
+        "size": "120 х 80 см",
+        "price": "12 000 ₽"
+      },
+      {
+        "size": "140 х 90 см",
+        "price": "14 000 ₽"
+      }
+    ]
+  },
+  {
+    "title": "Ship",
+    "location": "Russia 2020",
+    "prices": [
+      {
+        "size": "20 x 30 см",
+        "price": "3 000 ₽"
+      },
+      {
+        "size": "30 x 40 см",
+        "price": "4 000 ₽"
+      },
+      {
+        "size": "40 x 50 см",
+        "price": "5 000 ₽"
+      },
+      {
+        "size": "50 x 60 см",
+        "price": "7 000 ₽"
+      },
+      {
+        "size": "120 х 80 см",
+        "price": "12 000 ₽"
+      },
+      {
+        "size": "140 х 90 см",
+        "price": "14 000 ₽"
+      }
+    ]
+  },
+  {
+    "title": "Picturesque bridge",
+    "location": "Russia 2020",
+    "prices": [
+      {
+        "size": "20 x 30 см",
+        "price": "3 000 ₽"
+      },
+      {
+        "size": "30 x 40 см",
+        "price": "4 000 ₽"
+      },
+      {
+        "size": "40 x 50 см",
+        "price": "5 000 ₽"
+      },
+      {
+        "size": "50 x 60 см",
+        "price": "7 000 ₽"
+      },
+      {
+        "size": "120 х 80 см",
+        "price": "12 000 ₽"
+      },
+      {
+        "size": "140 х 90 см",
+        "price": "14 000 ₽"
+      }
+    ]
+  },
+  {
+    "title": "Modern",
+    "location": "Russia 2020",
+    "prices": [
+      {
+        "size": "20 x 30 см",
+        "price": "3 000 ₽"
+      },
+      {
+        "size": "30 x 40 см",
+        "price": "4 000 ₽"
+      },
+      {
+        "size": "40 x 50 см",
+        "price": "5 000 ₽"
+      },
+      {
+        "size": "50 x 60 см",
+        "price": "7 000 ₽"
+      },
+      {
+        "size": "120 х 80 см",
+        "price": "12 000 ₽"
+      },
+      {
+        "size": "140 х 90 см",
+        "price": "14 000 ₽"
+      }
+    ]
+  },
+  {
+    "title": "Separated",
+    "location": "Russia 2020",
+    "prices": [
+      {
+        "size": "20 x 30 см",
+        "price": "3 000 ₽"
+      },
+      {
+        "size": "30 x 40 см",
+        "price": "4 000 ₽"
+      },
+      {
+        "size": "40 x 50 см",
+        "price": "5 000 ₽"
+      },
+      {
+        "size": "50 x 60 см",
+        "price": "7 000 ₽"
+      },
+      {
+        "size": "120 х 80 см",
+        "price": "12 000 ₽"
+      },
+      {
+        "size": "140 х 90 см",
+        "price": "14 000 ₽"
+      }
+    ]
+  },
+  {
+    "title": "Gymnastics House",
+    "location": "Russia 2020",
+    "prices": [
+      {
+        "size": "20 x 30 см",
+        "price": "3 000 ₽"
+      },
+      {
+        "size": "30 x 40 см",
+        "price": "4 000 ₽"
+      },
+      {
+        "size": "40 x 50 см",
+        "price": "5 000 ₽"
+      },
+      {
+        "size": "50 x 60 см",
+        "price": "7 000 ₽"
+      },
+      {
+        "size": "120 х 80 см",
+        "price": "12 000 ₽"
+      },
+      {
+        "size": "140 х 90 см",
+        "price": "14 000 ₽"
+      }
+    ]
+  }
+]

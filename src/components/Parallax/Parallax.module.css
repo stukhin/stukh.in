@@ -1,0 +1,95 @@
+.layer {
+  position: absolute;
+  bottom: 0;
+  left: -10%;
+  right: -10%;
+  width: 120%;
+  will-change: transform;
+}
+
+.layer .image {
+  width: 100%;
+  background-repeat: no-repeat;
+  background-position: center bottom;
+  background-size: cover;
+}
+
+/* Layer 5 (back) */
+.layer5 .image {
+  background-image: url(/images/parallax/5.png);
+}
+
+@media (min-width: 1025px) {
+  .layer5 .image {
+    height: 755px;
+  }
+}
+
+@media (min-width: 598px) and (max-width: 1024px) {
+  .layer5 .image {
+    height: 825px;
+  }
+}
+
+@media (max-width: 597px) {
+  .layer5 .image {
+    height: 600px;
+  }
+}
+
+/* Layer 4 */
+.layer4 .image {
+  height: 826px;
+  background-image: url(/images/parallax/4.png);
+}
+
+@media (max-width: 597px) {
+  .layer4 .image {
+    height: 726px;
+  }
+}
+
+/* Layer 3 */
+.layer3 .image {
+  height: 680px;
+  background-image: url(/images/parallax/3.png);
+}
+
+@media (max-width: 597px) {
+  .layer3 .image {
+    height: 656px;
+    background-position-x: 47%;
+  }
+}
+
+/* Layer 2 */
+.layer2 .image {
+  height: 601px;
+  background-image: url(/images/parallax/2.png);
+}
+
+@media (min-width: 598px) and (max-width: 1024px) {
+  .layer2 .image {
+    background-position-x: 69%;
+  }
+}
+
+/* Layer 1 (front) */
+.layer1 .image {
+  height: 321px;
+  background-image: url(/images/parallax/1.png);
+}
+
+@media (min-width: 598px) and (max-width: 1024px) {
+  .layer1 .image {
+    height: 354px;
+    background-position-x: 53%;
+  }
+}
+
+@media (max-width: 597px) {
+  .layer1 .image {
+    height: 354px;
+    background-position-x: 12%;
+  }
+}

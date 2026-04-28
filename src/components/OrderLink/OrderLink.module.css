@@ -1,0 +1,49 @@
+.orderLink {
+  color: #06f;
+  letter-spacing: -0.02em;
+  font-size: 20px;
+  line-height: 17px;
+  font-weight: 300;
+}
+
+.orderLink.small {
+  font-size: 18px;
+}
+
+.orderLink a {
+  position: relative;
+  text-decoration: none;
+  color: #06f;
+  cursor: none;
+}
+
+.orderLink a:visited {
+  color: inherit;
+}
+
+.orderLink a::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: -10px;
+  width: 22px;
+  height: 1px;
+  border-radius: 3px;
+  background-color: #06f;
+  transition: width 0.2s ease-in-out, bottom 0.1s linear;
+}
+
+.orderLink a:hover::before,
+.orderLink a:active::before {
+  width: 100%;
+  background-color: #06f;
+}
+
+.orderLink a:hover::before {
+  bottom: -5px;
+}
+
+.orderLink a:active::before {
+  bottom: -3px;
+}

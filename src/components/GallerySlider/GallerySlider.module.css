@@ -1,0 +1,320 @@
+.gallerySlider {
+  position: relative;
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+}
+
+/* Shadowed rectangle behind the active picture */
+.pictureBg {
+  background-size: contain;
+  background-repeat: no-repeat;
+  position: absolute;
+  height: 506px;
+  width: 408px;
+  box-shadow: -6px 5px 15px 0 rgba(0, 0, 0, 0.54);
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  z-index: 1;
+}
+
+.nature .pictureBg {
+  background-image: url(/images/misc/picture_bg.png);
+}
+
+.city .pictureBg {
+  background-image: url(/images/misc/picture_bg_w.png);
+}
+
+@media (max-width: 1024px) {
+  .pictureBg {
+    height: 358px;
+    width: 288px;
+  }
+}
+
+/* Frame overlay */
+.frame {
+  background-size: cover;
+  background-repeat: no-repeat;
+  position: absolute;
+  z-index: 3;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  height: 506px;
+  width: 408px;
+  pointer-events: none;
+}
+
+.nature .frame {
+  background-image: url(/images/misc/picture_frame.png);
+}
+
+.city .frame {
+  background-image: url(/images/misc/picture_frame_w.png);
+}
+
+@media (max-width: 1024px) {
+  .frame {
+    height: 358px;
+    width: 288px;
+  }
+}
+
+/* Swiper */
+.swiper {
+  position: relative;
+  z-index: 2;
+  height: 100%;
+  width: 100%;
+  display: flex;
+}
+
+.swiper :global(.swiper-wrapper) {
+  align-items: center;
+}
+
+.slide {
+  position: relative;
+  width: 370px !important;
+  height: 470px;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+@media (max-width: 1024px) {
+  .slide {
+    width: 260px !important;
+    height: 330px;
+  }
+}
+
+.container {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  transition: transform 1s ease-out;
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+}
+
+.slide:not(:global(.swiper-slide-active)) .container {
+  transform: scale(0.53);
+}
+
+@media (max-width: 1024px) {
+  .slide:not(:global(.swiper-slide-active)) .container {
+    transform: scale(0.73);
+  }
+}
+
+.wrapper {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.pictureButton {
+  display: block;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  background: transparent;
+  border: 0;
+  cursor: none;
+}
+
+.picture {
+  height: 100%;
+  width: 100%;
+  display: block;
+  object-fit: cover;
+  transition: filter 0.6s linear, opacity 0.4s linear, transform 0.3s ease-out;
+  transform: perspective(1px) translateZ(0);
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+}
+
+.slide:not(:global(.swiper-slide-active)) .picture {
+  filter: grayscale(1);
+  opacity: 0.5;
+}
+
+/* Active item title/location overlay — separate from slides */
+.activeText {
+  position: absolute;
+  left: 50%;
+  bottom: 120px;
+  transform: translateX(-50%);
+  width: 370px;
+  text-align: center;
+  letter-spacing: -0.03em;
+  font-weight: 300;
+  padding-top: 60px;
+  z-index: 4;
+  pointer-events: none;
+  opacity: 0;
+  animation: textFadeIn 0.5s ease 0.45s forwards;
+}
+
+@keyframes textFadeIn {
+  to {
+    opacity: 1;
+  }
+}
+
+@media (max-width: 1024px) {
+  .activeText {
+    width: 260px;
+    bottom: 90px;
+  }
+}
+
+.text_nature {
+  color: #fff;
+}
+
+.text_city {
+  color: #050505;
+}
+
+.title {
+  font-size: 24px;
+  line-height: 18px;
+  margin: 0;
+  font-weight: 300;
+}
+
+@media (max-width: 1024px) {
+  .title {
+    font-size: 20px;
+    line-height: 14px;
+  }
+}
+
+.location {
+  font-size: 15px;
+  line-height: 11px;
+  padding-top: 8px;
+  opacity: 0.25;
+  margin: 0;
+}
+
+@media (max-width: 1024px) {
+  .location {
+    font-size: 14px;
+    line-height: 10px;
+    padding-top: 7px;
+  }
+}
+
+/* Edge click zones for gallery navigation (paired with arrow cursor).
+   `top: 160px` keeps the zones clear of the logo (top-left) and the burger
+   (top-right) so they stay clickable. */
+.navZone {
+  position: absolute;
+  top: 160px;
+  bottom: 10%;
+  width: 20%;
+  background: transparent;
+  border: none;
+  cursor: none;
+  z-index: 5;
+}
+
+.navPrev {
+  left: 0;
+}
+
+.navNext {
+  right: 0;
+}
+
+.input {
+  appearance: none;
+  -webkit-appearance: none;
+  padding: 19px 0;
+  display: block;
+  margin: 0 auto;
+  background-color: transparent;
+  position: absolute;
+  bottom: 40px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 6;
+  cursor: none;
+  transition: opacity 0.2s ease;
+}
+
+/* Used when the modal is open so the slider/text stop peeking through. */
+.input.hidden,
+.activeText.hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
+@media (min-width: 1025px) {
+  .input {
+    width: 292px;
+  }
+}
+
+@media (max-width: 1024px) {
+  .input {
+    width: 211px;
+    bottom: 20px;
+  }
+}
+
+.input::-webkit-slider-runnable-track {
+  width: 100%;
+  height: 1px;
+  background-color: #3a3a3a;
+  border-radius: 3px;
+}
+
+.input::-moz-range-track {
+  width: 100%;
+  height: 1px;
+  background-color: #3a3a3a;
+  border-radius: 3px;
+}
+
+.input::-webkit-slider-thumb {
+  position: relative;
+  appearance: none;
+  -webkit-appearance: none;
+  width: 22px;
+  height: 3px;
+  background-color: #fff;
+  margin-top: -1.5px;
+  border-radius: 3px;
+  cursor: none;
+}
+
+.input::-moz-range-thumb {
+  width: 22px;
+  height: 3px;
+  background-color: #fff;
+  border-radius: 3px;
+  border: none;
+}
+
+.input.city::-webkit-slider-thumb {
+  background-color: #000;
+}
+
+.input.city::-moz-range-thumb {
+  background-color: #000;
+}
+
+.input.city::-webkit-slider-runnable-track {
+  background-color: hsla(0, 0%, 100%, 0.15);
+}
+
+.input.city::-moz-range-track {
+  background-color: hsla(0, 0%, 100%, 0.15);
+}

@@ -1,0 +1,65 @@
+.wrap {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  background: #0d1117;
+  z-index: 0;
+}
+
+.bg {
+  position: absolute;
+  inset: -5%;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  filter: blur(2px) brightness(0.55);
+  transition: transform 0.2s ease-out;
+  will-change: transform;
+}
+
+.slider {
+  position: absolute;
+  inset: 0;
+}
+
+.slide {
+  position: absolute;
+  inset: 0;
+  background-size: contain;
+  background-position: center;
+  background-repeat: no-repeat;
+  opacity: 0;
+  transition: opacity 1.2s ease;
+  will-change: transform, opacity;
+}
+
+.slide.active {
+  opacity: 1;
+}
+
+.dots {
+  position: absolute;
+  bottom: 50px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 14px;
+  z-index: 2;
+}
+
+.dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: hsla(0, 0%, 100%, 0.3);
+  transition: background-color 0.3s ease, transform 0.3s ease;
+}
+
+.dot:hover {
+  background: hsla(0, 0%, 100%, 0.6);
+}
+
+.dotActive {
+  background: #fff;
+  transform: scale(1.15);
+}

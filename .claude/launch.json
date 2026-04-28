@@ -1,0 +1,23 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "stukhin-dev",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev"],
+      "port": 3000
+    },
+    {
+      "name": "stukhin-prod",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "start"],
+      "port": 3000
+    },
+    {
+      "name": "stukhin-old",
+      "runtimeExecutable": "/Users/alexnderstyukhin/Documents/Projects/stukh.in/node_modules/.bin/serve",
+      "runtimeArgs": ["-p", "8080", "/Users/alexnderstyukhin/Documents/Projects/stukh.in/(old)"],
+      "port": 8080
+    }
+  ]
+}

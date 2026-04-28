@@ -1,0 +1,80 @@
+.socials {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  font-size: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.link {
+  position: relative;
+  height: 28px;
+  width: 28px;
+  background-repeat: no-repeat;
+  background-size: contain;
+  background-position: center;
+}
+
+.link + .link {
+  margin-left: 27px;
+}
+
+.link a {
+  position: relative;
+  user-select: none;
+  height: 100%;
+  display: inline-block;
+  width: 100%;
+}
+
+.underline {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  height: 1px;
+  bottom: 0;
+  width: 12px;
+}
+
+.underline::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  height: 1px;
+  bottom: -12px;
+  width: 12px;
+  border-radius: 3px;
+  background-color: hsla(0, 0%, 100%, 0.25);
+  transition: width 0.2s ease-in-out, bottom 0.1s linear;
+}
+
+.link a:hover .underline,
+.link a:active .underline {
+  width: 100%;
+}
+
+.link a:hover .underline::before,
+.link a:active .underline::before {
+  width: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: #fff;
+}
+
+.link a:hover .underline::before {
+  bottom: -7px;
+}
+
+.link a:active .underline::before {
+  bottom: -5px;
+}
+
+.tg {
+  background-image: url("/icons/tg.eecdbac4.svg");
+}
+
+.inst {
+  background-image: url("/icons/inst.357d2045.svg");
+}

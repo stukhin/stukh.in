@@ -1,0 +1,79 @@
+.prints {
+  position: relative;
+  display: flex;
+  flex-shrink: 0;
+}
+
+@media (min-width: 1025px) {
+  .prints {
+    height: 417px;
+    width: 532px;
+    align-items: center;
+    right: 124px;
+    justify-content: flex-end;
+  }
+  .prints.reverse {
+    left: 124px;
+    right: auto;
+    justify-content: flex-start;
+  }
+}
+
+@media (max-width: 1024px) {
+  .prints {
+    height: 234px;
+    width: 300px;
+    margin-bottom: 42px;
+    justify-content: center;
+  }
+}
+
+.image {
+  width: 292px;
+  height: 341px;
+  background-repeat: no-repeat;
+  background-size: contain;
+  position: absolute;
+}
+
+.image img {
+  height: 100%;
+  width: 100%;
+  object-fit: cover;
+  filter: drop-shadow(-4px 4px 10px rgba(0, 0, 0, 0.1));
+  display: block;
+}
+
+.front {
+  z-index: 2;
+  left: 50%;
+  top: 0;
+  transform: translateX(-50%);
+}
+
+.left {
+  transform: scale(0.7) rotate(-6deg);
+  left: 0;
+  top: 40px;
+  z-index: 1;
+}
+
+.right {
+  transform: scale(0.7) rotate(6deg);
+  right: 0;
+  top: 40px;
+  z-index: 1;
+}
+
+@media (max-width: 1024px) {
+  .image {
+    width: 165px;
+    height: 186px;
+  }
+  .left {
+    top: 20px;
+  }
+  .right {
+    top: 20px;
+  }
+}
