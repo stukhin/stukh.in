@@ -132,15 +132,71 @@
   width: 100%;
   display: block;
   object-fit: cover;
+  opacity: 0;
   transition: filter 0.6s linear, opacity 0.4s linear, transform 0.3s ease-out;
   transform: perspective(1px) translateZ(0);
   -webkit-backface-visibility: hidden;
   backface-visibility: hidden;
+  position: relative;
+  z-index: 1;
 }
 
-.slide:not(:global(.swiper-slide-active)) .picture {
+.pictureLoaded {
+  opacity: 1;
+}
+
+.slide:not(:global(.swiper-slide-active)) .pictureLoaded {
   filter: grayscale(1);
   opacity: 0.5;
+}
+
+/* Loading placeholder shown while the image is downloading. */
+.placeholder {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-image: linear-gradient(
+    100deg,
+    var(--ph-bg) 0%,
+    var(--ph-bg) 35%,
+    var(--ph-shimmer) 50%,
+    var(--ph-bg) 65%,
+    var(--ph-bg) 100%
+  );
+  background-size: 250% 100%;
+  background-repeat: no-repeat;
+  animation: galleryShimmer 1.6s ease-in-out infinite;
+  transition: opacity 0.4s ease;
+}
+
+.placeholderHidden {
+  opacity: 0;
+}
+
+.nature .placeholder {
+  --ph-bg: #1a1a1a;
+  --ph-shimmer: #3a3a3a;
+}
+
+.city .placeholder {
+  --ph-bg: #d4d4d4;
+  --ph-shimmer: #f1f1f1;
+}
+
+@keyframes galleryShimmer {
+  0% {
+    background-position: 150% 0;
+  }
+  100% {
+    background-position: -150% 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .placeholder {
+    animation: none;
+  }
 }
 
 /* Active item title/location overlay — separate from slides */

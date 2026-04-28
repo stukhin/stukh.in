@@ -25,8 +25,17 @@ export default function GallerySlider({ category, items }: Props) {
   const [modalOrientation, setModalOrientation] = useState<
     "vertical" | "horizontal"
   >("vertical");
+  const [loadedImages, setLoadedImages] = useState<Set<number>>(new Set());
 
   const swiperRef = useRef<SwiperType | null>(null);
+
+  const markLoaded = (i: number) =>
+    setLoadedImages((prev) => {
+      if (prev.has(i)) return prev;
+      const next = new Set(prev);
+      next.add(i);
+      return next;
+    });
 
   // Keyboard arrows navigate slides + click in edge zones navigate
   useEffect(() => {
@@ -88,12 +97,26 @@ export default function GallerySlider({ category, items }: Props) {
                     aria-label={`Open ${item.title}`}
                     data-cursor={isActive ? "picture" : undefined}
                   >
+                    <span
+                      className={`${styles.placeholder} ${
+                        loadedImages.has(i) ? styles.placeholderHidden : ""
+                      }`}
+                      aria-hidden="true"
+                    />
                     <img
                       src={verticalSrc(i)}
                       alt={item.title}
-                      className={styles.picture}
+                      className={`${styles.picture} ${
+                        loadedImages.has(i) ? styles.pictureLoaded : ""
+                      }`}
                       loading={isActive ? "eager" : "lazy"}
                       draggable={false}
+                      onLoad={() => markLoaded(i)}
+                      ref={(el) => {
+                        if (el && el.complete && el.naturalWidth > 0) {
+                          markLoaded(i);
+                        }
+                      }}
                     />
                   </button>
                 </div>

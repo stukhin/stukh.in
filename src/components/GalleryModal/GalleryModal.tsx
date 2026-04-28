@@ -24,6 +24,7 @@ export default function GalleryModal({
   onOrientationChange,
 }: Props) {
   const [mounted, setMounted] = useState(false);
+  const [imgLoaded, setImgLoaded] = useState(false);
 
   // Control mounted state so we can animate in/out
   useEffect(() => {
@@ -34,6 +35,11 @@ export default function GalleryModal({
       return () => clearTimeout(t);
     }
   }, [open]);
+
+  // Reset load state whenever the displayed image changes (index/orientation).
+  useEffect(() => {
+    setImgLoaded(false);
+  }, [index, orientation, category]);
 
   useEffect(() => {
     if (!open) return;
@@ -56,12 +62,28 @@ export default function GalleryModal({
       aria-modal="true"
     >
       <div className={styles.container}>
+        <span
+          className={`${styles.placeholder} ${
+            imgLoaded ? styles.placeholderHidden : ""
+          }`}
+          aria-hidden="true"
+        >
+          <span className={styles.spinner} />
+        </span>
         <img
           alt={item.title}
           loading="lazy"
           decoding="async"
-          className={styles.picture}
+          className={`${styles.picture} ${
+            imgLoaded ? styles.pictureLoaded : ""
+          }`}
           src={src}
+          onLoad={() => setImgLoaded(true)}
+          ref={(el) => {
+            if (el && el.complete && el.naturalWidth > 0) {
+              setImgLoaded(true);
+            }
+          }}
           onError={(e) => {
             const el = e.currentTarget as HTMLImageElement;
             if (orientation === "horizontal") {

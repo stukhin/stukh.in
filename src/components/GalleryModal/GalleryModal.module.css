@@ -39,13 +39,54 @@
   transform: scale(0.6);
   transition: transform 0.3s ease-in, opacity 0.3s ease-in,
     visibility 0.3s ease-in;
-  opacity: 1;
+  opacity: 0;
   left: 0;
   top: 0;
 }
 
+.pictureLoaded {
+  opacity: 1;
+}
+
 .modal.open .picture {
   transform: scale(1);
+}
+
+/* Loading placeholder shown while the full-size image downloads. */
+.placeholder {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  opacity: 1;
+  transition: opacity 0.35s ease;
+}
+
+.placeholderHidden {
+  opacity: 0;
+}
+
+.spinner {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.18);
+  border-top-color: rgba(255, 255, 255, 0.85);
+  animation: modalSpin 0.9s linear infinite;
+}
+
+@keyframes modalSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spinner {
+    animation: none;
+  }
 }
 
 .buttons {
