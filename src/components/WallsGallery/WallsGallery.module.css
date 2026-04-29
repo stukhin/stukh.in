@@ -143,12 +143,13 @@
   position: absolute;
   inset: 0;
   pointer-events: none;
-  /* White-veil tint plus a strong blur and slight darkening — heavy
-     enough that the photo behind reads as 'frosted', not just dim. */
-  background: hsla(0, 0%, 100%, 0.22);
-  backdrop-filter: blur(36px) saturate(150%) brightness(0.7);
+  /* Light white veil + heavy blur + decent darkening. Tuned so the
+     photo's shapes still read clearly through the frost, but the card
+     reads as noticeably darker than the un-frosted neighbours. */
+  background: hsla(0, 0%, 100%, 0.08);
+  backdrop-filter: blur(32px) saturate(140%) brightness(0.55);
   /* Subtle highlight along one edge to sell the ice illusion. */
-  box-shadow: inset 1px 1px 0 hsla(0, 0%, 100%, 0.18);
+  box-shadow: inset 1px 1px 0 hsla(0, 0%, 100%, 0.16);
   opacity: 0;
   z-index: 1;
 }
