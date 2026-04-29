@@ -537,7 +537,10 @@
   backdrop-filter: blur(8px);
 }
 
-.photoBox:hover .zoomDownload {
+/* Only show the Download button once the FLIP zoom-in has completed
+   (.photoBoxReady is added by JS after ZOOM_IN_MS) AND the cursor is
+   hovering the photo. */
+.photoBoxReady:hover .zoomDownload {
   opacity: 1;
   pointer-events: auto;
 }

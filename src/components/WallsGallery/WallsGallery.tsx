@@ -39,6 +39,7 @@ export default function WallsGallery({ items }: Props) {
   const [downloads, setDownloads] = useState<Record<string, DownloadState>>({});
   const [zoomed, setZoomed] = useState<Wallpaper | null>(null);
   const [zoomClosing, setZoomClosing] = useState(false);
+  const [zoomReady, setZoomReady] = useState(false);
   const [activeCategory, setActiveCategory] = useState<string>(ALL);
 
   const cardImgRefs = useRef<Record<string, HTMLImageElement | null>>({});
@@ -106,11 +107,15 @@ export default function WallsGallery({ items }: Props) {
     const cardImg = cardImgRefs.current[w.id];
     fromRectRef.current = cardImg ? cardImg.getBoundingClientRect() : null;
     setZoomClosing(false);
+    setZoomReady(false);
     setZoomed(w);
   };
 
   const closeZoom = () => {
     if (!zoomed || zoomClosing) return;
+    // Hide the Download button immediately as the photo starts
+    // shrinking back — no chance to flash it during the close.
+    setZoomReady(false);
     // Re-capture the card's rect in case the scroll/tilt state shifted
     // since the click that opened the zoom.
     const cardImg = cardImgRefs.current[zoomed.id];
@@ -171,6 +176,10 @@ export default function WallsGallery({ items }: Props) {
         fill: "forwards",
       }
     );
+    // Reveal the Download button only once the photo has finished
+    // its grow-into-place animation.
+    const readyTimer = window.setTimeout(() => setZoomReady(true), ZOOM_IN_MS);
+    return () => window.clearTimeout(readyTimer);
   }, [zoomed, zoomClosing]);
 
   // Lock the underlying scroll while the zoom view is open, hide the
@@ -260,7 +269,9 @@ export default function WallsGallery({ items }: Props) {
           onClick={closeZoom}
         >
           <div
-            className={styles.photoBox}
+            className={`${styles.photoBox} ${
+              zoomReady ? styles.photoBoxReady : ""
+            }`}
             onClick={(e) => e.stopPropagation()}
           >
             <img
