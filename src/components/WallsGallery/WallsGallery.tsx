@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { MouseEvent, useEffect, useMemo, useRef, useState } from "react";
+import { motion, useMotionValue, useSpring } from "motion/react";
 import styles from "./WallsGallery.module.css";
 
 export type Wallpaper = {
@@ -13,15 +14,17 @@ export type Wallpaper = {
   category: string;
 };
 
+type DownloadState = "idle" | "loading" | "done";
+
 type Props = {
   items: Wallpaper[];
 };
 
-type DownloadState = "idle" | "loading" | "done";
-
 const ALL = "All";
 const GHOST_COUNT = 4;
 const ZOOM_OUT_MS = 360;
+const TILT_AMPLITUDE = 9;
+const SPRING = { damping: 30, stiffness: 100, mass: 1.4 };
 
 export default function WallsGallery({ items }: Props) {
   const [counts, setCounts] = useState<Record<string, number>>({});
@@ -150,90 +153,19 @@ export default function WallsGallery({ items }: Props) {
             const state = downloads[w.id] || "idle";
             const count = counts[w.id] ?? w.downloads;
             return (
-              <li key={w.id} className={styles.card}>
-                <button
-                  type="button"
-                  className={styles.frame}
-                  onClick={() => openZoom(w)}
-                  aria-label={`Open ${w.title}`}
-                  data-cursor="magnifier"
-                >
-                  <img
-                    src={`/images/walls/${w.id}_thumb.webp`}
-                    alt={w.title}
-                    className={styles.thumb}
-                    draggable={false}
-                  />
-                  {/* Six frosted-glass chunks of different shapes;
-                      animate in on hover one after another. */}
-                  <span className={`${styles.chunk} ${styles.chunk1}`} />
-                  <span className={`${styles.chunk} ${styles.chunk2}`} />
-                  <span className={`${styles.chunk} ${styles.chunk3}`} />
-                  <span className={`${styles.chunk} ${styles.chunk4}`} />
-                  <span className={`${styles.chunk} ${styles.chunk5}`} />
-                  <span className={`${styles.chunk} ${styles.chunk6}`} />
-
-                  {/* Description in the top-left, fades in after the
-                      glass settles. */}
-                  <span className={styles.info}>
-                    <span className={styles.cardTitle}>{w.title}</span>
-                    <span className={styles.meta}>
-                      {w.location} · {w.year}
-                    </span>
-                    <span className={styles.story}>{w.story}</span>
-                  </span>
-
-                  <span className={styles.counter}>
-                    {count.toLocaleString()} downloads
-                  </span>
-
-                  {state === "loading" && (
-                    <span className={styles.loader} aria-hidden="true">
-                      <span className={styles.bar} />
-                    </span>
-                  )}
-                  {state === "done" && (
-                    <span className={styles.toast} aria-hidden="true">
-                      Saved
-                    </span>
-                  )}
-                </button>
-
-                {/* Download lives outside the frame button so its hover
-                    is the regular dot cursor (not the magnifier) and
-                    its click doesn't open the zoom view. */}
-                <button
-                  type="button"
-                  className={styles.downloadBtn}
-                  onClick={() => download(w)}
-                  disabled={state === "loading"}
-                  aria-label={`Download ${w.title}`}
-                  data-cursor="hover"
-                >
-                  <svg
-                    width="18"
-                    height="18"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="1.6"
-                  >
-                    <path d="M12 4v12" strokeLinecap="round" />
-                    <path
-                      d="m6 11 6 6 6-6"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                    <path d="M5 20h14" strokeLinecap="round" />
-                  </svg>
-                </button>
-              </li>
+              <WallpaperCard
+                key={w.id}
+                wallpaper={w}
+                count={count}
+                state={state}
+                onZoom={openZoom}
+                onDownload={download}
+              />
             );
           })}
 
           {/* Soft empty placeholders hinting more wallpapers will land
-              here. They keep the grid feeling populated even when the
-              last row is half-empty. */}
+              here. */}
           {Array.from({ length: GHOST_COUNT }).map((_, i) => (
             <li
               key={`ghost-${i}`}
@@ -276,5 +208,130 @@ export default function WallsGallery({ items }: Props) {
         </div>
       )}
     </>
+  );
+}
+
+type CardProps = {
+  wallpaper: Wallpaper;
+  count: number;
+  state: DownloadState;
+  onZoom: (w: Wallpaper) => void;
+  onDownload: (w: Wallpaper) => void;
+};
+
+function WallpaperCard({ wallpaper, count, state, onZoom, onDownload }: CardProps) {
+  const ref = useRef<HTMLLIElement>(null);
+  const rotateX = useSpring(useMotionValue(0), SPRING);
+  const rotateY = useSpring(useMotionValue(0), SPRING);
+  const scale = useSpring(1, SPRING);
+
+  function handleMove(e: MouseEvent<HTMLLIElement>) {
+    const el = ref.current;
+    if (!el) return;
+    const rect = el.getBoundingClientRect();
+    const offsetX = e.clientX - rect.left - rect.width / 2;
+    const offsetY = e.clientY - rect.top - rect.height / 2;
+    rotateX.set((offsetY / (rect.height / 2)) * -TILT_AMPLITUDE);
+    rotateY.set((offsetX / (rect.width / 2)) * TILT_AMPLITUDE);
+  }
+
+  function handleEnter() {
+    scale.set(1.04);
+  }
+
+  function handleLeave() {
+    rotateX.set(0);
+    rotateY.set(0);
+    scale.set(1);
+  }
+
+  return (
+    <li
+      ref={ref}
+      className={styles.card}
+      onMouseMove={handleMove}
+      onMouseEnter={handleEnter}
+      onMouseLeave={handleLeave}
+    >
+      <motion.div
+        className={styles.tilt}
+        style={{ rotateX, rotateY, scale, transformStyle: "preserve-3d" }}
+      >
+        <button
+          type="button"
+          className={styles.frame}
+          onClick={() => onZoom(wallpaper)}
+          aria-label={`Open ${wallpaper.title}`}
+          data-cursor="magnifier"
+        >
+          <img
+            src={`/images/walls/${wallpaper.id}_thumb.webp`}
+            alt={wallpaper.title}
+            className={styles.thumb}
+            draggable={false}
+          />
+
+          {/* Six frosted-glass chunks of different shapes. */}
+          <span className={`${styles.chunk} ${styles.chunk1}`} />
+          <span className={`${styles.chunk} ${styles.chunk2}`} />
+          <span className={`${styles.chunk} ${styles.chunk3}`} />
+          <span className={`${styles.chunk} ${styles.chunk4}`} />
+          <span className={`${styles.chunk} ${styles.chunk5}`} />
+          <span className={`${styles.chunk} ${styles.chunk6}`} />
+
+          {/* Description sits at the top-left, fades in after the glass
+              settles. translateZ pushes it slightly forward so the
+              tilt makes it feel like it's floating above the photo. */}
+          <span className={styles.info}>
+            <span className={styles.cardTitle}>{wallpaper.title}</span>
+            <span className={styles.meta}>
+              {wallpaper.location} · {wallpaper.year}
+            </span>
+            <span className={styles.story}>{wallpaper.story}</span>
+          </span>
+
+          <span className={styles.counter}>
+            {count.toLocaleString()} downloads
+          </span>
+
+          {state === "loading" && (
+            <span className={styles.loader} aria-hidden="true">
+              <span className={styles.bar} />
+            </span>
+          )}
+          {state === "done" && (
+            <span className={styles.toast} aria-hidden="true">
+              Saved
+            </span>
+          )}
+        </button>
+
+        <button
+          type="button"
+          className={styles.downloadBtn}
+          onClick={() => onDownload(wallpaper)}
+          disabled={state === "loading"}
+          aria-label={`Download ${wallpaper.title}`}
+          data-cursor="hover"
+        >
+          <svg
+            width="18"
+            height="18"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.6"
+          >
+            <path d="M12 4v12" strokeLinecap="round" />
+            <path
+              d="m6 11 6 6 6-6"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+            <path d="M5 20h14" strokeLinecap="round" />
+          </svg>
+        </button>
+      </motion.div>
+    </li>
   );
 }

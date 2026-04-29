@@ -106,22 +106,34 @@
   }
 }
 
+/* The card itself sets up the 3D perspective; the inner .tilt wrapper
+   is what motion rotates and scales. */
 .card {
   list-style: none;
   position: relative;
+  perspective: 900px;
+  perspective-origin: center;
+}
+
+.tilt {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 9 / 16;
+  transform-style: preserve-3d;
+  will-change: transform;
 }
 
 .frame {
-  position: relative;
+  position: absolute;
+  inset: 0;
   display: block;
-  width: 100%;
-  aspect-ratio: 9 / 16;
   background-color: #1a1a1a;
   overflow: hidden;
   cursor: none;
   padding: 0;
   border: 0;
   color: inherit;
+  transform-style: preserve-3d;
 }
 
 .thumb {
@@ -129,13 +141,9 @@
   height: 100%;
   display: block;
   object-fit: cover;
-  transition: transform 0.6s ease;
   -webkit-backface-visibility: hidden;
   backface-visibility: hidden;
-}
-
-.card:hover .thumb {
-  transform: scale(1.04);
+  /* Motion handles the hover scale on the parent tilt now. */
 }
 
 /* Frosted-glass chunks. Light white veil + heavy blur + decent
@@ -198,7 +206,9 @@
   }
 }
 
-/* Description sits at the top-left of the card, left-aligned. */
+/* Description sits at the top-left of the card, left-aligned. The
+   translateZ pushes it slightly forward so the tilt parallax makes
+   it feel like the text is floating above the photo. */
 .info {
   position: absolute;
   top: 16px;
@@ -209,10 +219,11 @@
   color: #fff;
   pointer-events: none;
   opacity: 0;
+  transform: translateZ(28px);
 }
 
 .card:hover .info {
-  animation: overlayIn 0.4s ease-out 1s forwards;
+  animation: infoIn 0.4s ease-out 1s forwards;
 }
 
 .cardTitle {
@@ -256,21 +267,32 @@
   color: #fff;
   pointer-events: none;
   opacity: 0;
+  transform: translateZ(20px);
 }
 
 .card:hover .counter {
-  animation: overlayIn 0.4s ease-out 1.05s forwards;
-  /* Sticks at end-state opacity 0.6 — overridden by the keyframes. */
+  animation: counterIn 0.4s ease-out 1.05s forwards;
 }
 
-@keyframes overlayIn {
+@keyframes infoIn {
   from {
     opacity: 0;
-    transform: translateY(6px);
+    transform: translateY(6px) translateZ(28px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) translateZ(28px);
+  }
+}
+
+@keyframes counterIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px) translateZ(20px);
   }
   to {
     opacity: 0.6;
-    transform: translateY(0);
+    transform: translateY(0) translateZ(20px);
   }
 }
 
@@ -310,28 +332,25 @@
   cursor: none;
   z-index: 4;
   opacity: 0;
-  transform: translateY(6px);
+  transform: translateY(6px) translateZ(28px);
   pointer-events: none;
   transition: background 0.2s ease, border-color 0.2s ease;
 }
 
 .card:hover .downloadBtn {
-  animation: overlayInVisible 0.4s ease-out 1s forwards;
+  animation: downloadBtnIn 0.4s ease-out 1s forwards;
+  pointer-events: auto;
 }
 
-@keyframes overlayInVisible {
+@keyframes downloadBtnIn {
   from {
     opacity: 0;
-    transform: translateY(6px);
+    transform: translateY(6px) translateZ(28px);
   }
   to {
     opacity: 1;
-    transform: translateY(0);
+    transform: translateY(0) translateZ(28px);
   }
-}
-
-.card:hover .downloadBtn {
-  pointer-events: auto;
 }
 
 .downloadBtn:hover {
