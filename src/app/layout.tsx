@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import { ViewTransitions } from "next-view-transitions";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -25,8 +26,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
-      <body>{children}</body>
-    </html>
+    <ViewTransitions>
+      <html lang="en">
+        <body>{children}</body>
+      </html>
+    </ViewTransitions>
   );
 }

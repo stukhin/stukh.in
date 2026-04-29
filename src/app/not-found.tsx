@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { Link } from "next-view-transitions";
 import AppShell from "@/components/AppShell/AppShell";
 import styles from "./not-found.module.css";
 

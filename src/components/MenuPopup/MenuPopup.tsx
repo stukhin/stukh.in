@@ -73,6 +73,8 @@ export default function MenuPopup({ open, onClose, className = "" }: Props) {
         <Menu
           column
           className={`${styles.menu} ${animating ? styles.menuAnimating : ""}`}
+          onNavigate={onClose}
+          navigateDelayMs={500}
         />
         <div className={`${styles.wrapper} ${animating ? styles.wrapperVisible : ""}`}>
           <Socials className={styles.social} />
