@@ -1,61 +1,113 @@
-.intro {
-  text-align: center;
-  padding: 90px 24px 32px;
-  color: #fff;
-  text-transform: lowercase;
+.layout {
+  display: flex;
+  align-items: flex-start;
+  gap: 40px;
+  width: 100%;
+  max-width: 1500px;
+  margin: 0 auto;
+  /* Top padding clears the fixed logo (top:66 + height:90 = 156) +
+     breathing room. Right padding clears the burger (top:40 + 50). */
+  padding: 200px 40px 96px;
+  position: relative;
 }
 
-@media (max-width: 597px) {
-  .intro {
-    padding: 60px 24px 24px;
+@media (max-width: 768px) {
+  .layout {
+    flex-direction: column;
+    padding: 130px 16px 80px;
+    gap: 16px;
   }
 }
 
-.title {
-  font-size: 60px;
-  font-weight: 300;
-  line-height: 1;
+/* Sidebar with category filter */
+.sidebar {
+  flex: 0 0 140px;
+  position: sticky;
+  /* Stays a bit below the burger when scrolling. */
+  top: 200px;
+  align-self: flex-start;
+}
+
+@media (max-width: 768px) {
+  .sidebar {
+    position: static;
+    flex: 0 0 auto;
+    align-self: stretch;
+  }
+}
+
+.catList {
+  list-style: none;
   margin: 0;
-  letter-spacing: -0.03em;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
 }
 
-@media (min-width: 1025px) {
-  .title {
-    font-size: 100px;
+@media (max-width: 768px) {
+  .catList {
+    flex-direction: row;
+    gap: 18px;
+    flex-wrap: wrap;
+    overflow-x: auto;
   }
 }
 
-.subtitle {
-  font-size: 14px;
+.catBtn {
+  position: relative;
+  background: transparent;
+  border: 0;
+  padding: 0;
+  color: hsla(0, 0%, 100%, 0.55);
+  text-transform: lowercase;
+  font-size: 16px;
+  letter-spacing: -0.02em;
   font-weight: 300;
-  margin: 18px 0 0;
-  opacity: 0.55;
-  letter-spacing: 0.01em;
+  cursor: none;
+  text-align: left;
+  transition: color 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  white-space: nowrap;
 }
 
-@media (min-width: 1025px) {
-  .subtitle {
-    font-size: 16px;
-    margin-top: 22px;
-  }
+.catBtn:hover {
+  color: #fff;
 }
 
+.catActive {
+  color: #fff;
+}
+
+.catUnderline {
+  display: inline-block;
+  width: 0;
+  height: 1px;
+  background: #fff;
+  margin-left: 10px;
+  transition: width 0.25s ease;
+}
+
+.catActive .catUnderline,
+.catBtn:hover .catUnderline {
+  width: 18px;
+}
+
+/* Grid */
 .grid {
   list-style: none;
   margin: 0;
-  padding: 32px 32px 96px;
+  padding: 0;
+  flex: 1 1 auto;
   display: grid;
-  gap: 24px;
+  gap: 20px;
   grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-  max-width: 1400px;
-  margin-left: auto;
-  margin-right: auto;
 }
 
 @media (max-width: 597px) {
   .grid {
-    padding: 24px 16px 80px;
-    gap: 16px;
+    gap: 12px;
     grid-template-columns: repeat(2, 1fr);
   }
 }
@@ -68,9 +120,7 @@
   position: relative;
   aspect-ratio: 9 / 16;
   background-color: #1a1a1a;
-  border-radius: 12px;
   overflow: hidden;
-  box-shadow: 0 6px 30px rgba(0, 0, 0, 0.45);
   cursor: none;
 }
 
@@ -79,49 +129,129 @@
   height: 100%;
   display: block;
   object-fit: cover;
-  transition: transform 0.6s ease, filter 0.4s ease;
+  transition: transform 0.6s ease;
   -webkit-backface-visibility: hidden;
   backface-visibility: hidden;
 }
 
 .frame:hover .thumb {
-  transform: scale(1.05);
-  filter: brightness(0.55);
+  transform: scale(1.04);
+}
+
+/* Frosted-glass chunks: each is a transparent layer the size of the
+   card, then a clip-path carves out an irregular shape. On hover they
+   appear one after another with a stagger so the card looks like it's
+   icing over in patches. */
+.chunk {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: hsla(0, 0%, 100%, 0.07);
+  backdrop-filter: blur(14px) saturate(140%);
+  -webkit-backdrop-filter: blur(14px) saturate(140%);
+  opacity: 0;
+  z-index: 1;
+}
+
+/* Top-left wedge */
+.chunk1 {
+  clip-path: polygon(0% 0%, 60% 0%, 38% 42%, 0% 36%);
+}
+/* Top-right wedge */
+.chunk2 {
+  clip-path: polygon(60% 0%, 100% 0%, 100% 32%, 70% 50%, 38% 42%);
+}
+/* Centre diamond */
+.chunk3 {
+  clip-path: polygon(38% 42%, 70% 50%, 60% 78%, 26% 80%);
+}
+/* Left bottom triangle */
+.chunk4 {
+  clip-path: polygon(0% 36%, 38% 42%, 26% 80%, 0% 72%);
+}
+/* Right bottom triangle */
+.chunk5 {
+  clip-path: polygon(70% 50%, 100% 32%, 100% 76%, 60% 78%);
+}
+/* Bottom strip */
+.chunk6 {
+  clip-path: polygon(0% 72%, 26% 80%, 60% 78%, 100% 76%, 100% 100%, 0% 100%);
+}
+
+.frame:hover .chunk1 {
+  animation: chunkIn 0.32s ease-out 0s forwards;
+}
+.frame:hover .chunk2 {
+  animation: chunkIn 0.32s ease-out 0.14s forwards;
+}
+.frame:hover .chunk3 {
+  animation: chunkIn 0.32s ease-out 0.28s forwards;
+}
+.frame:hover .chunk4 {
+  animation: chunkIn 0.32s ease-out 0.42s forwards;
+}
+.frame:hover .chunk5 {
+  animation: chunkIn 0.32s ease-out 0.56s forwards;
+}
+.frame:hover .chunk6 {
+  animation: chunkIn 0.32s ease-out 0.7s forwards;
+}
+
+@keyframes chunkIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 .overlay {
   position: absolute;
   inset: 0;
+  z-index: 2;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
   padding: 16px;
   color: #fff;
-  opacity: 0;
-  transition: opacity 0.3s ease;
   pointer-events: none;
+  opacity: 0;
 }
 
 .frame:hover .overlay {
-  opacity: 1;
   pointer-events: auto;
+  animation: overlayIn 0.4s ease-out 1s forwards;
+}
+
+@keyframes overlayIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @media (hover: none), (max-width: 597px) {
-  /* On touch devices the overlay is always visible — there's no hover. */
+  /* Touch — no hover. Show solid info, skip the chunk animation. */
+  .chunk {
+    display: none;
+  }
   .overlay {
     opacity: 1;
-    pointer-events: auto;
     background: linear-gradient(
       180deg,
-      rgba(0, 0, 0, 0.05) 0%,
+      rgba(0, 0, 0, 0) 0%,
       rgba(0, 0, 0, 0.55) 60%,
       rgba(0, 0, 0, 0.85) 100%
     );
+    pointer-events: auto;
   }
   .frame:hover .thumb {
     transform: none;
-    filter: none;
   }
 }
 
@@ -134,12 +264,14 @@
   font-weight: 300;
   margin: 0;
   text-transform: lowercase;
+  color: #fff;
+  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.45);
 }
 
 .meta {
   margin: 4px 0 0;
   font-size: 12px;
-  opacity: 0.7;
+  opacity: 0.75;
   font-weight: 300;
   text-transform: lowercase;
 }
@@ -156,17 +288,16 @@
 .actions {
   display: flex;
   justify-content: center;
-  gap: 10px;
+  gap: 8px;
   margin-top: auto;
   margin-bottom: 6px;
 }
 
 .action {
-  width: 38px;
-  height: 38px;
-  border-radius: 999px;
-  border: 1px solid hsla(0, 0%, 100%, 0.4);
-  background: rgba(0, 0, 0, 0.45);
+  width: 36px;
+  height: 36px;
+  border: 1px solid hsla(0, 0%, 100%, 0.55);
+  background: transparent;
   color: #fff;
   display: flex;
   align-items: center;
@@ -187,7 +318,7 @@
 .counter {
   text-align: center;
   font-size: 11px;
-  opacity: 0.55;
+  opacity: 0.6;
   letter-spacing: 0.04em;
   text-transform: lowercase;
   font-weight: 300;
@@ -197,7 +328,7 @@
 .loader {
   position: absolute;
   inset: 0;
-  z-index: 2;
+  z-index: 3;
   display: flex;
   align-items: flex-end;
   pointer-events: none;
@@ -234,9 +365,8 @@
   letter-spacing: 0.06em;
   text-transform: uppercase;
   padding: 6px 12px;
-  border-radius: 99px;
   font-weight: 400;
-  z-index: 3;
+  z-index: 4;
   animation: toastFade 1.6s ease-out forwards;
 }
 
@@ -270,7 +400,6 @@
   max-width: calc(100vw - 80px);
   object-fit: contain;
   display: block;
-  border-radius: 6px;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
 }
 
@@ -280,7 +409,6 @@
   right: 24px;
   width: 44px;
   height: 44px;
-  border-radius: 50%;
   background: #000;
   color: #fff;
   cursor: none;
@@ -313,7 +441,6 @@
   border: 1px solid rgba(255, 255, 255, 0.3);
   color: #fff;
   padding: 12px 28px;
-  border-radius: 99px;
   font-size: 13px;
   letter-spacing: 0.08em;
   text-transform: uppercase;

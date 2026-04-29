@@ -5,7 +5,8 @@
     "location": "Portugal",
     "year": 2018,
     "story": "Sandstone cliffs at low tide, just before sunset.",
-    "downloads": 1284
+    "downloads": 1284,
+    "category": "Coast"
   },
   {
     "id": "norway-fjord",
@@ -13,7 +14,8 @@
     "location": "Norway",
     "year": 2019,
     "story": "Long exposure of glacial water at first light.",
-    "downloads": 947
+    "downloads": 947,
+    "category": "Mountains"
   },
   {
     "id": "forest-mist",
@@ -21,7 +23,8 @@
     "location": "Karelia",
     "year": 2020,
     "story": "Pine trees emerging from morning fog.",
-    "downloads": 612
+    "downloads": 612,
+    "category": "Forest"
   },
   {
     "id": "ridge",
@@ -29,7 +32,8 @@
     "location": "Italian Alps",
     "year": 2022,
     "story": "Last light on the Dolomites in early autumn.",
-    "downloads": 1853
+    "downloads": 1853,
+    "category": "Mountains"
   },
   {
     "id": "dunes",
@@ -37,7 +41,8 @@
     "location": "Namibia",
     "year": 2021,
     "story": "Wind-shaped dunes shot from a small Cessna.",
-    "downloads": 2341
+    "downloads": 2341,
+    "category": "Desert"
   },
   {
     "id": "lake",
@@ -45,7 +50,8 @@
     "location": "Slovenia",
     "year": 2023,
     "story": "A still alpine lake at dawn — perfect reflection.",
-    "downloads": 738
+    "downloads": 738,
+    "category": "Mountains"
   },
   {
     "id": "pine",
@@ -53,6 +59,7 @@
     "location": "Norway",
     "year": 2024,
     "story": "A single tree on a fjord shore in heavy rain.",
-    "downloads": 1102
+    "downloads": 1102,
+    "category": "Forest"
   }
 ]
