@@ -26,8 +26,19 @@ export default function GallerySlider({ category, items }: Props) {
     "vertical" | "horizontal"
   >("vertical");
   const [loadedImages, setLoadedImages] = useState<Set<number>>(new Set());
+  const [modalFromRect, setModalFromRect] = useState<DOMRect | null>(null);
 
   const swiperRef = useRef<SwiperType | null>(null);
+  /** Returns the active slide's <img> rect — used by the modal so the
+   * FLIP animation can morph back to whatever slide is currently
+   * active when the user closes (in case they navigate while the
+   * modal is open). */
+  const getActiveImgRect = (): DOMRect | null => {
+    const el = document
+      .querySelector(".swiper-slide-active img")
+      ?.getBoundingClientRect();
+    return el || null;
+  };
 
   const markLoaded = (i: number) =>
     setLoadedImages((prev) => {
@@ -103,6 +114,7 @@ export default function GallerySlider({ category, items }: Props) {
                     className={styles.pictureButton}
                     onClick={() => {
                       if (isActive) {
+                        setModalFromRect(getActiveImgRect());
                         setModalOpen(true);
                       } else {
                         swiperRef.current?.slideToLoop?.(i) ??
@@ -191,6 +203,8 @@ export default function GallerySlider({ category, items }: Props) {
         item={activeItem}
         index={activeIndex}
         orientation={modalOrientation}
+        fromRect={modalFromRect}
+        getCurrentRect={getActiveImgRect}
         onClose={() => setModalOpen(false)}
         onOrientationChange={setModalOrientation}
       />

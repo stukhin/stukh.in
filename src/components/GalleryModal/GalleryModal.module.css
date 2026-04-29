@@ -38,20 +38,20 @@
   height: 100%;
   width: 100%;
   object-fit: contain;
-  transform: scale(0.6);
-  transition: transform 0.3s ease-in, opacity 0.3s ease-in,
-    visibility 0.3s ease-in;
+  /* Transform is driven by the FLIP morph in GalleryModal.tsx via the
+     Web Animations API. Static fallback below keeps the photo
+     positioned correctly when JS hasn't run yet. */
+  transform: translate(0, 0) scale(1);
+  transform-origin: center center;
   opacity: 0;
+  transition: opacity 0.3s ease-in;
   left: 0;
   top: 0;
+  will-change: transform, opacity;
 }
 
 .pictureLoaded {
   opacity: 1;
-}
-
-.modal.open .picture {
-  transform: scale(1);
 }
 
 /* Loading placeholder shown while the full-size image downloads. */
