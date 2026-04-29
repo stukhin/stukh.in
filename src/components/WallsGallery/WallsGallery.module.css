@@ -22,8 +22,6 @@
 }
 
 @media (max-width: 1100px) {
-  /* On narrower screens the sidebar would overlap the centred grid;
-     drop it back into normal flow horizontally above the grid. */
   .sidebar {
     position: static;
     width: 100%;
@@ -40,7 +38,7 @@
   gap: 18px;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 1100px) {
   .catList {
     flex-direction: row;
     gap: 18px;
@@ -54,11 +52,13 @@
   background: transparent;
   border: 0;
   padding: 0;
-  color: hsla(0, 0%, 100%, 0.55);
+  color: hsla(0, 0%, 100%, 0.45);
   text-transform: lowercase;
-  font-size: 16px;
-  letter-spacing: -0.02em;
-  font-weight: 300;
+  font-size: 13px;
+  letter-spacing: 0.04em;
+  /* Browser will synthesise a thinner stroke from Rubik 300. */
+  font-weight: 200;
+  font-synthesis: weight;
   cursor: none;
   text-align: left;
   transition: color 0.2s ease;
@@ -86,7 +86,7 @@
 
 .catActive .catUnderline,
 .catBtn:hover .catUnderline {
-  width: 18px;
+  width: 16px;
 }
 
 /* Grid: centred in the viewport, max 1100px so it doesn't overlap the
@@ -115,10 +115,15 @@
 
 .frame {
   position: relative;
+  display: block;
+  width: 100%;
   aspect-ratio: 9 / 16;
   background-color: #1a1a1a;
   overflow: hidden;
   cursor: none;
+  padding: 0;
+  border: 0;
+  color: inherit;
 }
 
 .thumb {
@@ -143,38 +148,28 @@
   position: absolute;
   inset: 0;
   pointer-events: none;
-  /* Light white veil + heavy blur + decent darkening. Tuned so the
-     photo's shapes still read clearly through the frost, but the card
-     reads as noticeably darker than the un-frosted neighbours. */
   background: hsla(0, 0%, 100%, 0.08);
   backdrop-filter: blur(32px) saturate(140%) brightness(0.55);
-  /* Subtle highlight along one edge to sell the ice illusion. */
   box-shadow: inset 1px 1px 0 hsla(0, 0%, 100%, 0.16);
   opacity: 0;
   z-index: 1;
 }
 
-/* Top-left wedge */
 .chunk1 {
   clip-path: polygon(0% 0%, 60% 0%, 38% 42%, 0% 36%);
 }
-/* Top-right wedge */
 .chunk2 {
   clip-path: polygon(60% 0%, 100% 0%, 100% 32%, 70% 50%, 38% 42%);
 }
-/* Centre diamond */
 .chunk3 {
   clip-path: polygon(38% 42%, 70% 50%, 60% 78%, 26% 80%);
 }
-/* Left bottom triangle */
 .chunk4 {
   clip-path: polygon(0% 36%, 38% 42%, 26% 80%, 0% 72%);
 }
-/* Right bottom triangle */
 .chunk5 {
   clip-path: polygon(70% 50%, 100% 32%, 100% 76%, 60% 78%);
 }
-/* Bottom strip */
 .chunk6 {
   clip-path: polygon(0% 72%, 26% 80%, 60% 78%, 100% 76%, 100% 100%, 0% 100%);
 }
@@ -221,7 +216,6 @@
 }
 
 .frame:hover .overlay {
-  pointer-events: auto;
   animation: overlayIn 0.4s ease-out 1s forwards;
 }
 
@@ -237,7 +231,6 @@
 }
 
 @media (hover: none), (max-width: 597px) {
-  /* Touch — no hover. Show solid info, skip the chunk animation. */
   .chunk {
     display: none;
   }
@@ -249,7 +242,9 @@
       rgba(0, 0, 0, 0.55) 60%,
       rgba(0, 0, 0, 0.85) 100%
     );
-    pointer-events: auto;
+  }
+  .magnifier {
+    display: none;
   }
   .frame:hover .thumb {
     transform: none;
@@ -258,6 +253,7 @@
 
 .info {
   letter-spacing: -0.02em;
+  display: block;
 }
 
 .cardTitle {
@@ -267,6 +263,7 @@
   text-transform: lowercase;
   color: #fff;
   text-shadow: 0 1px 8px rgba(0, 0, 0, 0.45);
+  display: block;
 }
 
 .meta {
@@ -275,6 +272,7 @@
   opacity: 0.75;
   font-weight: 300;
   text-transform: lowercase;
+  display: block;
 }
 
 .story {
@@ -284,36 +282,23 @@
   font-weight: 300;
   line-height: 1.45;
   max-width: 18em;
+  display: block;
 }
 
-.actions {
-  display: flex;
-  justify-content: center;
-  gap: 8px;
-  margin-top: auto;
-  margin-bottom: 6px;
-}
-
-.action {
-  width: 36px;
-  height: 36px;
-  border: 1px solid hsla(0, 0%, 100%, 0.55);
-  background: transparent;
-  color: #fff;
+/* Magnifier centred on the card — only visible while the card is
+   frosted, signals 'click to zoom'. */
+.magnifier {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 48px;
+  height: 48px;
+  transform: translate(-50%, -50%);
   display: flex;
   align-items: center;
   justify-content: center;
-  cursor: none;
-  transition: background 0.2s ease, border-color 0.2s ease;
-}
-
-.action:hover {
-  background: rgba(255, 255, 255, 0.18);
-  border-color: #fff;
-}
-
-.action:disabled {
-  opacity: 0.5;
+  border: 1px solid hsla(0, 0%, 100%, 0.55);
+  color: #fff;
 }
 
 .counter {
@@ -323,6 +308,29 @@
   letter-spacing: 0.04em;
   text-transform: lowercase;
   font-weight: 300;
+  display: block;
+}
+
+/* Ghost slots — barely-visible boxes sitting in unfilled grid cells,
+   hinting that more wallpapers will land here later. */
+.ghost {
+  list-style: none;
+  aspect-ratio: 9 / 16;
+  border: 1px solid hsla(0, 0%, 100%, 0.06);
+  background: hsla(0, 0%, 100%, 0.015);
+  pointer-events: none;
+  position: relative;
+}
+
+.ghostHint {
+  position: absolute;
+  bottom: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: hsla(0, 0%, 100%, 0.18);
 }
 
 /* Download progress bar across the bottom of the card. */
@@ -383,25 +391,39 @@
   }
 }
 
-/* Zoom modal */
+/* Zoom modal: photo sits at the centre of the viewport with a 20vh
+   gutter top and bottom (so it's roughly 60vh tall), allowing it to
+   feel large without filling the entire screen. The image animates
+   into place from its card position via the View Transitions API. */
 .zoom {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.92);
+  background: rgba(8, 8, 10, 0.92);
   z-index: 50;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 40px;
+  padding: 20vh 40px;
   cursor: none;
+  animation: zoomBgIn 0.45s ease-out both;
+}
+
+@keyframes zoomBgIn {
+  from {
+    background-color: rgba(8, 8, 10, 0);
+  }
+  to {
+    background-color: rgba(8, 8, 10, 0.92);
+  }
 }
 
 .zoomImage {
-  max-height: calc(100vh - 80px);
-  max-width: calc(100vw - 80px);
+  height: 100%;
+  width: auto;
+  max-width: 100%;
   object-fit: contain;
   display: block;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.5);
 }
 
 .zoomClose {
@@ -456,4 +478,12 @@
 
 .zoomDownload:disabled {
   opacity: 0.5;
+}
+
+/* Slow the wall-zoom view transition slightly so the morph from
+   thumbnail to full size is smooth, and keep the easing consistent
+   with the rest of the site. */
+::view-transition-group(wall-zoom) {
+  animation-duration: 0.55s;
+  animation-timing-function: cubic-bezier(0.65, 0, 0.35, 1);
 }
