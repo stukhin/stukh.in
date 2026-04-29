@@ -1,4 +1,5 @@
 @import url("https://fonts.googleapis.com/css2?family=Rubik:wght@300;400&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@200;300&display=swap");
 
 /* Reset */
 html, body, div, span, applet, object, iframe,
@@ -105,6 +106,14 @@ img {
   -webkit-user-drag: none;
   -webkit-user-select: none;
   user-select: none;
+}
+
+/* When a wallpaper zoom is open the burger should sit behind the dim
+   layer and not be tappable. Hide it explicitly so even a 92% dim
+   doesn't leak the silhouette through. */
+html.zoom-open button[aria-label="Open menu"],
+html.zoom-open button[aria-label="Close menu"] {
+  visibility: hidden;
 }
 
 /* Page-to-page transition. Pages live in a fixed order (see

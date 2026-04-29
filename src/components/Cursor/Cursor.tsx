@@ -10,7 +10,8 @@ type CursorShape =
   | "arrow-right"
   | "arrow-up"
   | "arrow-down"
-  | "picture";
+  | "picture"
+  | "magnifier";
 
 type Props = {
   variant?: "light" | "dark";
@@ -43,9 +44,14 @@ export default function Cursor({ variant = "light" }: Props) {
           v === "arrow-right" ||
           v === "arrow-up" ||
           v === "arrow-down" ||
-          v === "picture"
+          v === "picture" ||
+          v === "magnifier"
         )
           return v;
+        if (v === "hover") return "hover";
+        // Empty / unknown explicit values fall through to the
+        // interactive-element check below so e.g. a button inside a
+        // magnifier-cursor card still gets the dot cursor.
       }
       const interactive = t.closest(
         'a, button, [role="button"], input, textarea, select, [data-cursor-hover]'
@@ -76,6 +82,7 @@ export default function Cursor({ variant = "light" }: Props) {
     shape === "arrow-up" ? styles.arrowUp : "",
     shape === "arrow-down" ? styles.arrowDown : "",
     shape === "picture" ? styles.picture : "",
+    shape === "magnifier" ? styles.magnifier : "",
   ]
     .filter(Boolean)
     .join(" ");

@@ -10,9 +10,7 @@
   }
 }
 
-/* Sidebar floats at the far left, aligned horizontally with the logo
-   (left:66 desktop). Pulled out of flow so the grid below can be
-   truly viewport-centered. */
+/* Sidebar floats at the far left, aligned horizontally with the logo. */
 .sidebar {
   position: fixed;
   top: 200px;
@@ -47,18 +45,18 @@
   }
 }
 
+/* Inter weight 200 gives the airy thin stroke Rubik 300 doesn't reach. */
 .catBtn {
   position: relative;
   background: transparent;
   border: 0;
   padding: 0;
-  color: hsla(0, 0%, 100%, 0.45);
+  color: hsla(0, 0%, 100%, 0.55);
   text-transform: lowercase;
-  font-size: 13px;
-  letter-spacing: 0.04em;
-  /* Browser will synthesise a thinner stroke from Rubik 300. */
+  font-family: "Inter", "Rubik", sans-serif;
+  font-size: 16px;
+  letter-spacing: 0.02em;
   font-weight: 200;
-  font-synthesis: weight;
   cursor: none;
   text-align: left;
   transition: color 0.2s ease;
@@ -86,11 +84,10 @@
 
 .catActive .catUnderline,
 .catBtn:hover .catUnderline {
-  width: 16px;
+  width: 18px;
 }
 
-/* Grid: centred in the viewport, max 1100px so it doesn't overlap the
-   fixed sidebar on common desktop widths. */
+/* Grid: centred in the viewport. */
 .grid {
   list-style: none;
   margin: 0 auto;
@@ -111,6 +108,7 @@
 
 .card {
   list-style: none;
+  position: relative;
 }
 
 .frame {
@@ -136,14 +134,12 @@
   backface-visibility: hidden;
 }
 
-.frame:hover .thumb {
+.card:hover .thumb {
   transform: scale(1.04);
 }
 
-/* Frosted-glass chunks: each is a transparent layer the size of the
-   card, then a clip-path carves out an irregular shape. On hover they
-   appear one after another with a stagger so the card looks like it's
-   icing over in patches. */
+/* Frosted-glass chunks. Light white veil + heavy blur + decent
+   darkening — the photo behind reads as frosted, not just dim. */
 .chunk {
   position: absolute;
   inset: 0;
@@ -174,22 +170,22 @@
   clip-path: polygon(0% 72%, 26% 80%, 60% 78%, 100% 76%, 100% 100%, 0% 100%);
 }
 
-.frame:hover .chunk1 {
+.card:hover .chunk1 {
   animation: chunkIn 0.32s ease-out 0s forwards;
 }
-.frame:hover .chunk2 {
+.card:hover .chunk2 {
   animation: chunkIn 0.32s ease-out 0.14s forwards;
 }
-.frame:hover .chunk3 {
+.card:hover .chunk3 {
   animation: chunkIn 0.32s ease-out 0.28s forwards;
 }
-.frame:hover .chunk4 {
+.card:hover .chunk4 {
   animation: chunkIn 0.32s ease-out 0.42s forwards;
 }
-.frame:hover .chunk5 {
+.card:hover .chunk5 {
   animation: chunkIn 0.32s ease-out 0.56s forwards;
 }
-.frame:hover .chunk6 {
+.card:hover .chunk6 {
   animation: chunkIn 0.32s ease-out 0.7s forwards;
 }
 
@@ -202,24 +198,128 @@
   }
 }
 
-.overlay {
+/* Description sits at the top-left of the card, left-aligned. */
+.info {
   position: absolute;
-  inset: 0;
+  top: 16px;
+  left: 16px;
+  right: 16px;
   z-index: 2;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  padding: 16px;
+  letter-spacing: -0.02em;
   color: #fff;
   pointer-events: none;
   opacity: 0;
 }
 
-.frame:hover .overlay {
+.card:hover .info {
   animation: overlayIn 0.4s ease-out 1s forwards;
 }
 
+.cardTitle {
+  display: block;
+  font-size: 18px;
+  font-weight: 300;
+  margin: 0;
+  text-transform: lowercase;
+  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.45);
+}
+
+.meta {
+  display: block;
+  margin: 4px 0 0;
+  font-size: 12px;
+  opacity: 0.75;
+  font-weight: 300;
+  text-transform: lowercase;
+}
+
+.story {
+  display: block;
+  margin: 10px 0 0;
+  font-size: 12px;
+  opacity: 0.85;
+  font-weight: 300;
+  line-height: 1.45;
+  max-width: 18em;
+}
+
+.counter {
+  position: absolute;
+  bottom: 14px;
+  left: 16px;
+  z-index: 2;
+  font-size: 11px;
+  opacity: 0.6;
+  letter-spacing: 0.04em;
+  text-transform: lowercase;
+  font-weight: 300;
+  color: #fff;
+  pointer-events: none;
+  opacity: 0;
+}
+
+.card:hover .counter {
+  animation: overlayIn 0.4s ease-out 1.05s forwards;
+  /* Sticks at end-state opacity 0.6 — overridden by the keyframes. */
+}
+
 @keyframes overlayIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 0.6;
+    transform: translateY(0);
+  }
+}
+
+@media (hover: none), (max-width: 597px) {
+  .chunk {
+    display: none;
+  }
+  .info,
+  .counter {
+    opacity: 1;
+    background: linear-gradient(
+      180deg,
+      rgba(0, 0, 0, 0) 0%,
+      rgba(0, 0, 0, 0.55) 60%,
+      rgba(0, 0, 0, 0.85) 100%
+    );
+  }
+  .card:hover .thumb {
+    transform: none;
+  }
+}
+
+/* Download button: bottom-right of the card, only visible during
+   hover so it doesn't compete with the photo. */
+.downloadBtn {
+  position: absolute;
+  bottom: 14px;
+  right: 14px;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: 1px solid hsla(0, 0%, 100%, 0.55);
+  color: #fff;
+  cursor: none;
+  z-index: 4;
+  opacity: 0;
+  transform: translateY(6px);
+  pointer-events: none;
+  transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+.card:hover .downloadBtn {
+  animation: overlayInVisible 0.4s ease-out 1s forwards;
+}
+
+@keyframes overlayInVisible {
   from {
     opacity: 0;
     transform: translateY(6px);
@@ -230,89 +330,20 @@
   }
 }
 
-@media (hover: none), (max-width: 597px) {
-  .chunk {
-    display: none;
-  }
-  .overlay {
-    opacity: 1;
-    background: linear-gradient(
-      180deg,
-      rgba(0, 0, 0, 0) 0%,
-      rgba(0, 0, 0, 0.55) 60%,
-      rgba(0, 0, 0, 0.85) 100%
-    );
-  }
-  .magnifier {
-    display: none;
-  }
-  .frame:hover .thumb {
-    transform: none;
-  }
+.card:hover .downloadBtn {
+  pointer-events: auto;
 }
 
-.info {
-  letter-spacing: -0.02em;
-  display: block;
+.downloadBtn:hover {
+  background: rgba(255, 255, 255, 0.18);
+  border-color: #fff;
 }
 
-.cardTitle {
-  font-size: 18px;
-  font-weight: 300;
-  margin: 0;
-  text-transform: lowercase;
-  color: #fff;
-  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.45);
-  display: block;
+.downloadBtn:disabled {
+  opacity: 0.5;
 }
 
-.meta {
-  margin: 4px 0 0;
-  font-size: 12px;
-  opacity: 0.75;
-  font-weight: 300;
-  text-transform: lowercase;
-  display: block;
-}
-
-.story {
-  margin: 10px 0 0;
-  font-size: 12px;
-  opacity: 0.85;
-  font-weight: 300;
-  line-height: 1.45;
-  max-width: 18em;
-  display: block;
-}
-
-/* Magnifier centred on the card — only visible while the card is
-   frosted, signals 'click to zoom'. */
-.magnifier {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 48px;
-  height: 48px;
-  transform: translate(-50%, -50%);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: 1px solid hsla(0, 0%, 100%, 0.55);
-  color: #fff;
-}
-
-.counter {
-  text-align: center;
-  font-size: 11px;
-  opacity: 0.6;
-  letter-spacing: 0.04em;
-  text-transform: lowercase;
-  font-weight: 300;
-  display: block;
-}
-
-/* Ghost slots — barely-visible boxes sitting in unfilled grid cells,
-   hinting that more wallpapers will land here later. */
+/* Ghost slots */
 .ghost {
   list-style: none;
   aspect-ratio: 9 / 16;
@@ -391,21 +422,26 @@
   }
 }
 
-/* Zoom modal: photo sits at the centre of the viewport with a 20vh
-   gutter top and bottom (so it's roughly 60vh tall), allowing it to
-   feel large without filling the entire screen. The image animates
-   into place from its card position via the View Transitions API. */
+/* Zoom modal: photo sits at the centre of the viewport with a 15vh
+   gutter top and bottom, on a darkening backdrop. The photo and
+   overlay scale-fade in with CSS — no View Transitions API, so the
+   underlying page never scrolls. z-index sits above the burger so the
+   sandwich stays hidden behind the dim layer until the modal closes. */
 .zoom {
   position: fixed;
   inset: 0;
   background: rgba(8, 8, 10, 0.92);
-  z-index: 50;
+  z-index: 100;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 20vh 40px;
+  padding: 15vh 40px;
   cursor: none;
-  animation: zoomBgIn 0.45s ease-out both;
+  animation: zoomBgIn 0.32s ease-out both;
+}
+
+.zoomClosing {
+  animation: zoomBgOut 0.32s ease-in both;
 }
 
 @keyframes zoomBgIn {
@@ -417,6 +453,15 @@
   }
 }
 
+@keyframes zoomBgOut {
+  from {
+    background-color: rgba(8, 8, 10, 0.92);
+  }
+  to {
+    background-color: rgba(8, 8, 10, 0);
+  }
+}
+
 .zoomImage {
   height: 100%;
   width: auto;
@@ -424,40 +469,38 @@
   object-fit: contain;
   display: block;
   box-shadow: 0 24px 80px rgba(0, 0, 0, 0.5);
+  animation: zoomPhotoIn 0.55s cubic-bezier(0.65, 0, 0.35, 1) both;
 }
 
-.zoomClose {
-  position: absolute;
-  top: 24px;
-  right: 24px;
-  width: 44px;
-  height: 44px;
-  background: #000;
-  color: #fff;
-  cursor: none;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+.zoomClosing .zoomImage {
+  animation: zoomPhotoOut 0.36s cubic-bezier(0.65, 0, 0.35, 1) both;
 }
 
-.zoomClose span {
-  position: absolute;
-  width: 18px;
-  height: 2px;
-  background: #fff;
+@keyframes zoomPhotoIn {
+  from {
+    opacity: 0;
+    transform: scale(0.55);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
 }
 
-.zoomClose span:first-child {
-  transform: rotate(45deg);
-}
-
-.zoomClose span:last-child {
-  transform: rotate(-45deg);
+@keyframes zoomPhotoOut {
+  from {
+    opacity: 1;
+    transform: scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: scale(0.55);
+  }
 }
 
 .zoomDownload {
   position: absolute;
-  bottom: 32px;
+  bottom: 5vh;
   left: 50%;
   transform: translateX(-50%);
   background: rgba(255, 255, 255, 0.12);
@@ -469,6 +512,20 @@
   text-transform: uppercase;
   cursor: none;
   transition: background 0.2s ease, border-color 0.2s ease;
+  animation: overlayInVisible 0.45s ease-out 0.2s both;
+}
+
+.zoomClosing .zoomDownload {
+  animation: zoomBtnOut 0.25s ease-in both;
+}
+
+@keyframes zoomBtnOut {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
 }
 
 .zoomDownload:hover {
@@ -478,12 +535,4 @@
 
 .zoomDownload:disabled {
   opacity: 0.5;
-}
-
-/* Slow the wall-zoom view transition slightly so the morph from
-   thumbnail to full size is smooth, and keep the easing consistent
-   with the rest of the site. */
-::view-transition-group(wall-zoom) {
-  animation-duration: 0.55s;
-  animation-timing-function: cubic-bezier(0.65, 0, 0.35, 1);
 }
