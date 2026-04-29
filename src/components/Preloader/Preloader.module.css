@@ -23,55 +23,65 @@
   z-index: 1;
 }
 
-/* 4-bar dancing loader. Each bar takes a turn jumping up and back down. */
+/* 4-bar loader. Bar dimensions match the gallery progress slider:
+   idle = 1px line in light grey, active = 3px black pill with rounded
+   ends. Each bar takes a turn jumping. */
 .loader {
-  width: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100px;
   height: 9px;
-  --c: no-repeat linear-gradient(#000 0 0);
-  background: var(--c), var(--c), var(--c), var(--c);
-  background-size: 26% 3px;
-  animation: preloaderBars 1s infinite;
 }
 
-@media (min-width: 1025px) {
-  .loader {
-    width: 100px;
-    height: 15px;
-    background-size: 26% 5px;
-  }
+.bar {
+  display: block;
+  width: 22px;
+  height: 1px;
+  background: #d4d4d4;
+  border-radius: 0;
+  animation: preloaderBar 1s infinite;
 }
 
-@keyframes preloaderBars {
+.bar:nth-child(1) {
+  animation-delay: 0s;
+}
+.bar:nth-child(2) {
+  animation-delay: 0.117s;
+}
+.bar:nth-child(3) {
+  animation-delay: 0.233s;
+}
+.bar:nth-child(4) {
+  animation-delay: 0.35s;
+}
+
+@keyframes preloaderBar {
   0%,
-  70%,
+  8%,
+  32%,
   100% {
-    background-position: calc(0 * 100% / 3) 50%, calc(1 * 100% / 3) 50%,
-      calc(2 * 100% / 3) 50%, calc(3 * 100% / 3) 50%;
+    height: 1px;
+    background: #d4d4d4;
+    border-radius: 0;
+    transform: translateY(0);
   }
-  11.67% {
-    background-position: calc(0 * 100% / 3) 0, calc(1 * 100% / 3) 50%,
-      calc(2 * 100% / 3) 50%, calc(3 * 100% / 3) 50%;
+  12% {
+    height: 3px;
+    background: #000;
+    border-radius: 3px;
+    transform: translateY(-3px);
   }
-  23.33% {
-    background-position: calc(0 * 100% / 3) 100%, calc(1 * 100% / 3) 0,
-      calc(2 * 100% / 3) 50%, calc(3 * 100% / 3) 50%;
-  }
-  35% {
-    background-position: calc(0 * 100% / 3) 50%, calc(1 * 100% / 3) 100%,
-      calc(2 * 100% / 3) 0, calc(3 * 100% / 3) 50%;
-  }
-  46.67% {
-    background-position: calc(0 * 100% / 3) 50%, calc(1 * 100% / 3) 50%,
-      calc(2 * 100% / 3) 100%, calc(3 * 100% / 3) 0;
-  }
-  58.34% {
-    background-position: calc(0 * 100% / 3) 50%, calc(1 * 100% / 3) 50%,
-      calc(2 * 100% / 3) 50%, calc(3 * 100% / 3) 100%;
+  22% {
+    height: 3px;
+    background: #000;
+    border-radius: 3px;
+    transform: translateY(3px);
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .loader {
+  .bar {
     animation: none;
   }
 }

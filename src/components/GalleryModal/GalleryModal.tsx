@@ -68,7 +68,12 @@ export default function GalleryModal({
           }`}
           aria-hidden="true"
         >
-          <span className={styles.spinner} />
+          <span className={styles.spinner}>
+            <span className={styles.bar} />
+            <span className={styles.bar} />
+            <span className={styles.bar} />
+            <span className={styles.bar} />
+          </span>
         </span>
         <img
           alt={item.title}

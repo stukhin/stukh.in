@@ -32,7 +32,12 @@ export default function Preloader() {
       aria-hidden={phase === "hiding"}
     >
       <Logo color="#000" noClick className={styles.logo} />
-      <div className={styles.loader} aria-label="Loading" />
+      <div className={styles.loader} aria-label="Loading">
+        <span className={styles.bar} />
+        <span className={styles.bar} />
+        <span className={styles.bar} />
+        <span className={styles.bar} />
+      </div>
     </div>
   );
 }
