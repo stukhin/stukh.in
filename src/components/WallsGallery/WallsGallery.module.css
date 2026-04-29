@@ -108,109 +108,44 @@
 }
 
 .catActive .catUnderline,
+.toneActive .catUnderline,
 .catBtn:hover .catUnderline {
   width: 18px;
 }
 
-/* Tone filter row sits under the categories. */
-.toneRow {
-  margin-top: 32px;
-}
-
-@media (max-width: 1499px) {
-  .toneRow {
-    margin-top: 18px;
-  }
-}
-
-.toneTitle {
-  font-family: "Inter", "Rubik", sans-serif;
-  font-weight: 200;
-  font-size: 11px;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  color: hsla(0, 0%, 100%, 0.4);
-  margin-bottom: 12px;
-}
-
-@media (max-width: 1499px) {
-  .toneTitle {
-    margin-bottom: 8px;
-  }
-}
-
+/* Tone list inherits .catList styling (font/spacing) but sits below
+   a hairline divider so the two filter groups read as separate. */
 .toneList {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
+  margin-top: 22px;
+  padding-top: 22px;
+  border-top: 1px solid hsla(0, 0%, 100%, 0.12);
 }
 
-/* When the sidebar is inline, lay tones out as a row of swatches. */
-@media (min-width: 598px) and (max-width: 1499px) {
+@media (max-width: 1499px) {
   .toneList {
-    flex-direction: row;
-    flex-wrap: wrap;
-    gap: 18px;
+    margin-top: 16px;
+    padding-top: 16px;
   }
 }
 
 @media (max-width: 597px) {
   .toneList {
-    flex-direction: row;
-    flex-wrap: nowrap;
-    gap: 14px;
-    overflow-x: auto;
-    scrollbar-width: none;
-    -webkit-overflow-scrolling: touch;
-  }
-  .toneList::-webkit-scrollbar {
-    display: none;
+    margin-top: 12px;
+    padding-top: 12px;
   }
 }
 
-.toneBtn {
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  background: transparent;
-  border: 0;
-  padding: 0;
-  color: hsla(0, 0%, 100%, 0.45);
-  font-family: "Inter", "Rubik", sans-serif;
-  font-weight: 200;
-  font-size: 13px;
-  text-transform: lowercase;
-  cursor: none;
-  transition: color 0.2s ease;
-}
-
-.toneBtn:hover {
-  color: #fff;
-}
-
+/* Tone buttons reuse .catBtn typography. The accent on hover/active
+   comes from --tone-color, set inline per tone. BW and `all` keep the
+   default white so they read like the categories above. */
+.toneBtn:hover,
 .toneActive {
-  color: #fff;
+  color: var(--tone-color, #fff);
 }
 
-.toneSwatch {
-  display: inline-block;
-  width: 18px;
-  height: 18px;
-  border: 1px solid hsla(0, 0%, 100%, 0.18);
-  flex-shrink: 0;
-  transition: border-color 0.2s ease;
-}
-
-.toneActive .toneSwatch,
-.toneBtn:hover .toneSwatch {
-  border-color: hsla(0, 0%, 100%, 0.65);
-}
-
-.toneLabel {
-  white-space: nowrap;
+.toneBtn:hover .catUnderline,
+.toneActive .catUnderline {
+  background: var(--tone-color, #fff);
 }
 
 /* Grid: centred in the viewport. */

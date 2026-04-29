@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  CSSProperties,
   MouseEvent,
   useEffect,
   useLayoutEffect,
@@ -30,20 +31,24 @@ export type Wallpaper = {
 const ALL_TONE = "All";
 const TONE_ORDER = ["All", "BW", "Warm", "Cool", "Earth", "Soft"];
 const TONE_LABELS: Record<string, string> = {
-  All: "all tones",
+  All: "all",
   BW: "b & w",
   Warm: "warm",
   Cool: "cool",
   Earth: "earth",
   Soft: "soft",
 };
-const TONE_SWATCHES: Record<string, string> = {
-  All: "linear-gradient(135deg, #1a1a1a, #d8d8d8)",
-  BW: "linear-gradient(135deg, #181818, #f4f4f4)",
-  Warm: "linear-gradient(135deg, #b85b2c, #f4d28a)",
-  Cool: "linear-gradient(135deg, #2c4a78, #a4c2dc)",
-  Earth: "linear-gradient(135deg, #3a5a36, #b6a785)",
-  Soft: "linear-gradient(135deg, #c4b5d4, #f0e3d6)",
+// Per-tone hover/active accent. `All` falls back to plain white so the
+// "all" tone item reads exactly like the "all" category item above the
+// divider. Each colour is tuned to feel like its label against the
+// dark page background — warm amber, cool steel-blue, etc.
+const TONE_HOVER_COLORS: Record<string, string> = {
+  All: "#ffffff",
+  BW: "#ffffff",
+  Warm: "#f4c282",
+  Cool: "#a3c4dc",
+  Earth: "#c4b88a",
+  Soft: "#e0c8d8",
 };
 
 type DownloadState = "idle" | "loading" | "done";
@@ -261,34 +266,30 @@ export default function WallsGallery({ items }: Props) {
             })}
           </ul>
           {tones.length > 1 && (
-            <div className={styles.toneRow}>
-              <div className={styles.toneTitle}>tone</div>
-              <ul className={styles.toneList}>
-                {tones.map((t) => {
-                  const isActive = t === activeTone;
-                  return (
-                    <li key={t}>
-                      <button
-                        type="button"
-                        className={`${styles.toneBtn} ${
-                          isActive ? styles.toneActive : ""
-                        }`}
-                        onClick={() => setActiveTone(t)}
-                        aria-label={TONE_LABELS[t] || t}
-                      >
-                        <span
-                          className={styles.toneSwatch}
-                          style={{ background: TONE_SWATCHES[t] }}
-                        />
-                        <span className={styles.toneLabel}>
-                          {TONE_LABELS[t] || t.toLowerCase()}
-                        </span>
-                      </button>
-                    </li>
-                  );
-                })}
-              </ul>
-            </div>
+            <ul className={`${styles.catList} ${styles.toneList}`}>
+              {tones.map((t) => {
+                const isActive = t === activeTone;
+                return (
+                  <li key={t}>
+                    <button
+                      type="button"
+                      className={`${styles.catBtn} ${styles.toneBtn} ${
+                        isActive ? styles.toneActive : ""
+                      }`}
+                      style={
+                        {
+                          "--tone-color": TONE_HOVER_COLORS[t],
+                        } as CSSProperties
+                      }
+                      onClick={() => setActiveTone(t)}
+                    >
+                      {TONE_LABELS[t] || t.toLowerCase()}
+                      <span className={styles.catUnderline} />
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
           )}
         </aside>
 
