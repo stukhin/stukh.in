@@ -6,4 +6,7 @@
   pointer-events: none;
   z-index: 0;
   overflow: hidden;
+  /* The shader produces strong rays; we want a softer, ~30%-transparent
+     read on the page, so we dim the whole canvas at the wrapper level. */
+  opacity: 0.7;
 }

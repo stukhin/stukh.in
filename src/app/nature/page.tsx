@@ -18,12 +18,12 @@ export default function NaturePage() {
     <div className={styles.nature}>
       <LightRays
         raysOrigin="top-center"
-        raysColor="#a8c8d6"
+        raysColor="#f4f4f4"
         raysSpeed={0.5}
         lightSpread={1.4}
         rayLength={1.6}
         fadeDistance={0.85}
-        saturation={0.55}
+        saturation={0.15}
         followMouse
         mouseInfluence={0.08}
         noiseAmount={0.05}

@@ -1,6 +1,6 @@
 "use client";
 
-import React, {
+import {
   MouseEvent,
   useEffect,
   useLayoutEffect,
@@ -8,7 +8,12 @@ import React, {
   useRef,
   useState,
 } from "react";
-import { motion, useMotionValue, useSpring } from "motion/react";
+import {
+  AnimatePresence,
+  motion,
+  useMotionValue,
+  useSpring,
+} from "motion/react";
 import styles from "./WallsGallery.module.css";
 
 export type Wallpaper = {
@@ -19,6 +24,26 @@ export type Wallpaper = {
   story: string;
   downloads: number;
   category: string;
+  tone?: string;
+};
+
+const ALL_TONE = "All";
+const TONE_ORDER = ["All", "BW", "Warm", "Cool", "Earth", "Soft"];
+const TONE_LABELS: Record<string, string> = {
+  All: "all tones",
+  BW: "b & w",
+  Warm: "warm",
+  Cool: "cool",
+  Earth: "earth",
+  Soft: "soft",
+};
+const TONE_SWATCHES: Record<string, string> = {
+  All: "linear-gradient(135deg, #1a1a1a, #d8d8d8)",
+  BW: "linear-gradient(135deg, #181818, #f4f4f4)",
+  Warm: "linear-gradient(135deg, #b85b2c, #f4d28a)",
+  Cool: "linear-gradient(135deg, #2c4a78, #a4c2dc)",
+  Earth: "linear-gradient(135deg, #3a5a36, #b6a785)",
+  Soft: "linear-gradient(135deg, #c4b5d4, #f0e3d6)",
 };
 
 type DownloadState = "idle" | "loading" | "done";
@@ -31,8 +56,6 @@ const ALL = "All";
 const GHOST_COUNT = 4;
 const ZOOM_IN_MS = 500;
 const ZOOM_OUT_MS = 400;
-const SHATTER_MS = 650;
-const ASSEMBLE_MS = 800;
 const TILT_AMPLITUDE = 9;
 const SPRING = { damping: 30, stiffness: 100, mass: 1.4 };
 
@@ -43,19 +66,7 @@ export default function WallsGallery({ items }: Props) {
   const [zoomClosing, setZoomClosing] = useState(false);
   const [zoomReady, setZoomReady] = useState(false);
   const [activeCategory, setActiveCategory] = useState<string>(ALL);
-  const [shattering, setShattering] = useState(false);
-  const [assembling, setAssembling] = useState(false);
-
-  const handleCategoryChange = (cat: string) => {
-    if (cat === activeCategory || shattering || assembling) return;
-    setShattering(true);
-    window.setTimeout(() => {
-      setActiveCategory(cat);
-      setShattering(false);
-      setAssembling(true);
-      window.setTimeout(() => setAssembling(false), ASSEMBLE_MS);
-    }, SHATTER_MS);
-  };
+  const [activeTone, setActiveTone] = useState<string>(ALL_TONE);
 
   const cardImgRefs = useRef<Record<string, HTMLImageElement | null>>({});
   const modalImgRef = useRef<HTMLImageElement>(null);
@@ -67,12 +78,22 @@ export default function WallsGallery({ items }: Props) {
     return [ALL, ...Array.from(set).sort()];
   }, [items]);
 
+  const tones = useMemo(() => {
+    const present = new Set<string>();
+    items.forEach((w) => {
+      if (w.tone) present.add(w.tone);
+    });
+    return TONE_ORDER.filter((t) => t === ALL_TONE || present.has(t));
+  }, [items]);
+
   const visibleItems = useMemo(
     () =>
-      activeCategory === ALL
-        ? items
-        : items.filter((w) => w.category === activeCategory),
-    [items, activeCategory]
+      items.filter(
+        (w) =>
+          (activeCategory === ALL || w.category === activeCategory) &&
+          (activeTone === ALL_TONE || w.tone === activeTone)
+      ),
+    [items, activeCategory, activeTone]
   );
 
   // Persist download counts in localStorage so they grow over visits.
@@ -230,7 +251,7 @@ export default function WallsGallery({ items }: Props) {
                     className={`${styles.catBtn} ${
                       isActive ? styles.catActive : ""
                     }`}
-                    onClick={() => handleCategoryChange(cat)}
+                    onClick={() => setActiveCategory(cat)}
                   >
                     {cat.toLowerCase()}
                     <span className={styles.catUnderline} />
@@ -239,30 +260,59 @@ export default function WallsGallery({ items }: Props) {
               );
             })}
           </ul>
+          {tones.length > 1 && (
+            <div className={styles.toneRow}>
+              <div className={styles.toneTitle}>tone</div>
+              <ul className={styles.toneList}>
+                {tones.map((t) => {
+                  const isActive = t === activeTone;
+                  return (
+                    <li key={t}>
+                      <button
+                        type="button"
+                        className={`${styles.toneBtn} ${
+                          isActive ? styles.toneActive : ""
+                        }`}
+                        onClick={() => setActiveTone(t)}
+                        aria-label={TONE_LABELS[t] || t}
+                      >
+                        <span
+                          className={styles.toneSwatch}
+                          style={{ background: TONE_SWATCHES[t] }}
+                        />
+                        <span className={styles.toneLabel}>
+                          {TONE_LABELS[t] || t.toLowerCase()}
+                        </span>
+                      </button>
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+          )}
         </aside>
 
         <ul className={styles.grid}>
-          {visibleItems.map((w, i) => {
-            const state = downloads[w.id] || "idle";
-            const count = counts[w.id] ?? w.downloads;
-            return (
-              <WallpaperCard
-                key={w.id}
-                index={i}
-                wallpaper={w}
-                count={count}
-                state={state}
-                isZoomed={zoomed?.id === w.id}
-                shattering={shattering}
-                assembling={assembling}
-                onZoom={openZoom}
-                onDownload={download}
-                registerImg={(el) => {
-                  cardImgRefs.current[w.id] = el;
-                }}
-              />
-            );
-          })}
+          <AnimatePresence mode="popLayout" initial={false}>
+            {visibleItems.map((w) => {
+              const state = downloads[w.id] || "idle";
+              const count = counts[w.id] ?? w.downloads;
+              return (
+                <WallpaperCard
+                  key={w.id}
+                  wallpaper={w}
+                  count={count}
+                  state={state}
+                  isZoomed={zoomed?.id === w.id}
+                  onZoom={openZoom}
+                  onDownload={download}
+                  registerImg={(el) => {
+                    cardImgRefs.current[w.id] = el;
+                  }}
+                />
+              );
+            })}
+          </AnimatePresence>
 
           {/* Soft empty placeholders hinting more wallpapers will land
               here. */}
@@ -319,26 +369,20 @@ export default function WallsGallery({ items }: Props) {
 }
 
 type CardProps = {
-  index: number;
   wallpaper: Wallpaper;
   count: number;
   state: DownloadState;
   isZoomed: boolean;
-  shattering: boolean;
-  assembling: boolean;
   onZoom: (w: Wallpaper) => void;
   onDownload: (w: Wallpaper) => void;
   registerImg: (el: HTMLImageElement | null) => void;
 };
 
 function WallpaperCard({
-  index,
   wallpaper,
   count,
   state,
   isZoomed,
-  shattering,
-  assembling,
   onZoom,
   onDownload,
   registerImg,
@@ -369,15 +413,17 @@ function WallpaperCard({
   }
 
   return (
-    <li
+    <motion.li
       ref={ref}
-      className={`${styles.card} ${isZoomed ? styles.cardZoomed : ""} ${
-        shattering ? styles.cardShattering : ""
-      } ${assembling ? styles.cardAssembling : ""}`}
-      style={{ "--i": index } as React.CSSProperties}
-      onMouseMove={shattering || assembling ? undefined : handleMove}
-      onMouseEnter={shattering || assembling ? undefined : handleEnter}
-      onMouseLeave={shattering || assembling ? undefined : handleLeave}
+      layout
+      initial={{ opacity: 0, scale: 0.85 }}
+      animate={{ opacity: 1, scale: 1 }}
+      exit={{ opacity: 0, scale: 0.85 }}
+      transition={{ duration: 0.4, ease: [0.4, 0, 0.2, 1] }}
+      className={`${styles.card} ${isZoomed ? styles.cardZoomed : ""}`}
+      onMouseMove={handleMove}
+      onMouseEnter={handleEnter}
+      onMouseLeave={handleLeave}
     >
       <motion.div
         className={styles.tilt}
@@ -459,6 +505,6 @@ function WallpaperCard({
           </svg>
         </button>
       </motion.div>
-    </li>
+    </motion.li>
   );
 }

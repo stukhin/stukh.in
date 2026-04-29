@@ -53,20 +53,28 @@
   }
 }
 
+/* Container is flex-centred so the picture sits in the middle of the
+   modal at its natural-fit size. The picture itself is sized to its
+   intrinsic content (max-* constrained), so the IMG element's bounding
+   rect equals the visible photo rect — that's what the FLIP morph
+   uses, so the zoom now grows from / shrinks to the exact frame size
+   in the gallery. */
 .container {
   position: relative;
   height: 100%;
   width: 100%;
   z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .picture {
-  position: absolute;
-  margin: 0 auto;
   display: block;
-  height: 100%;
-  width: 100%;
-  object-fit: contain;
+  max-width: 100%;
+  max-height: 100%;
+  width: auto;
+  height: auto;
   /* Transform is driven by the FLIP morph in GalleryModal.tsx via the
      Web Animations API. Static fallback below keeps the photo
      positioned correctly when JS hasn't run yet. */
@@ -74,8 +82,6 @@
   transform-origin: center center;
   opacity: 0;
   transition: opacity 0.3s ease-in;
-  left: 0;
-  top: 0;
   will-change: transform, opacity;
 }
 
@@ -163,6 +169,10 @@
   }
 }
 
+/* Button overlay spans the full modal so individual buttons can be
+   absolutely placed at the edges, but the overlay itself stays
+   click-through — clicks land on the .modal backdrop and close it.
+   Only the actual .button elements receive pointer events. */
 .buttons {
   position: absolute;
   top: 0;
@@ -180,7 +190,6 @@
 .modal.open .buttons {
   visibility: visible;
   opacity: 1;
-  pointer-events: auto;
 }
 
 @media (min-width: 1025px) {
@@ -198,6 +207,7 @@
 
 .actionButtons {
   display: flex;
+  pointer-events: none;
 }
 
 @media (min-width: 1025px) {
@@ -236,6 +246,7 @@
 .resizeButtons {
   display: flex;
   flex-direction: column;
+  pointer-events: none;
 }
 
 .resizeButtons button + button {
@@ -272,6 +283,7 @@
   height: 50px;
   width: 50px;
   cursor: none;
+  pointer-events: auto;
 }
 
 .button:hover svg path,

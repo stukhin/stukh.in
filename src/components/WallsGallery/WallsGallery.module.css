@@ -4,13 +4,22 @@
   padding: 200px 0 96px;
 }
 
-@media (max-width: 1100px) {
+@media (max-width: 1499px) {
   .layout {
-    padding: 130px 16px 80px;
+    padding: 130px 32px 80px;
   }
 }
 
-/* Sidebar floats at the far left, aligned horizontally with the logo. */
+@media (max-width: 597px) {
+  .layout {
+    padding: 110px 16px 64px;
+  }
+}
+
+/* Sidebar floats at the far left, aligned horizontally with the logo.
+   Fixed only when the viewport is wide enough that a centred 1100px
+   grid won't overlap it. Below that it folds into an inline strip
+   above the grid. */
 .sidebar {
   position: fixed;
   top: 200px;
@@ -19,11 +28,11 @@
   z-index: 5;
 }
 
-@media (max-width: 1100px) {
+@media (max-width: 1499px) {
   .sidebar {
     position: static;
     width: 100%;
-    margin-bottom: 16px;
+    margin-bottom: 24px;
   }
 }
 
@@ -36,12 +45,28 @@
   gap: 18px;
 }
 
-@media (max-width: 1100px) {
+/* Inline horizontal sidebar: categories scroll horizontally on phones,
+   wrap onto multiple lines on tablets/small desktops. */
+@media (min-width: 598px) and (max-width: 1499px) {
   .catList {
     flex-direction: row;
-    gap: 18px;
+    gap: 22px;
     flex-wrap: wrap;
+  }
+}
+
+@media (max-width: 597px) {
+  .catList {
+    flex-direction: row;
+    flex-wrap: nowrap;
+    gap: 18px;
     overflow-x: auto;
+    scrollbar-width: none;
+    padding-bottom: 4px;
+    -webkit-overflow-scrolling: touch;
+  }
+  .catList::-webkit-scrollbar {
+    display: none;
   }
 }
 
@@ -87,6 +112,107 @@
   width: 18px;
 }
 
+/* Tone filter row sits under the categories. */
+.toneRow {
+  margin-top: 32px;
+}
+
+@media (max-width: 1499px) {
+  .toneRow {
+    margin-top: 18px;
+  }
+}
+
+.toneTitle {
+  font-family: "Inter", "Rubik", sans-serif;
+  font-weight: 200;
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: hsla(0, 0%, 100%, 0.4);
+  margin-bottom: 12px;
+}
+
+@media (max-width: 1499px) {
+  .toneTitle {
+    margin-bottom: 8px;
+  }
+}
+
+.toneList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* When the sidebar is inline, lay tones out as a row of swatches. */
+@media (min-width: 598px) and (max-width: 1499px) {
+  .toneList {
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 18px;
+  }
+}
+
+@media (max-width: 597px) {
+  .toneList {
+    flex-direction: row;
+    flex-wrap: nowrap;
+    gap: 14px;
+    overflow-x: auto;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+  .toneList::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+.toneBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  background: transparent;
+  border: 0;
+  padding: 0;
+  color: hsla(0, 0%, 100%, 0.45);
+  font-family: "Inter", "Rubik", sans-serif;
+  font-weight: 200;
+  font-size: 13px;
+  text-transform: lowercase;
+  cursor: none;
+  transition: color 0.2s ease;
+}
+
+.toneBtn:hover {
+  color: #fff;
+}
+
+.toneActive {
+  color: #fff;
+}
+
+.toneSwatch {
+  display: inline-block;
+  width: 18px;
+  height: 18px;
+  border: 1px solid hsla(0, 0%, 100%, 0.18);
+  flex-shrink: 0;
+  transition: border-color 0.2s ease;
+}
+
+.toneActive .toneSwatch,
+.toneBtn:hover .toneSwatch {
+  border-color: hsla(0, 0%, 100%, 0.65);
+}
+
+.toneLabel {
+  white-space: nowrap;
+}
+
 /* Grid: centred in the viewport. */
 .grid {
   list-style: none;
@@ -99,9 +225,24 @@
   grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
 }
 
+/* Small desktop / large tablet (sidebar is inline): 4 cols. */
+@media (min-width: 1000px) and (max-width: 1499px) {
+  .grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+/* Tablet: 3 columns. */
+@media (min-width: 598px) and (max-width: 999px) {
+  .grid {
+    gap: 16px;
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
 @media (max-width: 597px) {
   .grid {
-    gap: 12px;
+    gap: 10px;
     grid-template-columns: repeat(2, 1fr);
   }
 }
@@ -121,259 +262,6 @@
    still resolves correctly for the close-back morph. */
 .cardZoomed {
   visibility: hidden;
-}
-
-/* Glass Shatter category-filter animation. The cards already have six
-   clip-path 'chunks' overlaying the photo; on filter change they
-   become fully opaque (a frosted shell) and explode outward in
-   different directions while the photo behind dissolves. The new
-   batch reverses it — chunks fly in from outside, settle into the
-   frosted shell, then dissolve to reveal the photo. */
-.cardShattering .thumb {
-  animation: thumbOut 0.35s ease-in forwards;
-  animation-delay: calc(var(--i, 0) * 0.025s);
-}
-.cardShattering .chunk1 {
-  animation: shatter1 0.6s cubic-bezier(0.55, 0, 1, 0.6) forwards;
-  animation-delay: calc(var(--i, 0) * 0.025s + 0.12s);
-}
-.cardShattering .chunk2 {
-  animation: shatter2 0.6s cubic-bezier(0.55, 0, 1, 0.6) forwards;
-  animation-delay: calc(var(--i, 0) * 0.025s + 0.12s);
-}
-.cardShattering .chunk3 {
-  animation: shatter3 0.6s cubic-bezier(0.55, 0, 1, 0.6) forwards;
-  animation-delay: calc(var(--i, 0) * 0.025s + 0.12s);
-}
-.cardShattering .chunk4 {
-  animation: shatter4 0.6s cubic-bezier(0.55, 0, 1, 0.6) forwards;
-  animation-delay: calc(var(--i, 0) * 0.025s + 0.12s);
-}
-.cardShattering .chunk5 {
-  animation: shatter5 0.6s cubic-bezier(0.55, 0, 1, 0.6) forwards;
-  animation-delay: calc(var(--i, 0) * 0.025s + 0.12s);
-}
-.cardShattering .chunk6 {
-  animation: shatter6 0.6s cubic-bezier(0.55, 0, 1, 0.6) forwards;
-  animation-delay: calc(var(--i, 0) * 0.025s + 0.12s);
-}
-
-@keyframes thumbOut {
-  0% {
-    opacity: 1;
-    transform: scale(1);
-  }
-  100% {
-    opacity: 0;
-    transform: scale(0.95);
-  }
-}
-
-@keyframes shatter1 {
-  0% {
-    opacity: 1;
-    transform: none;
-    background: hsla(0, 0%, 100%, 0.18);
-  }
-  100% {
-    opacity: 0;
-    transform: translate(-180%, -160%) rotate(-22deg) scale(0.55);
-  }
-}
-@keyframes shatter2 {
-  0% {
-    opacity: 1;
-    transform: none;
-    background: hsla(0, 0%, 100%, 0.18);
-  }
-  100% {
-    opacity: 0;
-    transform: translate(180%, -160%) rotate(28deg) scale(0.55);
-  }
-}
-@keyframes shatter3 {
-  0% {
-    opacity: 1;
-    transform: none;
-    background: hsla(0, 0%, 100%, 0.18);
-  }
-  100% {
-    opacity: 0;
-    transform: translate(0, 130%) rotate(12deg) scale(0.5);
-  }
-}
-@keyframes shatter4 {
-  0% {
-    opacity: 1;
-    transform: none;
-    background: hsla(0, 0%, 100%, 0.18);
-  }
-  100% {
-    opacity: 0;
-    transform: translate(-200%, 60%) rotate(-40deg) scale(0.5);
-  }
-}
-@keyframes shatter5 {
-  0% {
-    opacity: 1;
-    transform: none;
-    background: hsla(0, 0%, 100%, 0.18);
-  }
-  100% {
-    opacity: 0;
-    transform: translate(200%, 60%) rotate(40deg) scale(0.5);
-  }
-}
-@keyframes shatter6 {
-  0% {
-    opacity: 1;
-    transform: none;
-    background: hsla(0, 0%, 100%, 0.18);
-  }
-  100% {
-    opacity: 0;
-    transform: translate(20%, 230%) rotate(8deg) scale(0.45);
-  }
-}
-
-/* Assemble: chunks fly in from outside positions, settle into the
-   frosted shell (visible at full opacity briefly), then dissolve to
-   the normal hover-revealable state. Photo fades in last. */
-.cardAssembling .chunk1 {
-  animation: assemble1 0.7s cubic-bezier(0.2, 0.8, 0.4, 1) forwards;
-  animation-delay: calc(var(--i, 0) * 0.025s);
-}
-.cardAssembling .chunk2 {
-  animation: assemble2 0.7s cubic-bezier(0.2, 0.8, 0.4, 1) forwards;
-  animation-delay: calc(var(--i, 0) * 0.025s);
-}
-.cardAssembling .chunk3 {
-  animation: assemble3 0.7s cubic-bezier(0.2, 0.8, 0.4, 1) forwards;
-  animation-delay: calc(var(--i, 0) * 0.025s);
-}
-.cardAssembling .chunk4 {
-  animation: assemble4 0.7s cubic-bezier(0.2, 0.8, 0.4, 1) forwards;
-  animation-delay: calc(var(--i, 0) * 0.025s);
-}
-.cardAssembling .chunk5 {
-  animation: assemble5 0.7s cubic-bezier(0.2, 0.8, 0.4, 1) forwards;
-  animation-delay: calc(var(--i, 0) * 0.025s);
-}
-.cardAssembling .chunk6 {
-  animation: assemble6 0.7s cubic-bezier(0.2, 0.8, 0.4, 1) forwards;
-  animation-delay: calc(var(--i, 0) * 0.025s);
-}
-.cardAssembling .thumb {
-  animation: thumbIn 0.55s ease-out forwards;
-  animation-delay: calc(var(--i, 0) * 0.025s + 0.35s);
-}
-
-@keyframes assemble1 {
-  0% {
-    opacity: 1;
-    transform: translate(-180%, -160%) rotate(-22deg) scale(0.55);
-    background: hsla(0, 0%, 100%, 0.18);
-  }
-  60% {
-    opacity: 1;
-    transform: none;
-    background: hsla(0, 0%, 100%, 0.18);
-  }
-  100% {
-    opacity: 0;
-    transform: none;
-  }
-}
-@keyframes assemble2 {
-  0% {
-    opacity: 1;
-    transform: translate(180%, -160%) rotate(28deg) scale(0.55);
-    background: hsla(0, 0%, 100%, 0.18);
-  }
-  60% {
-    opacity: 1;
-    transform: none;
-    background: hsla(0, 0%, 100%, 0.18);
-  }
-  100% {
-    opacity: 0;
-    transform: none;
-  }
-}
-@keyframes assemble3 {
-  0% {
-    opacity: 1;
-    transform: translate(0, 130%) rotate(12deg) scale(0.5);
-    background: hsla(0, 0%, 100%, 0.18);
-  }
-  60% {
-    opacity: 1;
-    transform: none;
-    background: hsla(0, 0%, 100%, 0.18);
-  }
-  100% {
-    opacity: 0;
-    transform: none;
-  }
-}
-@keyframes assemble4 {
-  0% {
-    opacity: 1;
-    transform: translate(-200%, 60%) rotate(-40deg) scale(0.5);
-    background: hsla(0, 0%, 100%, 0.18);
-  }
-  60% {
-    opacity: 1;
-    transform: none;
-    background: hsla(0, 0%, 100%, 0.18);
-  }
-  100% {
-    opacity: 0;
-    transform: none;
-  }
-}
-@keyframes assemble5 {
-  0% {
-    opacity: 1;
-    transform: translate(200%, 60%) rotate(40deg) scale(0.5);
-    background: hsla(0, 0%, 100%, 0.18);
-  }
-  60% {
-    opacity: 1;
-    transform: none;
-    background: hsla(0, 0%, 100%, 0.18);
-  }
-  100% {
-    opacity: 0;
-    transform: none;
-  }
-}
-@keyframes assemble6 {
-  0% {
-    opacity: 1;
-    transform: translate(20%, 230%) rotate(8deg) scale(0.45);
-    background: hsla(0, 0%, 100%, 0.18);
-  }
-  60% {
-    opacity: 1;
-    transform: none;
-    background: hsla(0, 0%, 100%, 0.18);
-  }
-  100% {
-    opacity: 0;
-    transform: none;
-  }
-}
-
-@keyframes thumbIn {
-  0% {
-    opacity: 0;
-    transform: scale(0.95);
-  }
-  100% {
-    opacity: 1;
-    transform: scale(1);
-  }
 }
 
 .tilt {
@@ -561,19 +449,59 @@
   }
 }
 
+/* Mobile / no-hover devices: drop the frosted-glass reveal entirely
+   and keep the title + counter + download visible at all times under
+   a full-card gradient. */
 @media (hover: none), (max-width: 597px) {
   .chunk {
     display: none;
   }
-  .info,
-  .counter {
-    opacity: 1;
+  .frame::after {
+    content: "";
+    position: absolute;
+    inset: 0;
     background: linear-gradient(
       180deg,
-      rgba(0, 0, 0, 0) 0%,
-      rgba(0, 0, 0, 0.55) 60%,
+      rgba(0, 0, 0, 0) 35%,
+      rgba(0, 0, 0, 0.55) 75%,
       rgba(0, 0, 0, 0.85) 100%
     );
+    pointer-events: none;
+    z-index: 1;
+  }
+  .info,
+  .counter,
+  .downloadBtn {
+    opacity: 1;
+    transform: none;
+    animation: none;
+    pointer-events: auto;
+  }
+  .info {
+    top: auto;
+    bottom: 44px;
+    left: 12px;
+    right: 12px;
+  }
+  .cardTitle {
+    font-size: 14px;
+  }
+  .meta {
+    font-size: 11px;
+  }
+  .story {
+    display: none;
+  }
+  .counter {
+    bottom: 12px;
+    left: 12px;
+    font-size: 10px;
+  }
+  .downloadBtn {
+    width: 32px;
+    height: 32px;
+    bottom: 10px;
+    right: 10px;
   }
   .card:hover .thumb {
     transform: none;

@@ -136,10 +136,10 @@ export default function GalleryModal({
       aria-modal="true"
       onClick={onClose}
     >
-      <div
-        className={styles.container}
-        onClick={(e) => e.stopPropagation()}
-      >
+      {/* Container does NOT stopPropagation — only the picture itself
+          does. That way clicking anywhere outside the visible photo
+          (in the empty space around it) closes the modal. */}
+      <div className={styles.container}>
         <span
           className={`${styles.placeholder} ${
             imgLoaded ? styles.placeholderHidden : ""
@@ -161,6 +161,7 @@ export default function GalleryModal({
             imgLoaded ? styles.pictureLoaded : ""
           }`}
           src={src}
+          onClick={(e) => e.stopPropagation()}
           onLoad={() => setImgLoaded(true)}
           ref={(el) => {
             imgRef.current = el;

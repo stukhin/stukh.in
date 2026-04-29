@@ -12,17 +12,17 @@ export default function CityPage() {
   return (
     <div className={styles.city}>
       <LightRays
-        raysOrigin="top-left"
-        raysColor="#cccfd4"
-        raysSpeed={0.45}
-        lightSpread={1.6}
-        rayLength={1.8}
-        fadeDistance={0.95}
-        saturation={0.35}
+        raysOrigin="top-center"
+        raysColor="#f4f4f4"
+        raysSpeed={0.5}
+        lightSpread={1.4}
+        rayLength={1.6}
+        fadeDistance={0.85}
+        saturation={0.15}
         followMouse
-        mouseInfluence={0.06}
-        noiseAmount={0.04}
-        distortion={0.01}
+        mouseInfluence={0.08}
+        noiseAmount={0.05}
+        distortion={0.02}
       />
       <AppShell
         logoColor="#000"

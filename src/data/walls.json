@@ -6,7 +6,8 @@
     "year": 2024,
     "story": "A solitary mare grazing on the steep green slopes at sunset.",
     "downloads": 0,
-    "category": "Wildlife"
+    "category": "Wildlife",
+    "tone": "Warm"
   },
   {
     "id": "wall-1-july11-la",
@@ -15,7 +16,8 @@
     "year": 2025,
     "story": "A car drifting toward the limestone wall of the Pyrenees at dusk.",
     "downloads": 0,
-    "category": "Mountains"
+    "category": "Mountains",
+    "tone": "Soft"
   },
   {
     "id": "wall-1-may30-la",
@@ -24,7 +26,8 @@
     "year": 2024,
     "story": "Pine trees clinging to a snow-covered hill in heavy fog.",
     "downloads": 0,
-    "category": "Winter"
+    "category": "Winter",
+    "tone": "Cool"
   },
   {
     "id": "wall-1-december25-b1",
@@ -33,7 +36,8 @@
     "year": 2023,
     "story": "Sweeping arch of a contemporary concert hall against a clear winter sky.",
     "downloads": 0,
-    "category": "Urban"
+    "category": "Urban",
+    "tone": "BW"
   },
   {
     "id": "wall-1-december25-b2",
@@ -42,7 +46,8 @@
     "year": 2023,
     "story": "A modern brick block at the end of a quiet street, lit from within.",
     "downloads": 0,
-    "category": "Urban"
+    "category": "Urban",
+    "tone": "BW"
   },
   {
     "id": "wall-1-december25-f",
@@ -51,7 +56,8 @@
     "year": 2023,
     "story": "Freshly plowed black earth meeting a stand of bare trees at sunset.",
     "downloads": 0,
-    "category": "Forest"
+    "category": "Forest",
+    "tone": "Warm"
   },
   {
     "id": "wall-1-december25-fl",
@@ -60,7 +66,8 @@
     "year": 2023,
     "story": "Pink heather catching the last light over still water.",
     "downloads": 0,
-    "category": "Macro"
+    "category": "Macro",
+    "tone": "Warm"
   },
   {
     "id": "wall-1-december25-h",
@@ -69,7 +76,8 @@
     "year": 2023,
     "story": "Long exposure of waves wrapping rocks under a violet sky.",
     "downloads": 0,
-    "category": "Coast"
+    "category": "Coast",
+    "tone": "Cool"
   },
   {
     "id": "wall-1-december25-t",
@@ -78,7 +86,8 @@
     "year": 2023,
     "story": "A wind-shaped pine on a rocky outcrop just after sundown.",
     "downloads": 0,
-    "category": "Coast"
+    "category": "Coast",
+    "tone": "Cool"
   },
   {
     "id": "wall-2-april27-tr",
@@ -87,7 +96,8 @@
     "year": 2024,
     "story": "An old footpath threaded between cliffs and a wind-twisted tree.",
     "downloads": 0,
-    "category": "Forest"
+    "category": "Forest",
+    "tone": "Earth"
   },
   {
     "id": "wall-2-july11-ge",
@@ -96,7 +106,8 @@
     "year": 2025,
     "story": "Mount Kazbek catching moonlight under a sky full of stars.",
     "downloads": 0,
-    "category": "Mountains"
+    "category": "Mountains",
+    "tone": "Cool"
   },
   {
     "id": "wall-2-may30-or",
@@ -105,7 +116,8 @@
     "year": 2024,
     "story": "A lone tree marking the seam of two valleys, seen from above.",
     "downloads": 0,
-    "category": "Mountains"
+    "category": "Mountains",
+    "tone": "Earth"
   },
   {
     "id": "wall-2-january10-b",
@@ -114,7 +126,8 @@
     "year": 2024,
     "story": "Concrete monoliths converging on a thin slice of winter sky.",
     "downloads": 0,
-    "category": "Urban"
+    "category": "Urban",
+    "tone": "BW"
   },
   {
     "id": "wall-2-january10-f",
@@ -123,7 +136,8 @@
     "year": 2024,
     "story": "Aerial of mossy rocks scattered across the shallows.",
     "downloads": 0,
-    "category": "Macro"
+    "category": "Macro",
+    "tone": "Earth"
   },
   {
     "id": "wall-2-january10-le",
@@ -132,7 +146,8 @@
     "year": 2024,
     "story": "A long-exposure wave dragging silk-white foam across dark stone.",
     "downloads": 0,
-    "category": "Coast"
+    "category": "Coast",
+    "tone": "Cool"
   },
   {
     "id": "wall-2-january10-s",
@@ -141,7 +156,8 @@
     "year": 2024,
     "story": "Rugged sea stacks silhouetted against a peach sunset.",
     "downloads": 0,
-    "category": "Coast"
+    "category": "Coast",
+    "tone": "Warm"
   },
   {
     "id": "wall-2-january10-sq",
@@ -150,7 +166,8 @@
     "year": 2024,
     "story": "An empty park alley deep in falling snow.",
     "downloads": 0,
-    "category": "Winter"
+    "category": "Winter",
+    "tone": "Soft"
   },
   {
     "id": "wall-2-january10-t",
@@ -159,7 +176,8 @@
     "year": 2024,
     "story": "A single pine standing on a tiny island in a fjord at dawn.",
     "downloads": 0,
-    "category": "Forest"
+    "category": "Forest",
+    "tone": "Cool"
   },
   {
     "id": "wall-3-april27-ca",
@@ -168,7 +186,8 @@
     "year": 2024,
     "story": "A sun-warmed ginger cat owning the path.",
     "downloads": 0,
-    "category": "Wildlife"
+    "category": "Wildlife",
+    "tone": "Warm"
   },
   {
     "id": "wall-3-february14-chb",
@@ -177,7 +196,8 @@
     "year": 2023,
     "story": "A concrete ball perched on its column where stairs meet a still pond.",
     "downloads": 0,
-    "category": "Urban"
+    "category": "Urban",
+    "tone": "BW"
   },
   {
     "id": "wall-3-february14-i",
@@ -186,7 +206,8 @@
     "year": 2023,
     "story": "A small mangrove tree perched on coral, shrine offerings still on its branches.",
     "downloads": 0,
-    "category": "Coast"
+    "category": "Coast",
+    "tone": "Cool"
   },
   {
     "id": "wall-3-february14-m",
@@ -195,7 +216,8 @@
     "year": 2023,
     "story": "A small red lighthouse against a cold, restless sea.",
     "downloads": 0,
-    "category": "Coast"
+    "category": "Coast",
+    "tone": "Cool"
   },
   {
     "id": "wall-3-february14-p",
@@ -204,7 +226,8 @@
     "year": 2023,
     "story": "Tilted sandstone strata catching the last light at low tide.",
     "downloads": 0,
-    "category": "Coast"
+    "category": "Coast",
+    "tone": "Soft"
   },
   {
     "id": "wall-3-february14-ts",
@@ -213,7 +236,8 @@
     "year": 2023,
     "story": "Pink heather in soft afternoon light, water sparkling behind.",
     "downloads": 0,
-    "category": "Macro"
+    "category": "Macro",
+    "tone": "Warm"
   },
   {
     "id": "wall-3-february14-z",
@@ -222,7 +246,8 @@
     "year": 2023,
     "story": "Ice forming on a black-stone river bank under a low grey sky.",
     "downloads": 0,
-    "category": "Winter"
+    "category": "Winter",
+    "tone": "Cool"
   },
   {
     "id": "wall-3-july11-ca",
@@ -231,7 +256,8 @@
     "year": 2025,
     "story": "A wiry tree clinging to a cliff above a pale sea.",
     "downloads": 0,
-    "category": "Coast"
+    "category": "Coast",
+    "tone": "Cool"
   },
   {
     "id": "wall-3-may30-o2",
@@ -240,7 +266,8 @@
     "year": 2024,
     "story": "A curved fold of hills hides a small grove deep in green.",
     "downloads": 0,
-    "category": "Mountains"
+    "category": "Mountains",
+    "tone": "Earth"
   },
   {
     "id": "wall-4-april27-fl",
@@ -249,7 +276,8 @@
     "year": 2024,
     "story": "A wild star-of-Bethlehem flower opening in a dark forest understory.",
     "downloads": 0,
-    "category": "Macro"
+    "category": "Macro",
+    "tone": "Earth"
   },
   {
     "id": "wall-4-july11-cr",
@@ -258,7 +286,8 @@
     "year": 2025,
     "story": "A pine-covered cape on glass-still Adriatic water.",
     "downloads": 0,
-    "category": "Coast"
+    "category": "Coast",
+    "tone": "Soft"
   },
   {
     "id": "wall-4-march11-h",
@@ -267,7 +296,8 @@
     "year": 2024,
     "story": "A white horse browsing in golden grass below sharp grey peaks.",
     "downloads": 0,
-    "category": "Wildlife"
+    "category": "Wildlife",
+    "tone": "Earth"
   },
   {
     "id": "wall-4-march11-ms",
@@ -276,7 +306,8 @@
     "year": 2024,
     "story": "Zhivopisny bridge fading into a snowy fog.",
     "downloads": 0,
-    "category": "Urban"
+    "category": "Urban",
+    "tone": "Soft"
   },
   {
     "id": "wall-4-march11-s",
@@ -285,7 +316,8 @@
     "year": 2024,
     "story": "A half-moon over the mountains as the tide combs the rocks.",
     "downloads": 0,
-    "category": "Coast"
+    "category": "Coast",
+    "tone": "Cool"
   },
   {
     "id": "wall-4-march11-se",
@@ -294,7 +326,8 @@
     "year": 2024,
     "story": "A wide rock catching the last of the dusk in slow water.",
     "downloads": 0,
-    "category": "Coast"
+    "category": "Coast",
+    "tone": "Cool"
   },
   {
     "id": "wall-4-march11-sp",
@@ -303,7 +336,8 @@
     "year": 2024,
     "story": "A modernist pier reaching out across a smoke-blue sea.",
     "downloads": 0,
-    "category": "Coast"
+    "category": "Coast",
+    "tone": "Soft"
   },
   {
     "id": "wall-4-march11-ur",
@@ -312,7 +346,8 @@
     "year": 2024,
     "story": "Spruce trees crusted with rime at the moment the sun rises.",
     "downloads": 0,
-    "category": "Winter"
+    "category": "Winter",
+    "tone": "Cool"
   },
   {
     "id": "wall-4-may30-mk",
@@ -321,7 +356,8 @@
     "year": 2024,
     "story": "A close-up of a sedum's chubby green leaves.",
     "downloads": 0,
-    "category": "Macro"
+    "category": "Macro",
+    "tone": "Earth"
   },
   {
     "id": "wall-5-april27-bl",
@@ -330,7 +366,8 @@
     "year": 2024,
     "story": "A windowed concrete slab catching a single warm window in a grey sky.",
     "downloads": 0,
-    "category": "Urban"
+    "category": "Urban",
+    "tone": "BW"
   },
   {
     "id": "wall-5-july11-ld",
@@ -339,7 +376,8 @@
     "year": 2025,
     "story": "A small pine surviving on a snow-bound rocky shelf.",
     "downloads": 0,
-    "category": "Winter"
+    "category": "Winter",
+    "tone": "Cool"
   },
   {
     "id": "wall-5-may30-ur",
@@ -348,7 +386,8 @@
     "year": 2024,
     "story": "A snow-buried cabin under the cold first stars of evening.",
     "downloads": 0,
-    "category": "Winter"
+    "category": "Winter",
+    "tone": "Cool"
   },
   {
     "id": "wall-6-april27-wi",
@@ -357,7 +396,8 @@
     "year": 2024,
     "story": "Snow-encased trees lit pink by the first morning light.",
     "downloads": 0,
-    "category": "Winter"
+    "category": "Winter",
+    "tone": "Cool"
   },
   {
     "id": "wall-6-july11-se",
@@ -366,7 +406,8 @@
     "year": 2025,
     "story": "Heavy stones under streamlining clouds at sundown.",
     "downloads": 0,
-    "category": "Coast"
+    "category": "Coast",
+    "tone": "Cool"
   },
   {
     "id": "wall-6-may30-u2",
@@ -375,6 +416,7 @@
     "year": 2024,
     "story": "A figure walking through a windblown snowfield with low sun.",
     "downloads": 0,
-    "category": "Winter"
+    "category": "Winter",
+    "tone": "Warm"
   }
 ]
