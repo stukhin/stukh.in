@@ -1,9 +1,11 @@
 .logo {
-  position: absolute;
+  position: fixed;
   opacity: 1;
   visibility: visible;
   transition: visibility 0.5s, opacity 0.5s linear;
-  z-index: 10;
+  /* Above gallery edge zones (5), range slider (6), modal (40), but below
+     MenuPopup (50) so the menu can cover the logo when open. */
+  z-index: 45;
   line-height: 0;
 }
 

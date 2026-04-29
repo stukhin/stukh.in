@@ -6,7 +6,9 @@
 }
 
 .burger {
-  z-index: 2;
+  /* Match the global burger z-index (60) so the X stays clickable above
+     the menu popup (50). */
+  z-index: 60;
   position: fixed;
   will-change: top;
 }

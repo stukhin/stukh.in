@@ -5,7 +5,9 @@
   right: 0;
   bottom: 0;
   background-color: #141414;
-  z-index: 4;
+  /* Above gallery edge-click zones (z-index 5) and range slider (z-index 6),
+     below the burger (z-index 60) and MenuPopup (50). */
+  z-index: 40;
   visibility: hidden;
   opacity: 0;
   transition: opacity 0.25s ease-in;
