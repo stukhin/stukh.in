@@ -5,6 +5,7 @@ import Logo from "../Logo/Logo";
 import Burger from "../Burger/Burger";
 import MenuPopup from "../MenuPopup/MenuPopup";
 import Cursor from "../Cursor/Cursor";
+import EdgeNav from "../EdgeNav/EdgeNav";
 
 type Props = {
   children: ReactNode;
@@ -54,6 +55,7 @@ export default function AppShell({
         className={burgerClassName}
       />
       <MenuPopup open={menuOpen} onClose={() => setMenuOpen(false)} />
+      <EdgeNav />
       {children}
     </>
   );

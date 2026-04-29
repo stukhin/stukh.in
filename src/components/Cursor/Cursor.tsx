@@ -8,6 +8,8 @@ type CursorShape =
   | "hover"
   | "arrow-left"
   | "arrow-right"
+  | "arrow-up"
+  | "arrow-down"
   | "picture";
 
 type Props = {
@@ -39,6 +41,8 @@ export default function Cursor({ variant = "light" }: Props) {
         if (
           v === "arrow-left" ||
           v === "arrow-right" ||
+          v === "arrow-up" ||
+          v === "arrow-down" ||
           v === "picture"
         )
           return v;
@@ -69,6 +73,8 @@ export default function Cursor({ variant = "light" }: Props) {
     shape === "hover" ? styles.hover : "",
     shape === "arrow-left" ? styles.arrowLeft : "",
     shape === "arrow-right" ? styles.arrowRight : "",
+    shape === "arrow-up" ? styles.arrowUp : "",
+    shape === "arrow-down" ? styles.arrowDown : "",
     shape === "picture" ? styles.picture : "",
   ]
     .filter(Boolean)

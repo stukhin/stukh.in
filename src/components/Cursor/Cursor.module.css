@@ -46,8 +46,30 @@
   transform: translate(-50%, -50%) rotate(-135deg);
 }
 
+.arrowUp {
+  width: 10px;
+  height: 10px;
+  border: none;
+  border-radius: 0;
+  outline: none;
+  box-shadow: -2px 2px 0 #fefefe;
+  transform: translate(-50%, -50%) rotate(135deg);
+}
+
+.arrowDown {
+  width: 10px;
+  height: 10px;
+  border: none;
+  border-radius: 0;
+  outline: none;
+  box-shadow: -2px 2px 0 #fefefe;
+  transform: translate(-50%, -50%) rotate(-45deg);
+}
+
 .dark.arrowLeft,
-.dark.arrowRight {
+.dark.arrowRight,
+.dark.arrowUp,
+.dark.arrowDown {
   box-shadow: -2px 2px 0 #424242;
 }
 

@@ -1,0 +1,58 @@
+[
+  {
+    "id": "atlantic",
+    "title": "Atlantic Layers",
+    "location": "Portugal",
+    "year": 2018,
+    "story": "Sandstone cliffs at low tide, just before sunset.",
+    "downloads": 1284
+  },
+  {
+    "id": "norway-fjord",
+    "title": "Sognefjord",
+    "location": "Norway",
+    "year": 2019,
+    "story": "Long exposure of glacial water at first light.",
+    "downloads": 947
+  },
+  {
+    "id": "forest-mist",
+    "title": "Forest Mist",
+    "location": "Karelia",
+    "year": 2020,
+    "story": "Pine trees emerging from morning fog.",
+    "downloads": 612
+  },
+  {
+    "id": "ridge",
+    "title": "Ridgeline",
+    "location": "Italian Alps",
+    "year": 2022,
+    "story": "Last light on the Dolomites in early autumn.",
+    "downloads": 1853
+  },
+  {
+    "id": "dunes",
+    "title": "Dune Curves",
+    "location": "Namibia",
+    "year": 2021,
+    "story": "Wind-shaped dunes shot from a small Cessna.",
+    "downloads": 2341
+  },
+  {
+    "id": "lake",
+    "title": "Mirror Lake",
+    "location": "Slovenia",
+    "year": 2023,
+    "story": "A still alpine lake at dawn — perfect reflection.",
+    "downloads": 738
+  },
+  {
+    "id": "pine",
+    "title": "Lone Pine",
+    "location": "Norway",
+    "year": 2024,
+    "story": "A single tree on a fjord shore in heavy rain.",
+    "downloads": 1102
+  }
+]

@@ -1,0 +1,30 @@
+.zone {
+  position: fixed;
+  /* Keep clear of the gallery's side navZones (left/right 20%). */
+  left: 20%;
+  right: 20%;
+  height: 15vh;
+  background: transparent;
+  border: none;
+  padding: 0;
+  cursor: none;
+  /* Above the gallery range slider (z 6) but below the logo (45),
+     burger (60), and modal (40). */
+  z-index: 7;
+}
+
+.top {
+  top: 0;
+}
+
+.bottom {
+  bottom: 0;
+}
+
+/* Disable on touch devices — the cursor hint isn't visible there and
+   accidental taps would feel surprising. */
+@media (hover: none), (max-width: 597px) {
+  .zone {
+    display: none;
+  }
+}
