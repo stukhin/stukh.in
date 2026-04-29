@@ -107,12 +107,14 @@ img {
   user-select: none;
 }
 
-/* Page-to-page transition: the outgoing page slides off the top of the
-   viewport while the incoming page slides up into its place. Together
-   they read as one tall strip moving as a single block — clicking a
-   menu item feels like scrolling down to the next chapter of the site.
-   View Transitions API is supported in Chromium and Safari 18+; in
-   Firefox the rules are simply ignored and the page swap is instant. */
+/* Page-to-page transition. Pages live in a fixed order (see
+   src/lib/pageOrder.ts). Forward navigation slides the outgoing page
+   up off the top of the viewport while the incoming page rises from
+   below — feels like scrolling to the next chapter of one tall site.
+   Backward navigation runs the same animation in reverse so the user
+   feels they're scrolling back up.
+   View Transitions API works in Chromium and Safari 18+; Firefox
+   ignores these rules and the swap is instant. */
 @keyframes pageSlideOutUp {
   to {
     transform: translateY(-100%);
@@ -125,11 +127,25 @@ img {
   }
 }
 
+@keyframes pageSlideOutDown {
+  to {
+    transform: translateY(100%);
+  }
+}
+
+@keyframes pageSlideInDown {
+  from {
+    transform: translateY(-100%);
+  }
+}
+
 ::view-transition-group(root) {
-  animation-duration: 0.85s;
+  animation-duration: 1.05s;
   animation-timing-function: cubic-bezier(0.65, 0, 0.35, 1);
 }
 
+/* Default (forward) — covers the case where a navigation happens
+   without a direction class being set (e.g. typing a URL). */
 ::view-transition-old(root) {
   animation-name: pageSlideOutUp;
   animation-fill-mode: both;
@@ -138,6 +154,22 @@ img {
 ::view-transition-new(root) {
   animation-name: pageSlideInUp;
   animation-fill-mode: both;
+}
+
+html.transition-forward::view-transition-old(root) {
+  animation-name: pageSlideOutUp;
+}
+
+html.transition-forward::view-transition-new(root) {
+  animation-name: pageSlideInUp;
+}
+
+html.transition-backward::view-transition-old(root) {
+  animation-name: pageSlideOutDown;
+}
+
+html.transition-backward::view-transition-new(root) {
+  animation-name: pageSlideInDown;
 }
 
 @media (prefers-reduced-motion: reduce) {

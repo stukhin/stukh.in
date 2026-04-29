@@ -55,6 +55,20 @@ export default function GallerySlider({ category, items }: Props) {
   const verticalSrc = (i: number) =>
     `/images/gallery/${category}/vertical/${picIndex(i)}.jpg`;
 
+  /* Swiper's loop needs enough base slides to populate the side previews
+     on wide viewports (it has trouble cloning when slidesPerView is auto
+     and the slide count is small). For short galleries (e.g. city has 7)
+     we render the array a few times so loop has plenty of material to
+     work with. The active index is normalised back to the original range
+     before pulling title/location/src. */
+  const MIN_SLIDES = 14;
+  const repeats =
+    items.length === 0 ? 1 : Math.max(1, Math.ceil(MIN_SLIDES / items.length));
+  const renderedSlides =
+    repeats === 1
+      ? items
+      : Array.from({ length: repeats }, () => items).flat();
+
   return (
     <div className={`${styles.gallerySlider} ${styles[category]}`}>
       {/* Central picture background (shadowed rectangle) + frame overlay */}
@@ -75,10 +89,11 @@ export default function GallerySlider({ category, items }: Props) {
         onSwiper={(s) => {
           swiperRef.current = s;
         }}
-        onSlideChange={(s) => setActiveIndex(s.realIndex)}
+        onSlideChange={(s) => setActiveIndex(s.realIndex % items.length)}
       >
-        {items.map((item, i) => {
-          const isActive = i === activeIndex;
+        {renderedSlides.map((item, i) => {
+          const realIdx = i % items.length;
+          const isActive = realIdx === activeIndex;
           return (
             <SwiperSlide key={i} className={styles.slide}>
               <div className={styles.container}>
@@ -99,23 +114,23 @@ export default function GallerySlider({ category, items }: Props) {
                   >
                     <span
                       className={`${styles.placeholder} ${
-                        loadedImages.has(i) ? styles.placeholderHidden : ""
+                        loadedImages.has(realIdx) ? styles.placeholderHidden : ""
                       }`}
                       aria-hidden="true"
                     />
                     <img
-                      src={verticalSrc(i)}
+                      src={verticalSrc(realIdx)}
                       alt={item.title}
                       className={`${styles.picture} ${
-                        loadedImages.has(i) ? styles.pictureLoaded : ""
+                        loadedImages.has(realIdx) ? styles.pictureLoaded : ""
                       }`}
                       loading="eager"
                       decoding="async"
                       draggable={false}
-                      onLoad={() => markLoaded(i)}
+                      onLoad={() => markLoaded(realIdx)}
                       ref={(el) => {
                         if (el && el.complete && el.naturalWidth > 0) {
-                          markLoaded(i);
+                          markLoaded(realIdx);
                         }
                       }}
                     />

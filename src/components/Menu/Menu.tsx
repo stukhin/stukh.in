@@ -4,6 +4,7 @@ import { Link } from "next-view-transitions";
 import { useTransitionRouter } from "next-view-transitions";
 import { usePathname } from "next/navigation";
 import { MouseEvent } from "react";
+import { getDirection, setTransitionDirection } from "@/lib/pageOrder";
 import styles from "./Menu.module.css";
 
 type Props = {
@@ -45,10 +46,14 @@ export default function Menu({
     if (pathname === href) return;
     e.preventDefault();
     onNavigate?.();
-    if (navigateDelayMs > 0) {
-      window.setTimeout(() => router.push(href), navigateDelayMs);
-    } else {
+    const navigate = () => {
+      setTransitionDirection(getDirection(pathname, href));
       router.push(href);
+    };
+    if (navigateDelayMs > 0) {
+      window.setTimeout(navigate, navigateDelayMs);
+    } else {
+      navigate();
     }
   };
 

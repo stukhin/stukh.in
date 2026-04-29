@@ -1,4 +1,8 @@
+"use client";
+
 import { Link } from "next-view-transitions";
+import { usePathname } from "next/navigation";
+import { getDirection, setTransitionDirection } from "@/lib/pageOrder";
 import styles from "./Logo.module.css";
 
 type Props = {
@@ -12,6 +16,7 @@ export default function Logo({
   noClick = false,
   className = "",
 }: Props) {
+  const pathname = usePathname();
   const classes = [
     styles.logo,
     noClick ? styles.noClick : "",
@@ -38,7 +43,13 @@ export default function Logo({
   }
 
   return (
-    <Link href="/" className={classes} title="Go to main" aria-label="Go to main">
+    <Link
+      href="/"
+      className={classes}
+      title="Go to main"
+      aria-label="Go to main"
+      onClick={() => setTransitionDirection(getDirection(pathname, "/"))}
+    >
       {svg}
     </Link>
   );
