@@ -109,7 +109,8 @@ export default function GallerySlider({ category, items }: Props) {
                       className={`${styles.picture} ${
                         loadedImages.has(i) ? styles.pictureLoaded : ""
                       }`}
-                      loading={isActive ? "eager" : "lazy"}
+                      loading="eager"
+                      decoding="async"
                       draggable={false}
                       onLoad={() => markLoaded(i)}
                       ref={(el) => {
