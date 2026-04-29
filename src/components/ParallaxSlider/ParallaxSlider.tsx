@@ -5,10 +5,10 @@ import styles from "./ParallaxSlider.module.css";
 
 const slides = [
   "/images/parallax/1.png",
-  "/images/parallax/2.png",
-  "/images/parallax/3.png",
-  "/images/parallax/4.png",
-  "/images/parallax/5.png",
+  "/images/parallax/2.webp",
+  "/images/parallax/3.webp",
+  "/images/parallax/4.webp",
+  "/images/parallax/5.webp",
 ];
 
 export default function ParallaxSlider() {

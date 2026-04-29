@@ -16,7 +16,7 @@
 
 /* Layer 5 (back) */
 .layer5 .image {
-  background-image: url(/images/parallax/5.png);
+  background-image: url(/images/parallax/5.webp);
 }
 
 @media (min-width: 1025px) {
@@ -40,7 +40,7 @@
 /* Layer 4 */
 .layer4 .image {
   height: 826px;
-  background-image: url(/images/parallax/4.png);
+  background-image: url(/images/parallax/4.webp);
 }
 
 @media (max-width: 597px) {
@@ -52,7 +52,7 @@
 /* Layer 3 */
 .layer3 .image {
   height: 680px;
-  background-image: url(/images/parallax/3.png);
+  background-image: url(/images/parallax/3.webp);
 }
 
 @media (max-width: 597px) {
@@ -65,7 +65,7 @@
 /* Layer 2 */
 .layer2 .image {
   height: 601px;
-  background-image: url(/images/parallax/2.png);
+  background-image: url(/images/parallax/2.webp);
 }
 
 @media (min-width: 598px) and (max-width: 1024px) {

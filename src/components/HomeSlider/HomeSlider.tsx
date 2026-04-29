@@ -4,10 +4,10 @@ import { useEffect, useState } from "react";
 import styles from "./HomeSlider.module.css";
 
 const slides = [
-  "/images/gallery/main/desktop/1.jpg",
-  "/images/gallery/main/desktop/2.jpg",
-  "/images/gallery/main/desktop/3.jpg",
-  "/images/gallery/main/desktop/4.jpg",
+  "/images/gallery/main/desktop/1.webp",
+  "/images/gallery/main/desktop/2.webp",
+  "/images/gallery/main/desktop/3.webp",
+  "/images/gallery/main/desktop/4.webp",
 ];
 
 const AUTOPLAY_MS = 7000;

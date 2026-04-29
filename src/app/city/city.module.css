@@ -2,7 +2,7 @@
   position: relative;
   height: 100vh;
   background: gray;
-  background-image: url(/images/misc/bg_city.jpg);
+  background-image: url(/images/misc/bg_city.webp);
   background-repeat: no-repeat;
   background-size: cover;
   display: flex;

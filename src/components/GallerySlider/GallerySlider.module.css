@@ -21,11 +21,11 @@
 }
 
 .nature .pictureBg {
-  background-image: url(/images/misc/picture_bg.png);
+  background-image: url(/images/misc/picture_bg.webp);
 }
 
 .city .pictureBg {
-  background-image: url(/images/misc/picture_bg_w.png);
+  background-image: url(/images/misc/picture_bg_w.webp);
 }
 
 @media (max-width: 1024px) {
@@ -50,11 +50,11 @@
 }
 
 .nature .frame {
-  background-image: url(/images/misc/picture_frame.png);
+  background-image: url(/images/misc/picture_frame.webp);
 }
 
 .city .frame {
-  background-image: url(/images/misc/picture_frame_w.png);
+  background-image: url(/images/misc/picture_frame_w.webp);
 }
 
 @media (max-width: 1024px) {
