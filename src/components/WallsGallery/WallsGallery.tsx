@@ -124,8 +124,19 @@ export default function WallsGallery({ items }: Props) {
       const dy =
         from.top + from.height / 2 - (target.top + target.height / 2);
       const scale = from.width / target.width;
-      modalImg.style.transition = `transform ${ZOOM_OUT_MS}ms cubic-bezier(0.65, 0, 0.35, 1)`;
-      modalImg.style.transform = `translate(${dx}px, ${dy}px) scale(${scale})`;
+      // Web Animations API: reliable single-shot animation that
+      // doesn't depend on transition/style timing tricks.
+      modalImg.animate(
+        [
+          { transform: "translate(0px, 0px) scale(1)" },
+          { transform: `translate(${dx}px, ${dy}px) scale(${scale})` },
+        ],
+        {
+          duration: ZOOM_OUT_MS,
+          easing: "cubic-bezier(0.65, 0, 0.35, 1)",
+          fill: "forwards",
+        }
+      );
     }
     setZoomClosing(true);
     window.setTimeout(() => {
@@ -134,29 +145,32 @@ export default function WallsGallery({ items }: Props) {
     }, ZOOM_OUT_MS);
   };
 
-  // Run the FLIP morph as soon as the modal img mounts. Place it at
-  // the card's exact rect with transform, force a reflow, then animate
-  // to its natural position.
+  // Run the FLIP morph as soon as the modal img mounts. Use the
+  // Web Animations API directly — more reliable than juggling CSS
+  // transitions across React renders.
   useLayoutEffect(() => {
     if (!zoomed || zoomClosing) return;
     const modalImg = modalImgRef.current;
     const from = fromRectRef.current;
     if (!modalImg || !from) return;
     const target = modalImg.getBoundingClientRect();
+    if (!target.width || !target.height) return;
     const dx =
       from.left + from.width / 2 - (target.left + target.width / 2);
     const dy =
       from.top + from.height / 2 - (target.top + target.height / 2);
     const scale = from.width / target.width;
-    modalImg.style.transition = "none";
-    modalImg.style.transform = `translate(${dx}px, ${dy}px) scale(${scale})`;
-    // Force layout so the next frame starts from the new transform.
-    void modalImg.getBoundingClientRect();
-    requestAnimationFrame(() => {
-      if (!modalImgRef.current) return;
-      modalImgRef.current.style.transition = `transform ${ZOOM_IN_MS}ms cubic-bezier(0.65, 0, 0.35, 1)`;
-      modalImgRef.current.style.transform = "translate(0, 0) scale(1)";
-    });
+    modalImg.animate(
+      [
+        { transform: `translate(${dx}px, ${dy}px) scale(${scale})` },
+        { transform: "translate(0px, 0px) scale(1)" },
+      ],
+      {
+        duration: ZOOM_IN_MS,
+        easing: "cubic-bezier(0.65, 0, 0.35, 1)",
+        fill: "forwards",
+      }
+    );
   }, [zoomed, zoomClosing]);
 
   // Lock the underlying scroll while the zoom view is open, hide the

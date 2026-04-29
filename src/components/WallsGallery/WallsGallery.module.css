@@ -181,23 +181,24 @@
   clip-path: polygon(0% 72%, 26% 80%, 60% 78%, 100% 76%, 100% 100%, 0% 100%);
 }
 
+/* Twice as fast as the previous tuning so the frost lands quickly. */
 .card:hover .chunk1 {
-  animation: chunkIn 0.32s ease-out 0s forwards;
+  animation: chunkIn 0.16s ease-out 0s forwards;
 }
 .card:hover .chunk2 {
-  animation: chunkIn 0.32s ease-out 0.14s forwards;
+  animation: chunkIn 0.16s ease-out 0.07s forwards;
 }
 .card:hover .chunk3 {
-  animation: chunkIn 0.32s ease-out 0.28s forwards;
+  animation: chunkIn 0.16s ease-out 0.14s forwards;
 }
 .card:hover .chunk4 {
-  animation: chunkIn 0.32s ease-out 0.42s forwards;
+  animation: chunkIn 0.16s ease-out 0.21s forwards;
 }
 .card:hover .chunk5 {
-  animation: chunkIn 0.32s ease-out 0.56s forwards;
+  animation: chunkIn 0.16s ease-out 0.28s forwards;
 }
 .card:hover .chunk6 {
-  animation: chunkIn 0.32s ease-out 0.7s forwards;
+  animation: chunkIn 0.16s ease-out 0.35s forwards;
 }
 
 @keyframes chunkIn {
@@ -226,7 +227,7 @@
 }
 
 .card:hover .info {
-  animation: infoIn 0.4s ease-out 1s forwards;
+  animation: infoIn 0.2s ease-out 0.5s forwards;
 }
 
 .cardTitle {
@@ -274,7 +275,7 @@
 }
 
 .card:hover .counter {
-  animation: counterIn 0.4s ease-out 1.05s forwards;
+  animation: counterIn 0.2s ease-out 0.55s forwards;
 }
 
 @keyframes infoIn {
@@ -341,7 +342,7 @@
 }
 
 .card:hover .downloadBtn {
-  animation: downloadBtnIn 0.4s ease-out 1s forwards;
+  animation: downloadBtnIn 0.2s ease-out 0.5s forwards;
   pointer-events: auto;
 }
 
@@ -486,10 +487,13 @@
 
 /* Transform/scale animation is set inline by the FLIP logic in JS so
    the photo morphs from the clicked card's exact position to the
-   centred preview, then back on close. */
+   centred preview, then back on close. aspect-ratio locks the
+   dimensions even before the image bytes have loaded — without it
+   the JS measurement would briefly see a 0×0 box and skip the
+   animation. */
 .zoomImage {
   height: 100%;
-  width: auto;
+  aspect-ratio: 9 / 16;
   max-width: 100%;
   object-fit: contain;
   display: block;
