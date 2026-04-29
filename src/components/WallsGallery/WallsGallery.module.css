@@ -458,17 +458,45 @@
    overlay scale-fade in with CSS — no View Transitions API, so the
    underlying page never scrolls. z-index sits above the burger so the
    sandwich stays hidden behind the dim layer until the modal closes. */
+/* Same frosted-glass + grain tile + dark gradient as the menu popup so
+   the underlying page (grid, light-rays, etc.) reads as 'behind glass'
+   instead of being hidden under a flat dark layer. */
 .zoom {
   position: fixed;
   inset: 0;
-  background: rgba(8, 8, 10, 0.92);
+  background: transparent;
   z-index: 100;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 15vh 40px;
   cursor: none;
+  backdrop-filter: blur(22px) saturate(140%);
   animation: zoomBgIn 0.32s ease-out both;
+}
+
+.zoom::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: url(/images/misc/tile.webp);
+  background-repeat: repeat;
+  opacity: 0.08;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.zoom::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    221.79deg,
+    rgba(0, 0, 0, 0.55) 1.44%,
+    rgba(0, 0, 0, 0.3) 85.3%
+  );
+  pointer-events: none;
+  z-index: 0;
 }
 
 .zoomClosing {
@@ -477,19 +505,19 @@
 
 @keyframes zoomBgIn {
   from {
-    background-color: rgba(8, 8, 10, 0);
+    opacity: 0;
   }
   to {
-    background-color: rgba(8, 8, 10, 0.92);
+    opacity: 1;
   }
 }
 
 @keyframes zoomBgOut {
   from {
-    background-color: rgba(8, 8, 10, 0.92);
+    opacity: 1;
   }
   to {
-    background-color: rgba(8, 8, 10, 0);
+    opacity: 0;
   }
 }
 
@@ -502,6 +530,7 @@
   height: 100%;
   aspect-ratio: 9 / 16;
   max-width: 100%;
+  z-index: 1;
 }
 
 /* Transform/scale animation is set inline by the FLIP logic in JS so

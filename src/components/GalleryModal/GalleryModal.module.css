@@ -4,7 +4,11 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: #141414;
+  /* Frosted-glass overlay (same recipe as MenuPopup) so the gallery
+     and light rays behind read as 'behind glass' rather than hidden
+     under a flat dark layer. */
+  background: transparent;
+  backdrop-filter: blur(22px) saturate(140%);
   /* Above gallery edge-click zones (z-index 5) and range slider (z-index 6),
      below the burger (z-index 60) and MenuPopup (50). */
   z-index: 40;
@@ -12,6 +16,30 @@
   opacity: 0;
   transition: opacity 0.25s ease-in;
   padding: 40px 180px;
+}
+
+.modal::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: url(/images/misc/tile.webp);
+  background-repeat: repeat;
+  opacity: 0.08;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.modal::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    221.79deg,
+    rgba(0, 0, 0, 0.55) 1.44%,
+    rgba(0, 0, 0, 0.3) 85.3%
+  );
+  pointer-events: none;
+  z-index: 0;
 }
 
 .modal.open {
@@ -29,6 +57,7 @@
   position: relative;
   height: 100%;
   width: 100%;
+  z-index: 1;
 }
 
 .picture {
@@ -145,6 +174,7 @@
   pointer-events: none;
   transition: opacity 0.2s ease-in;
   transition-delay: 0.3s;
+  z-index: 1;
 }
 
 .modal.open .buttons {
