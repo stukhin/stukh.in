@@ -1,443 +1,380 @@
 [
   {
-    "id": "atlantic",
-    "title": "Atlantic Layers",
-    "location": "Portugal",
-    "year": 2018,
-    "story": "Sandstone cliffs at low tide, just before sunset.",
-    "downloads": 1284,
-    "category": "Coast"
-  },
-  {
-    "id": "norway-fjord",
-    "title": "Sognefjord",
-    "location": "Norway",
-    "year": 2019,
-    "story": "Long exposure of glacial water at first light.",
-    "downloads": 947,
-    "category": "Mountains"
-  },
-  {
-    "id": "forest-mist",
-    "title": "Forest Mist",
-    "location": "Karelia",
-    "year": 2020,
-    "story": "Pine trees emerging from morning fog.",
-    "downloads": 612,
-    "category": "Forest"
-  },
-  {
-    "id": "ridge",
-    "title": "Ridgeline",
-    "location": "Italian Alps",
-    "year": 2022,
-    "story": "Last light on the Dolomites in early autumn.",
-    "downloads": 1853,
-    "category": "Mountains"
-  },
-  {
-    "id": "dunes",
-    "title": "Dune Curves",
-    "location": "Namibia",
-    "year": 2021,
-    "story": "Wind-shaped dunes shot from a small Cessna.",
-    "downloads": 2341,
-    "category": "Desert"
-  },
-  {
-    "id": "lake",
-    "title": "Mirror Lake",
-    "location": "Slovenia",
-    "year": 2023,
-    "story": "A still alpine lake at dawn — perfect reflection.",
-    "downloads": 738,
-    "category": "Mountains"
-  },
-  {
-    "id": "pine",
-    "title": "Lone Pine",
-    "location": "Norway",
-    "year": 2024,
-    "story": "A single tree on a fjord shore in heavy rain.",
-    "downloads": 1102,
-    "category": "Forest"
-  },
-  {
     "id": "wall-1-april27-lo",
-    "title": "Wall 1 April27 Lo",
-    "location": "Unknown",
-    "year": 2026,
-    "story": "",
+    "title": "Lone Mare",
+    "location": "Caucasus",
+    "year": 2024,
+    "story": "A solitary mare grazing on the steep green slopes at sunset.",
     "downloads": 0,
-    "category": "Uncategorised"
+    "category": "Wildlife"
   },
   {
     "id": "wall-1-july11-la",
-    "title": "Wall 1 July11 La",
-    "location": "Unknown",
-    "year": 2026,
-    "story": "",
+    "title": "Road to the Range",
+    "location": "Pyrenees, France",
+    "year": 2025,
+    "story": "A car drifting toward the limestone wall of the Pyrenees at dusk.",
     "downloads": 0,
-    "category": "Uncategorised"
+    "category": "Mountains"
   },
   {
     "id": "wall-1-may30-la",
-    "title": "Wall 1 May30 La",
-    "location": "Unknown",
-    "year": 2026,
-    "story": "",
+    "title": "Pines in Snow",
+    "location": "Karelia, Russia",
+    "year": 2024,
+    "story": "Pine trees clinging to a snow-covered hill in heavy fog.",
     "downloads": 0,
-    "category": "Uncategorised"
+    "category": "Winter"
   },
   {
     "id": "wall-1-december25-b1",
-    "title": "Wall 1 December25 B1",
-    "location": "Unknown",
-    "year": 2026,
-    "story": "",
+    "title": "Concert Hall Arch",
+    "location": "Moscow, Russia",
+    "year": 2023,
+    "story": "Sweeping arch of a contemporary concert hall against a clear winter sky.",
     "downloads": 0,
-    "category": "Uncategorised"
+    "category": "Urban"
   },
   {
     "id": "wall-1-december25-b2",
-    "title": "Wall 1 December25 B2",
-    "location": "Unknown",
-    "year": 2026,
-    "story": "",
+    "title": "Corner Lights",
+    "location": "Moscow, Russia",
+    "year": 2023,
+    "story": "A modern brick block at the end of a quiet street, lit from within.",
     "downloads": 0,
-    "category": "Uncategorised"
+    "category": "Urban"
   },
   {
     "id": "wall-1-december25-f",
-    "title": "Wall 1 December25 F",
-    "location": "Unknown",
-    "year": 2026,
-    "story": "",
+    "title": "After the Plow",
+    "location": "Russia",
+    "year": 2023,
+    "story": "Freshly plowed black earth meeting a stand of bare trees at sunset.",
     "downloads": 0,
-    "category": "Uncategorised"
+    "category": "Forest"
   },
   {
     "id": "wall-1-december25-fl",
-    "title": "Wall 1 December25 Fl",
-    "location": "Unknown",
-    "year": 2026,
-    "story": "",
+    "title": "Heather at Dusk",
+    "location": "Karelia, Russia",
+    "year": 2023,
+    "story": "Pink heather catching the last light over still water.",
     "downloads": 0,
-    "category": "Uncategorised"
+    "category": "Macro"
   },
   {
     "id": "wall-1-december25-h",
-    "title": "Wall 1 December25 H",
-    "location": "Unknown",
-    "year": 2026,
-    "story": "",
+    "title": "Mist Over Stones",
+    "location": "Mediterranean",
+    "year": 2023,
+    "story": "Long exposure of waves wrapping rocks under a violet sky.",
     "downloads": 0,
-    "category": "Uncategorised"
+    "category": "Coast"
   },
   {
     "id": "wall-1-december25-t",
-    "title": "Wall 1 December25 T",
-    "location": "Unknown",
-    "year": 2026,
-    "story": "",
+    "title": "Twilight Pine",
+    "location": "Mediterranean",
+    "year": 2023,
+    "story": "A wind-shaped pine on a rocky outcrop just after sundown.",
     "downloads": 0,
-    "category": "Uncategorised"
+    "category": "Coast"
   },
   {
     "id": "wall-2-april27-tr",
-    "title": "Wall 2 April27 Tr",
-    "location": "Unknown",
-    "year": 2026,
-    "story": "",
+    "title": "Stone Steps",
+    "location": "Crimea",
+    "year": 2024,
+    "story": "An old footpath threaded between cliffs and a wind-twisted tree.",
     "downloads": 0,
-    "category": "Uncategorised"
+    "category": "Forest"
   },
   {
     "id": "wall-2-july11-ge",
-    "title": "Wall 2 July11 Ge",
-    "location": "Unknown",
-    "year": 2026,
-    "story": "",
+    "title": "Kazbek at Night",
+    "location": "Stepantsminda, Georgia",
+    "year": 2025,
+    "story": "Mount Kazbek catching moonlight under a sky full of stars.",
     "downloads": 0,
-    "category": "Uncategorised"
+    "category": "Mountains"
   },
   {
     "id": "wall-2-may30-or",
-    "title": "Wall 2 May30 Or",
-    "location": "Unknown",
-    "year": 2026,
-    "story": "",
+    "title": "Pasture Patchwork",
+    "location": "Caucasus",
+    "year": 2024,
+    "story": "A lone tree marking the seam of two valleys, seen from above.",
     "downloads": 0,
-    "category": "Uncategorised"
+    "category": "Mountains"
   },
   {
     "id": "wall-2-january10-b",
-    "title": "Wall 2 January10 B",
-    "location": "Unknown",
-    "year": 2026,
-    "story": "",
+    "title": "Looking Up",
+    "location": "Moscow, Russia",
+    "year": 2024,
+    "story": "Concrete monoliths converging on a thin slice of winter sky.",
     "downloads": 0,
-    "category": "Uncategorised"
+    "category": "Urban"
   },
   {
     "id": "wall-2-january10-f",
-    "title": "Wall 2 January10 F",
-    "location": "Unknown",
-    "year": 2026,
-    "story": "",
+    "title": "Moss and Tide",
+    "location": "Iceland",
+    "year": 2024,
+    "story": "Aerial of mossy rocks scattered across the shallows.",
     "downloads": 0,
-    "category": "Uncategorised"
+    "category": "Macro"
   },
   {
     "id": "wall-2-january10-le",
-    "title": "Wall 2 January10 Le",
-    "location": "Unknown",
-    "year": 2026,
-    "story": "",
+    "title": "Wave Trail",
+    "location": "Atlantic Coast",
+    "year": 2024,
+    "story": "A long-exposure wave dragging silk-white foam across dark stone.",
     "downloads": 0,
-    "category": "Uncategorised"
+    "category": "Coast"
   },
   {
     "id": "wall-2-january10-s",
-    "title": "Wall 2 January10 S",
-    "location": "Unknown",
-    "year": 2026,
-    "story": "",
+    "title": "Sunset Cove",
+    "location": "Mediterranean",
+    "year": 2024,
+    "story": "Rugged sea stacks silhouetted against a peach sunset.",
     "downloads": 0,
-    "category": "Uncategorised"
+    "category": "Coast"
   },
   {
     "id": "wall-2-january10-sq",
-    "title": "Wall 2 January10 Sq",
-    "location": "Unknown",
-    "year": 2026,
-    "story": "",
+    "title": "Snowy Alley",
+    "location": "Saint Petersburg, Russia",
+    "year": 2024,
+    "story": "An empty park alley deep in falling snow.",
     "downloads": 0,
-    "category": "Uncategorised"
+    "category": "Winter"
   },
   {
     "id": "wall-2-january10-t",
-    "title": "Wall 2 January10 T",
-    "location": "Unknown",
-    "year": 2026,
-    "story": "",
+    "title": "Island Pine",
+    "location": "Norway",
+    "year": 2024,
+    "story": "A single pine standing on a tiny island in a fjord at dawn.",
     "downloads": 0,
-    "category": "Uncategorised"
+    "category": "Forest"
   },
   {
     "id": "wall-3-april27-ca",
-    "title": "Wall 3 April27 Ca",
-    "location": "Unknown",
-    "year": 2026,
-    "story": "",
+    "title": "Tabby",
+    "location": "Crimea",
+    "year": 2024,
+    "story": "A sun-warmed ginger cat owning the path.",
     "downloads": 0,
-    "category": "Uncategorised"
+    "category": "Wildlife"
   },
   {
     "id": "wall-3-february14-chb",
-    "title": "Wall 3 February14 Chb",
-    "location": "Unknown",
-    "year": 2026,
-    "story": "",
+    "title": "Sphere on Steps",
+    "location": "Russia",
+    "year": 2023,
+    "story": "A concrete ball perched on its column where stairs meet a still pond.",
     "downloads": 0,
-    "category": "Uncategorised"
+    "category": "Urban"
   },
   {
     "id": "wall-3-february14-i",
-    "title": "Wall 3 February14 I",
-    "location": "Unknown",
-    "year": 2026,
-    "story": "",
+    "title": "Mangrove Shrine",
+    "location": "Bali, Indonesia",
+    "year": 2023,
+    "story": "A small mangrove tree perched on coral, shrine offerings still on its branches.",
     "downloads": 0,
-    "category": "Uncategorised"
+    "category": "Coast"
   },
   {
     "id": "wall-3-february14-m",
-    "title": "Wall 3 February14 M",
-    "location": "Unknown",
-    "year": 2026,
-    "story": "",
+    "title": "Old Lighthouse",
+    "location": "Russian Far East",
+    "year": 2023,
+    "story": "A small red lighthouse against a cold, restless sea.",
     "downloads": 0,
-    "category": "Uncategorised"
+    "category": "Coast"
   },
   {
     "id": "wall-3-february14-p",
-    "title": "Wall 3 February14 P",
-    "location": "Unknown",
-    "year": 2026,
-    "story": "",
+    "title": "Sandstone at Sunset",
+    "location": "Algarve, Portugal",
+    "year": 2023,
+    "story": "Tilted sandstone strata catching the last light at low tide.",
     "downloads": 0,
-    "category": "Uncategorised"
+    "category": "Coast"
   },
   {
     "id": "wall-3-february14-ts",
-    "title": "Wall 3 February14 Ts",
-    "location": "Unknown",
-    "year": 2026,
-    "story": "",
+    "title": "Heather Bokeh",
+    "location": "Karelia, Russia",
+    "year": 2023,
+    "story": "Pink heather in soft afternoon light, water sparkling behind.",
     "downloads": 0,
-    "category": "Uncategorised"
+    "category": "Macro"
   },
   {
     "id": "wall-3-february14-z",
-    "title": "Wall 3 February14 Z",
-    "location": "Unknown",
-    "year": 2026,
-    "story": "",
+    "title": "Frozen Banks",
+    "location": "Iceland",
+    "year": 2023,
+    "story": "Ice forming on a black-stone river bank under a low grey sky.",
     "downloads": 0,
-    "category": "Uncategorised"
+    "category": "Winter"
   },
   {
     "id": "wall-3-july11-ca",
-    "title": "Wall 3 July11 Ca",
-    "location": "Unknown",
-    "year": 2026,
-    "story": "",
+    "title": "Cliff Tree",
+    "location": "Mediterranean",
+    "year": 2025,
+    "story": "A wiry tree clinging to a cliff above a pale sea.",
     "downloads": 0,
-    "category": "Uncategorised"
+    "category": "Coast"
   },
   {
     "id": "wall-3-may30-o2",
-    "title": "Wall 3 May30 O2",
-    "location": "Unknown",
-    "year": 2026,
-    "story": "",
+    "title": "Verdant Hollow",
+    "location": "Caucasus",
+    "year": 2024,
+    "story": "A curved fold of hills hides a small grove deep in green.",
     "downloads": 0,
-    "category": "Uncategorised"
+    "category": "Mountains"
   },
   {
     "id": "wall-4-april27-fl",
-    "title": "Wall 4 April27 Fl",
-    "location": "Unknown",
-    "year": 2026,
-    "story": "",
+    "title": "Star of Bethlehem",
+    "location": "Crimea",
+    "year": 2024,
+    "story": "A wild star-of-Bethlehem flower opening in a dark forest understory.",
     "downloads": 0,
-    "category": "Uncategorised"
+    "category": "Macro"
   },
   {
     "id": "wall-4-july11-cr",
-    "title": "Wall 4 July11 Cr",
-    "location": "Unknown",
-    "year": 2026,
-    "story": "",
+    "title": "Adriatic Bay",
+    "location": "Hvar, Croatia",
+    "year": 2025,
+    "story": "A pine-covered cape on glass-still Adriatic water.",
     "downloads": 0,
-    "category": "Uncategorised"
+    "category": "Coast"
   },
   {
     "id": "wall-4-march11-h",
-    "title": "Wall 4 March11 H",
-    "location": "Unknown",
-    "year": 2026,
-    "story": "",
+    "title": "White in the Caucasus",
+    "location": "Caucasus",
+    "year": 2024,
+    "story": "A white horse browsing in golden grass below sharp grey peaks.",
     "downloads": 0,
-    "category": "Uncategorised"
+    "category": "Wildlife"
   },
   {
     "id": "wall-4-march11-ms",
-    "title": "Wall 4 March11 Ms",
-    "location": "Unknown",
-    "year": 2026,
-    "story": "",
+    "title": "Bridge in Fog",
+    "location": "Moscow, Russia",
+    "year": 2024,
+    "story": "Zhivopisny bridge fading into a snowy fog.",
     "downloads": 0,
-    "category": "Uncategorised"
+    "category": "Urban"
   },
   {
     "id": "wall-4-march11-s",
-    "title": "Wall 4 March11 S",
-    "location": "Unknown",
-    "year": 2026,
-    "story": "",
+    "title": "Moon Over the Strand",
+    "location": "Mediterranean",
+    "year": 2024,
+    "story": "A half-moon over the mountains as the tide combs the rocks.",
     "downloads": 0,
-    "category": "Uncategorised"
+    "category": "Coast"
   },
   {
     "id": "wall-4-march11-se",
-    "title": "Wall 4 March11 Se",
-    "location": "Unknown",
-    "year": 2026,
-    "story": "",
+    "title": "Twilight Foam",
+    "location": "Atlantic Coast",
+    "year": 2024,
+    "story": "A wide rock catching the last of the dusk in slow water.",
     "downloads": 0,
-    "category": "Uncategorised"
+    "category": "Coast"
   },
   {
     "id": "wall-4-march11-sp",
-    "title": "Wall 4 March11 Sp",
-    "location": "Unknown",
-    "year": 2026,
-    "story": "",
+    "title": "Long Pier",
+    "location": "Catalonia, Spain",
+    "year": 2024,
+    "story": "A modernist pier reaching out across a smoke-blue sea.",
     "downloads": 0,
-    "category": "Uncategorised"
+    "category": "Coast"
   },
   {
     "id": "wall-4-march11-ur",
-    "title": "Wall 4 March11 Ur",
-    "location": "Unknown",
-    "year": 2026,
-    "story": "",
+    "title": "Frosted Forest",
+    "location": "Lapland",
+    "year": 2024,
+    "story": "Spruce trees crusted with rime at the moment the sun rises.",
     "downloads": 0,
-    "category": "Uncategorised"
+    "category": "Winter"
   },
   {
     "id": "wall-4-may30-mk",
-    "title": "Wall 4 May30 Mk",
-    "location": "Unknown",
-    "year": 2026,
-    "story": "",
+    "title": "Sedum",
+    "location": "Crimea",
+    "year": 2024,
+    "story": "A close-up of a sedum's chubby green leaves.",
     "downloads": 0,
-    "category": "Uncategorised"
+    "category": "Macro"
   },
   {
     "id": "wall-5-april27-bl",
-    "title": "Wall 5 April27 Bl",
-    "location": "Unknown",
-    "year": 2026,
-    "story": "",
+    "title": "Brutalist Tower",
+    "location": "Moscow, Russia",
+    "year": 2024,
+    "story": "A windowed concrete slab catching a single warm window in a grey sky.",
     "downloads": 0,
-    "category": "Uncategorised"
+    "category": "Urban"
   },
   {
     "id": "wall-5-july11-ld",
-    "title": "Wall 5 July11 Ld",
-    "location": "Unknown",
-    "year": 2026,
-    "story": "",
+    "title": "Lone Pine, Frozen",
+    "location": "Urals, Russia",
+    "year": 2025,
+    "story": "A small pine surviving on a snow-bound rocky shelf.",
     "downloads": 0,
-    "category": "Uncategorised"
+    "category": "Winter"
   },
   {
     "id": "wall-5-may30-ur",
-    "title": "Wall 5 May30 Ur",
-    "location": "Unknown",
-    "year": 2026,
-    "story": "",
+    "title": "Cabin Under Stars",
+    "location": "Urals, Russia",
+    "year": 2024,
+    "story": "A snow-buried cabin under the cold first stars of evening.",
     "downloads": 0,
-    "category": "Uncategorised"
+    "category": "Winter"
   },
   {
     "id": "wall-6-april27-wi",
-    "title": "Wall 6 April27 Wi",
-    "location": "Unknown",
-    "year": 2026,
-    "story": "",
+    "title": "Dawn Trees",
+    "location": "Lapland",
+    "year": 2024,
+    "story": "Snow-encased trees lit pink by the first morning light.",
     "downloads": 0,
-    "category": "Uncategorised"
+    "category": "Winter"
   },
   {
     "id": "wall-6-july11-se",
-    "title": "Wall 6 July11 Se",
-    "location": "Unknown",
-    "year": 2026,
-    "story": "",
+    "title": "Stone Sunset",
+    "location": "Mediterranean",
+    "year": 2025,
+    "story": "Heavy stones under streamlining clouds at sundown.",
     "downloads": 0,
-    "category": "Uncategorised"
+    "category": "Coast"
   },
   {
     "id": "wall-6-may30-u2",
-    "title": "Wall 6 May30 U2",
-    "location": "Unknown",
-    "year": 2026,
-    "story": "",
+    "title": "Wandering in Snow",
+    "location": "Urals, Russia",
+    "year": 2024,
+    "story": "A figure walking through a windblown snowfield with low sun.",
     "downloads": 0,
-    "category": "Uncategorised"
+    "category": "Winter"
   }
 ]
