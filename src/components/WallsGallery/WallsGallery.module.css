@@ -1,38 +1,33 @@
 .layout {
-  display: flex;
-  align-items: flex-start;
-  gap: 40px;
-  width: 100%;
-  max-width: 1500px;
-  margin: 0 auto;
-  /* Top padding clears the fixed logo (top:66 + height:90 = 156) +
-     breathing room. Right padding clears the burger (top:40 + 50). */
-  padding: 200px 40px 96px;
   position: relative;
+  width: 100%;
+  padding: 200px 0 96px;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 1100px) {
   .layout {
-    flex-direction: column;
     padding: 130px 16px 80px;
-    gap: 16px;
   }
 }
 
-/* Sidebar with category filter */
+/* Sidebar floats at the far left, aligned horizontally with the logo
+   (left:66 desktop). Pulled out of flow so the grid below can be
+   truly viewport-centered. */
 .sidebar {
-  flex: 0 0 140px;
-  position: sticky;
-  /* Stays a bit below the burger when scrolling. */
+  position: fixed;
   top: 200px;
-  align-self: flex-start;
+  left: 66px;
+  width: 120px;
+  z-index: 5;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 1100px) {
+  /* On narrower screens the sidebar would overlap the centred grid;
+     drop it back into normal flow horizontally above the grid. */
   .sidebar {
     position: static;
-    flex: 0 0 auto;
-    align-self: stretch;
+    width: 100%;
+    margin-bottom: 16px;
   }
 }
 
@@ -94,15 +89,17 @@
   width: 18px;
 }
 
-/* Grid */
+/* Grid: centred in the viewport, max 1100px so it doesn't overlap the
+   fixed sidebar on common desktop widths. */
 .grid {
   list-style: none;
-  margin: 0;
+  margin: 0 auto;
   padding: 0;
-  flex: 1 1 auto;
+  width: 100%;
+  max-width: 1100px;
   display: grid;
   gap: 20px;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
 }
 
 @media (max-width: 597px) {
@@ -146,9 +143,13 @@
   position: absolute;
   inset: 0;
   pointer-events: none;
-  background: hsla(0, 0%, 100%, 0.07);
-  backdrop-filter: blur(14px) saturate(140%);
-  -webkit-backdrop-filter: blur(14px) saturate(140%);
+  /* White-veil tint plus a strong blur and slight darkening — heavy
+     enough that the photo behind reads as 'frosted', not just dim. */
+  background: hsla(0, 0%, 100%, 0.22);
+  backdrop-filter: blur(36px) saturate(150%) brightness(0.7);
+  -webkit-backdrop-filter: blur(36px) saturate(150%) brightness(0.7);
+  /* Subtle highlight along one edge to sell the ice illusion. */
+  box-shadow: inset 1px 1px 0 hsla(0, 0%, 100%, 0.18);
   opacity: 0;
   z-index: 1;
 }
