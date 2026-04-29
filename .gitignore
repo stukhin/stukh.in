@@ -45,3 +45,7 @@ next-env.d.ts
 
 # old static export — kept locally as visual reference, not needed in repo
 /(old)/
+
+# wallpaper source originals — keep local for re-running build-walls.mjs,
+# don't ship to Vercel
+/public/images/walls/incoming/processed/
