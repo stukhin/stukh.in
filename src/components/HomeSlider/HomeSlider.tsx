@@ -14,6 +14,15 @@ const AUTOPLAY_MS = 7000;
 
 export default function HomeSlider() {
   const [active, setActive] = useState(0);
+  /** First-load reveal: hero photo starts as a high-contrast B&W
+   * sketch and transitions into full colour. Drops back to the
+   * normal slider behaviour once the reveal has played once. */
+  const [revealing, setRevealing] = useState(true);
+
+  useEffect(() => {
+    const t = window.setTimeout(() => setRevealing(false), 2400);
+    return () => window.clearTimeout(t);
+  }, []);
 
   const next = () => setActive((i) => (i + 1) % slides.length);
   const prev = () =>
@@ -37,7 +46,7 @@ export default function HomeSlider() {
   }, []);
 
   return (
-    <div className={styles.wrap}>
+    <div className={`${styles.wrap} ${revealing ? styles.revealing : ""}`}>
       <div className={styles.slider}>
         {slides.map((src, i) => (
           <div

@@ -227,6 +227,7 @@ export default function WallsGallery({ items }: Props) {
                 wallpaper={w}
                 count={count}
                 state={state}
+                isZoomed={zoomed?.id === w.id}
                 onZoom={openZoom}
                 onDownload={download}
                 registerImg={(el) => {
@@ -258,26 +259,30 @@ export default function WallsGallery({ items }: Props) {
           aria-label={`${zoomed.title} preview`}
           onClick={closeZoom}
         >
-          <img
-            ref={modalImgRef}
-            src={`/images/walls/${zoomed.id}.webp`}
-            alt={zoomed.title}
-            className={styles.zoomImage}
-            draggable={false}
+          <div
+            className={styles.photoBox}
             onClick={(e) => e.stopPropagation()}
-          />
-          <button
-            type="button"
-            className={styles.zoomDownload}
-            onClick={(e) => {
-              e.stopPropagation();
-              download(zoomed);
-            }}
-            disabled={(downloads[zoomed.id] || "idle") === "loading"}
-            data-cursor="hover"
           >
-            Download
-          </button>
+            <img
+              ref={modalImgRef}
+              src={`/images/walls/${zoomed.id}.webp`}
+              alt={zoomed.title}
+              className={styles.zoomImage}
+              draggable={false}
+            />
+            <button
+              type="button"
+              className={styles.zoomDownload}
+              onClick={(e) => {
+                e.stopPropagation();
+                download(zoomed);
+              }}
+              disabled={(downloads[zoomed.id] || "idle") === "loading"}
+              data-cursor="hover"
+            >
+              Download
+            </button>
+          </div>
         </div>
       )}
     </>
@@ -288,6 +293,7 @@ type CardProps = {
   wallpaper: Wallpaper;
   count: number;
   state: DownloadState;
+  isZoomed: boolean;
   onZoom: (w: Wallpaper) => void;
   onDownload: (w: Wallpaper) => void;
   registerImg: (el: HTMLImageElement | null) => void;
@@ -297,6 +303,7 @@ function WallpaperCard({
   wallpaper,
   count,
   state,
+  isZoomed,
   onZoom,
   onDownload,
   registerImg,
@@ -329,7 +336,7 @@ function WallpaperCard({
   return (
     <li
       ref={ref}
-      className={styles.card}
+      className={`${styles.card} ${isZoomed ? styles.cardZoomed : ""}`}
       onMouseMove={handleMove}
       onMouseEnter={handleEnter}
       onMouseLeave={handleLeave}

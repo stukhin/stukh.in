@@ -116,6 +116,14 @@ html.zoom-open button[aria-label="Close menu"] {
   visibility: hidden;
 }
 
+/* Logo and burger ride along with the navigation as their own
+   view-transition groups, but with zero duration — they stay
+   stationary while the rest of the page slides between routes. */
+::view-transition-group(site-logo),
+::view-transition-group(site-burger) {
+  animation-duration: 0s;
+}
+
 /* Page-to-page transition. Pages live in a fixed order (see
    src/lib/pageOrder.ts). Forward navigation slides the outgoing page
    up off the top of the viewport while the incoming page rises from

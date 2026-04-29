@@ -32,12 +32,20 @@
   background-position: center;
   background-repeat: no-repeat;
   transform: scale(1);
-  transition: transform 5s;
-  transition-delay: 0.3s;
+  filter: none;
+  transition: transform 5s ease 0.3s, filter 1.6s cubic-bezier(0.65, 0, 0.35, 1);
 }
 
 .slide.active .slide_image {
   transform: scale(1.1);
+}
+
+/* First-load 'pencil sketch' reveal: hero starts as a high-contrast
+   grayscale image with a touch of blur and over-bright exposure (so
+   it reads as outlines), then transitions into the full colour photo
+   over 1.6s once the preloader fades. */
+.revealing .slide_image {
+  filter: grayscale(1) contrast(1.6) brightness(1.25) blur(2px);
 }
 
 /* Edge click zones (with arrow cursor). Keep clear of the logo/burger area. */

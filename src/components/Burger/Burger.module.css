@@ -11,6 +11,8 @@
      burger stays clickable on top of the overlay. */
   z-index: 60;
   transition: background-color 0.5s linear;
+  /* Stay anchored across page transitions. */
+  view-transition-name: site-burger;
 }
 
 .burger.open {

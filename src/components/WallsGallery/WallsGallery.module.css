@@ -115,6 +115,14 @@
   perspective-origin: center;
 }
 
+/* When the card is the currently-zoomed one, hide its thumbnail in the
+   grid so the slot looks empty while the modal photo flies to centre.
+   visibility:hidden keeps the layout intact — getBoundingClientRect
+   still resolves correctly for the close-back morph. */
+.cardZoomed {
+  visibility: hidden;
+}
+
 .tilt {
   position: relative;
   width: 100%;
@@ -485,18 +493,26 @@
   }
 }
 
-/* Transform/scale animation is set inline by the FLIP logic in JS so
-   the photo morphs from the clicked card's exact position to the
-   centred preview, then back on close. aspect-ratio locks the
-   dimensions even before the image bytes have loaded — without it
-   the JS measurement would briefly see a 0×0 box and skip the
-   animation. */
-.zoomImage {
+/* Photo container — flexbox child of .zoom that holds the image and the
+   centred Download button. The button only shows while the cursor is
+   actually over this container, so it disappears when the user moves
+   off the photo. */
+.photoBox {
+  position: relative;
   height: 100%;
   aspect-ratio: 9 / 16;
   max-width: 100%;
-  object-fit: contain;
+}
+
+/* Transform/scale animation is set inline by the FLIP logic in JS so
+   the photo morphs from the clicked card's exact position to the
+   centred preview, then back on close. aspect-ratio (on .photoBox)
+   locks the dimensions even before the image bytes have loaded. */
+.zoomImage {
+  width: 100%;
+  height: 100%;
   display: block;
+  object-fit: contain;
   box-shadow: 0 24px 80px rgba(0, 0, 0, 0.5);
   transform-origin: center center;
   will-change: transform;
@@ -504,32 +520,26 @@
 
 .zoomDownload {
   position: absolute;
-  bottom: 5vh;
+  top: 50%;
   left: 50%;
-  transform: translateX(-50%);
-  background: rgba(255, 255, 255, 0.12);
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  transform: translate(-50%, -50%);
+  background: rgba(0, 0, 0, 0.45);
+  border: 1px solid rgba(255, 255, 255, 0.55);
   color: #fff;
   padding: 12px 28px;
   font-size: 13px;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   cursor: none;
-  transition: background 0.2s ease, border-color 0.2s ease;
-  animation: overlayInVisible 0.45s ease-out 0.2s both;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease, background 0.2s ease, border-color 0.2s ease;
+  backdrop-filter: blur(8px);
 }
 
-.zoomClosing .zoomDownload {
-  animation: zoomBtnOut 0.25s ease-in both;
-}
-
-@keyframes zoomBtnOut {
-  from {
-    opacity: 1;
-  }
-  to {
-    opacity: 0;
-  }
+.photoBox:hover .zoomDownload {
+  opacity: 1;
+  pointer-events: auto;
 }
 
 .zoomDownload:hover {

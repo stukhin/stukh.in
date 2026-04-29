@@ -7,6 +7,10 @@
      MenuPopup (50) so the menu can cover the logo when open. */
   z-index: 45;
   line-height: 0;
+  /* Stay anchored across page transitions — globals.css zeros the
+     view-transition-group duration so the logo doesn't slide with the
+     rest of the page. */
+  view-transition-name: site-logo;
 }
 
 .logo.hidden {
