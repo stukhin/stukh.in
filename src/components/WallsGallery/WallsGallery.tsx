@@ -1,6 +1,13 @@
 "use client";
 
-import { MouseEvent, useEffect, useMemo, useRef, useState } from "react";
+import {
+  MouseEvent,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { motion, useMotionValue, useSpring } from "motion/react";
 import styles from "./WallsGallery.module.css";
 
@@ -22,7 +29,8 @@ type Props = {
 
 const ALL = "All";
 const GHOST_COUNT = 4;
-const ZOOM_OUT_MS = 360;
+const ZOOM_IN_MS = 500;
+const ZOOM_OUT_MS = 400;
 const TILT_AMPLITUDE = 9;
 const SPRING = { damping: 30, stiffness: 100, mass: 1.4 };
 
@@ -32,6 +40,10 @@ export default function WallsGallery({ items }: Props) {
   const [zoomed, setZoomed] = useState<Wallpaper | null>(null);
   const [zoomClosing, setZoomClosing] = useState(false);
   const [activeCategory, setActiveCategory] = useState<string>(ALL);
+
+  const cardImgRefs = useRef<Record<string, HTMLImageElement | null>>({});
+  const modalImgRef = useRef<HTMLImageElement>(null);
+  const fromRectRef = useRef<DOMRect | null>(null);
 
   const categories = useMemo(() => {
     const set = new Set<string>();
@@ -91,18 +103,61 @@ export default function WallsGallery({ items }: Props) {
   };
 
   const openZoom = (w: Wallpaper) => {
+    const cardImg = cardImgRefs.current[w.id];
+    fromRectRef.current = cardImg ? cardImg.getBoundingClientRect() : null;
     setZoomClosing(false);
     setZoomed(w);
   };
 
   const closeZoom = () => {
     if (!zoomed || zoomClosing) return;
+    // Re-capture the card's rect in case the scroll/tilt state shifted
+    // since the click that opened the zoom.
+    const cardImg = cardImgRefs.current[zoomed.id];
+    if (cardImg) fromRectRef.current = cardImg.getBoundingClientRect();
+    const modalImg = modalImgRef.current;
+    const from = fromRectRef.current;
+    if (modalImg && from) {
+      const target = modalImg.getBoundingClientRect();
+      const dx =
+        from.left + from.width / 2 - (target.left + target.width / 2);
+      const dy =
+        from.top + from.height / 2 - (target.top + target.height / 2);
+      const scale = from.width / target.width;
+      modalImg.style.transition = `transform ${ZOOM_OUT_MS}ms cubic-bezier(0.65, 0, 0.35, 1)`;
+      modalImg.style.transform = `translate(${dx}px, ${dy}px) scale(${scale})`;
+    }
     setZoomClosing(true);
     window.setTimeout(() => {
       setZoomed(null);
       setZoomClosing(false);
     }, ZOOM_OUT_MS);
   };
+
+  // Run the FLIP morph as soon as the modal img mounts. Place it at
+  // the card's exact rect with transform, force a reflow, then animate
+  // to its natural position.
+  useLayoutEffect(() => {
+    if (!zoomed || zoomClosing) return;
+    const modalImg = modalImgRef.current;
+    const from = fromRectRef.current;
+    if (!modalImg || !from) return;
+    const target = modalImg.getBoundingClientRect();
+    const dx =
+      from.left + from.width / 2 - (target.left + target.width / 2);
+    const dy =
+      from.top + from.height / 2 - (target.top + target.height / 2);
+    const scale = from.width / target.width;
+    modalImg.style.transition = "none";
+    modalImg.style.transform = `translate(${dx}px, ${dy}px) scale(${scale})`;
+    // Force layout so the next frame starts from the new transform.
+    void modalImg.getBoundingClientRect();
+    requestAnimationFrame(() => {
+      if (!modalImgRef.current) return;
+      modalImgRef.current.style.transition = `transform ${ZOOM_IN_MS}ms cubic-bezier(0.65, 0, 0.35, 1)`;
+      modalImgRef.current.style.transform = "translate(0, 0) scale(1)";
+    });
+  }, [zoomed, zoomClosing]);
 
   // Lock the underlying scroll while the zoom view is open, hide the
   // burger so it doesn't bleed through the dim layer, and let ESC
@@ -160,6 +215,9 @@ export default function WallsGallery({ items }: Props) {
                 state={state}
                 onZoom={openZoom}
                 onDownload={download}
+                registerImg={(el) => {
+                  cardImgRefs.current[w.id] = el;
+                }}
               />
             );
           })}
@@ -187,6 +245,7 @@ export default function WallsGallery({ items }: Props) {
           onClick={closeZoom}
         >
           <img
+            ref={modalImgRef}
             src={`/images/walls/${zoomed.id}.webp`}
             alt={zoomed.title}
             className={styles.zoomImage}
@@ -217,9 +276,17 @@ type CardProps = {
   state: DownloadState;
   onZoom: (w: Wallpaper) => void;
   onDownload: (w: Wallpaper) => void;
+  registerImg: (el: HTMLImageElement | null) => void;
 };
 
-function WallpaperCard({ wallpaper, count, state, onZoom, onDownload }: CardProps) {
+function WallpaperCard({
+  wallpaper,
+  count,
+  state,
+  onZoom,
+  onDownload,
+  registerImg,
+}: CardProps) {
   const ref = useRef<HTMLLIElement>(null);
   const rotateX = useSpring(useMotionValue(0), SPRING);
   const rotateY = useSpring(useMotionValue(0), SPRING);
@@ -265,6 +332,7 @@ function WallpaperCard({ wallpaper, count, state, onZoom, onDownload }: CardProp
           data-cursor="magnifier"
         >
           <img
+            ref={registerImg}
             src={`/images/walls/${wallpaper.id}_thumb.webp`}
             alt={wallpaper.title}
             className={styles.thumb}

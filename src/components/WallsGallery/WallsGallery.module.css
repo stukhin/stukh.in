@@ -152,9 +152,12 @@
   position: absolute;
   inset: 0;
   pointer-events: none;
-  background: hsla(0, 0%, 100%, 0.08);
-  backdrop-filter: blur(32px) saturate(140%) brightness(0.55);
-  box-shadow: inset 1px 1px 0 hsla(0, 0%, 100%, 0.16);
+  /* Twice as transparent as the previous tuning: thinner white veil,
+     less darkening — the photo behind clearly comes through, the
+     glass still reads as 'frosted'. */
+  background: hsla(0, 0%, 100%, 0.04);
+  backdrop-filter: blur(28px) saturate(130%) brightness(0.78);
+  box-shadow: inset 1px 1px 0 hsla(0, 0%, 100%, 0.12);
   opacity: 0;
   z-index: 1;
 }
@@ -481,6 +484,9 @@
   }
 }
 
+/* Transform/scale animation is set inline by the FLIP logic in JS so
+   the photo morphs from the clicked card's exact position to the
+   centred preview, then back on close. */
 .zoomImage {
   height: 100%;
   width: auto;
@@ -488,33 +494,8 @@
   object-fit: contain;
   display: block;
   box-shadow: 0 24px 80px rgba(0, 0, 0, 0.5);
-  animation: zoomPhotoIn 0.55s cubic-bezier(0.65, 0, 0.35, 1) both;
-}
-
-.zoomClosing .zoomImage {
-  animation: zoomPhotoOut 0.36s cubic-bezier(0.65, 0, 0.35, 1) both;
-}
-
-@keyframes zoomPhotoIn {
-  from {
-    opacity: 0;
-    transform: scale(0.55);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
-
-@keyframes zoomPhotoOut {
-  from {
-    opacity: 1;
-    transform: scale(1);
-  }
-  to {
-    opacity: 0;
-    transform: scale(0.55);
-  }
+  transform-origin: center center;
+  will-change: transform;
 }
 
 .zoomDownload {
