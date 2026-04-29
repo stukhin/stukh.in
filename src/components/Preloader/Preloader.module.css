@@ -23,46 +23,55 @@
   z-index: 1;
 }
 
-/* Outline "LOADING" text that fills via four conic-gradient backgrounds
-   clipped to the text glyphs. The animation grows two horizontal fills,
-   then swaps to two vertical fills, looping every 2s. */
+/* 4-bar dancing loader. Each bar takes a turn jumping up and back down. */
 .loader {
-  width: fit-content;
-  font-size: 28px;
-  font-family: system-ui, sans-serif;
-  font-weight: 700;
-  text-transform: uppercase;
-  color: transparent;
-  -webkit-text-stroke: 1px #000;
-  letter-spacing: 0.04em;
-  --g: conic-gradient(#000 0 0) no-repeat text;
-  background:
-    var(--g) 0,
-    var(--g) 100%,
-    var(--g) 0 0,
-    var(--g) 0 100%;
-  animation: l5 2s linear infinite;
+  width: 60px;
+  height: 9px;
+  --c: no-repeat linear-gradient(#000 0 0);
+  background: var(--c), var(--c), var(--c), var(--c);
+  background-size: 26% 3px;
+  animation: preloaderBars 1s infinite;
 }
 
 @media (min-width: 1025px) {
   .loader {
-    font-size: 50px;
-    -webkit-text-stroke-width: 1.5px;
+    width: 100px;
+    height: 15px;
+    background-size: 26% 5px;
   }
 }
 
-.loader::before {
-  content: "Loading";
+@keyframes preloaderBars {
+  0%,
+  70%,
+  100% {
+    background-position: calc(0 * 100% / 3) 50%, calc(1 * 100% / 3) 50%,
+      calc(2 * 100% / 3) 50%, calc(3 * 100% / 3) 50%;
+  }
+  11.67% {
+    background-position: calc(0 * 100% / 3) 0, calc(1 * 100% / 3) 50%,
+      calc(2 * 100% / 3) 50%, calc(3 * 100% / 3) 50%;
+  }
+  23.33% {
+    background-position: calc(0 * 100% / 3) 100%, calc(1 * 100% / 3) 0,
+      calc(2 * 100% / 3) 50%, calc(3 * 100% / 3) 50%;
+  }
+  35% {
+    background-position: calc(0 * 100% / 3) 50%, calc(1 * 100% / 3) 100%,
+      calc(2 * 100% / 3) 0, calc(3 * 100% / 3) 50%;
+  }
+  46.67% {
+    background-position: calc(0 * 100% / 3) 50%, calc(1 * 100% / 3) 50%,
+      calc(2 * 100% / 3) 100%, calc(3 * 100% / 3) 0;
+  }
+  58.34% {
+    background-position: calc(0 * 100% / 3) 50%, calc(1 * 100% / 3) 50%,
+      calc(2 * 100% / 3) 50%, calc(3 * 100% / 3) 100%;
+  }
 }
 
-@keyframes l5 {
-  0%, 100% {
-    background-size: 0 100%, 0 100%, 100% 0, 100% 0;
-  }
-  50% {
-    background-size: 55% 100%, 55% 100%, 100% 0, 100% 0;
-  }
-  50.01% {
-    background-size: 0 100%, 0 100%, 100% 55%, 100% 55%;
+@media (prefers-reduced-motion: reduce) {
+  .loader {
+    animation: none;
   }
 }
