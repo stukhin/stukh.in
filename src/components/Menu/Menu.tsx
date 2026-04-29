@@ -12,7 +12,8 @@ type Props = {
 const links = [
   { href: "/nature", label: "nature" },
   { href: "/city", label: "city" },
-  { href: "/order", label: "more" },
+  { href: "/walls", label: "walls" },
+  { href: "/trips", label: "trips" },
 ];
 
 export default function Menu({ column = false, className = "" }: Props) {

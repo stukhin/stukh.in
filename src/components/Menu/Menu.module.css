@@ -109,7 +109,7 @@
 }
 
 .menu.column li + li {
-  margin-top: 50px;
+  margin-top: 40px;
 }
 
 @media (max-width: 1024px) {
@@ -120,6 +120,6 @@
     flex-direction: column;
   }
   .menu li + li {
-    margin-top: 50px;
+    margin-top: 40px;
   }
 }
