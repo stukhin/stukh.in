@@ -123,6 +123,259 @@
   visibility: hidden;
 }
 
+/* Glass Shatter category-filter animation. The cards already have six
+   clip-path 'chunks' overlaying the photo; on filter change they
+   become fully opaque (a frosted shell) and explode outward in
+   different directions while the photo behind dissolves. The new
+   batch reverses it — chunks fly in from outside, settle into the
+   frosted shell, then dissolve to reveal the photo. */
+.cardShattering .thumb {
+  animation: thumbOut 0.35s ease-in forwards;
+  animation-delay: calc(var(--i, 0) * 0.025s);
+}
+.cardShattering .chunk1 {
+  animation: shatter1 0.6s cubic-bezier(0.55, 0, 1, 0.6) forwards;
+  animation-delay: calc(var(--i, 0) * 0.025s + 0.12s);
+}
+.cardShattering .chunk2 {
+  animation: shatter2 0.6s cubic-bezier(0.55, 0, 1, 0.6) forwards;
+  animation-delay: calc(var(--i, 0) * 0.025s + 0.12s);
+}
+.cardShattering .chunk3 {
+  animation: shatter3 0.6s cubic-bezier(0.55, 0, 1, 0.6) forwards;
+  animation-delay: calc(var(--i, 0) * 0.025s + 0.12s);
+}
+.cardShattering .chunk4 {
+  animation: shatter4 0.6s cubic-bezier(0.55, 0, 1, 0.6) forwards;
+  animation-delay: calc(var(--i, 0) * 0.025s + 0.12s);
+}
+.cardShattering .chunk5 {
+  animation: shatter5 0.6s cubic-bezier(0.55, 0, 1, 0.6) forwards;
+  animation-delay: calc(var(--i, 0) * 0.025s + 0.12s);
+}
+.cardShattering .chunk6 {
+  animation: shatter6 0.6s cubic-bezier(0.55, 0, 1, 0.6) forwards;
+  animation-delay: calc(var(--i, 0) * 0.025s + 0.12s);
+}
+
+@keyframes thumbOut {
+  0% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+}
+
+@keyframes shatter1 {
+  0% {
+    opacity: 1;
+    transform: none;
+    background: hsla(0, 0%, 100%, 0.18);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-180%, -160%) rotate(-22deg) scale(0.55);
+  }
+}
+@keyframes shatter2 {
+  0% {
+    opacity: 1;
+    transform: none;
+    background: hsla(0, 0%, 100%, 0.18);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(180%, -160%) rotate(28deg) scale(0.55);
+  }
+}
+@keyframes shatter3 {
+  0% {
+    opacity: 1;
+    transform: none;
+    background: hsla(0, 0%, 100%, 0.18);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(0, 130%) rotate(12deg) scale(0.5);
+  }
+}
+@keyframes shatter4 {
+  0% {
+    opacity: 1;
+    transform: none;
+    background: hsla(0, 0%, 100%, 0.18);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-200%, 60%) rotate(-40deg) scale(0.5);
+  }
+}
+@keyframes shatter5 {
+  0% {
+    opacity: 1;
+    transform: none;
+    background: hsla(0, 0%, 100%, 0.18);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(200%, 60%) rotate(40deg) scale(0.5);
+  }
+}
+@keyframes shatter6 {
+  0% {
+    opacity: 1;
+    transform: none;
+    background: hsla(0, 0%, 100%, 0.18);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(20%, 230%) rotate(8deg) scale(0.45);
+  }
+}
+
+/* Assemble: chunks fly in from outside positions, settle into the
+   frosted shell (visible at full opacity briefly), then dissolve to
+   the normal hover-revealable state. Photo fades in last. */
+.cardAssembling .chunk1 {
+  animation: assemble1 0.7s cubic-bezier(0.2, 0.8, 0.4, 1) forwards;
+  animation-delay: calc(var(--i, 0) * 0.025s);
+}
+.cardAssembling .chunk2 {
+  animation: assemble2 0.7s cubic-bezier(0.2, 0.8, 0.4, 1) forwards;
+  animation-delay: calc(var(--i, 0) * 0.025s);
+}
+.cardAssembling .chunk3 {
+  animation: assemble3 0.7s cubic-bezier(0.2, 0.8, 0.4, 1) forwards;
+  animation-delay: calc(var(--i, 0) * 0.025s);
+}
+.cardAssembling .chunk4 {
+  animation: assemble4 0.7s cubic-bezier(0.2, 0.8, 0.4, 1) forwards;
+  animation-delay: calc(var(--i, 0) * 0.025s);
+}
+.cardAssembling .chunk5 {
+  animation: assemble5 0.7s cubic-bezier(0.2, 0.8, 0.4, 1) forwards;
+  animation-delay: calc(var(--i, 0) * 0.025s);
+}
+.cardAssembling .chunk6 {
+  animation: assemble6 0.7s cubic-bezier(0.2, 0.8, 0.4, 1) forwards;
+  animation-delay: calc(var(--i, 0) * 0.025s);
+}
+.cardAssembling .thumb {
+  animation: thumbIn 0.55s ease-out forwards;
+  animation-delay: calc(var(--i, 0) * 0.025s + 0.35s);
+}
+
+@keyframes assemble1 {
+  0% {
+    opacity: 1;
+    transform: translate(-180%, -160%) rotate(-22deg) scale(0.55);
+    background: hsla(0, 0%, 100%, 0.18);
+  }
+  60% {
+    opacity: 1;
+    transform: none;
+    background: hsla(0, 0%, 100%, 0.18);
+  }
+  100% {
+    opacity: 0;
+    transform: none;
+  }
+}
+@keyframes assemble2 {
+  0% {
+    opacity: 1;
+    transform: translate(180%, -160%) rotate(28deg) scale(0.55);
+    background: hsla(0, 0%, 100%, 0.18);
+  }
+  60% {
+    opacity: 1;
+    transform: none;
+    background: hsla(0, 0%, 100%, 0.18);
+  }
+  100% {
+    opacity: 0;
+    transform: none;
+  }
+}
+@keyframes assemble3 {
+  0% {
+    opacity: 1;
+    transform: translate(0, 130%) rotate(12deg) scale(0.5);
+    background: hsla(0, 0%, 100%, 0.18);
+  }
+  60% {
+    opacity: 1;
+    transform: none;
+    background: hsla(0, 0%, 100%, 0.18);
+  }
+  100% {
+    opacity: 0;
+    transform: none;
+  }
+}
+@keyframes assemble4 {
+  0% {
+    opacity: 1;
+    transform: translate(-200%, 60%) rotate(-40deg) scale(0.5);
+    background: hsla(0, 0%, 100%, 0.18);
+  }
+  60% {
+    opacity: 1;
+    transform: none;
+    background: hsla(0, 0%, 100%, 0.18);
+  }
+  100% {
+    opacity: 0;
+    transform: none;
+  }
+}
+@keyframes assemble5 {
+  0% {
+    opacity: 1;
+    transform: translate(200%, 60%) rotate(40deg) scale(0.5);
+    background: hsla(0, 0%, 100%, 0.18);
+  }
+  60% {
+    opacity: 1;
+    transform: none;
+    background: hsla(0, 0%, 100%, 0.18);
+  }
+  100% {
+    opacity: 0;
+    transform: none;
+  }
+}
+@keyframes assemble6 {
+  0% {
+    opacity: 1;
+    transform: translate(20%, 230%) rotate(8deg) scale(0.45);
+    background: hsla(0, 0%, 100%, 0.18);
+  }
+  60% {
+    opacity: 1;
+    transform: none;
+    background: hsla(0, 0%, 100%, 0.18);
+  }
+  100% {
+    opacity: 0;
+    transform: none;
+  }
+}
+
+@keyframes thumbIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
 .tilt {
   position: relative;
   width: 100%;
