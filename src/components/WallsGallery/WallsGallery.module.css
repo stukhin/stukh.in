@@ -147,7 +147,6 @@
      enough that the photo behind reads as 'frosted', not just dim. */
   background: hsla(0, 0%, 100%, 0.22);
   backdrop-filter: blur(36px) saturate(150%) brightness(0.7);
-  -webkit-backdrop-filter: blur(36px) saturate(150%) brightness(0.7);
   /* Subtle highlight along one edge to sell the ice illusion. */
   box-shadow: inset 1px 1px 0 hsla(0, 0%, 100%, 0.18);
   opacity: 0;
