@@ -59,8 +59,11 @@ type Props = {
 
 const ALL = "All";
 const GHOST_COUNT = 4;
-const ZOOM_IN_MS = 500;
-const ZOOM_OUT_MS = 400;
+// Slower, more deliberate FLIP: a touch of ease-in at the start, slow
+// growth through the middle, soft deceleration at the end.
+const ZOOM_IN_MS = 750;
+const ZOOM_OUT_MS = 550;
+const ZOOM_EASING = "cubic-bezier(0.65, 0, 0.25, 1)";
 const TILT_AMPLITUDE = 9;
 const SPRING = { damping: 30, stiffness: 100, mass: 1.4 };
 
@@ -179,7 +182,7 @@ export default function WallsGallery({ items }: Props) {
         ],
         {
           duration: ZOOM_OUT_MS,
-          easing: "cubic-bezier(0.65, 0, 0.35, 1)",
+          easing: ZOOM_EASING,
           fill: "forwards",
         }
       );
@@ -213,7 +216,7 @@ export default function WallsGallery({ items }: Props) {
       ],
       {
         duration: ZOOM_IN_MS,
-        easing: "cubic-bezier(0.65, 0, 0.35, 1)",
+        easing: ZOOM_EASING,
         fill: "forwards",
       }
     );

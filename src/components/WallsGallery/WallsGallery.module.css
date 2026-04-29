@@ -588,7 +588,10 @@
   padding: 15vh 40px;
   cursor: none;
   backdrop-filter: blur(22px) saturate(140%);
-  animation: zoomBgIn 0.32s ease-out both;
+  /* Backdrop fades in along with the FLIP zoom — same duration and
+     easing as the photo morph, so the frosted glass blooms in as the
+     photo grows. */
+  animation: zoomBgIn 0.75s cubic-bezier(0.65, 0, 0.25, 1) both;
 }
 
 .zoom::before {
@@ -616,7 +619,7 @@
 }
 
 .zoomClosing {
-  animation: zoomBgOut 0.32s ease-in both;
+  animation: zoomBgOut 0.55s cubic-bezier(0.65, 0, 0.25, 1) both;
 }
 
 @keyframes zoomBgIn {

@@ -4,8 +4,13 @@ import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import type { GalleryItem } from "../GallerySlider/GallerySlider";
 import styles from "./GalleryModal.module.css";
 
-const ZOOM_IN_MS = 500;
-const ZOOM_OUT_MS = 360;
+// Slower, more deliberate FLIP: a touch of ease-in at the start, slow
+// growth through the middle, soft deceleration at the end. The
+// backdrop blur opacity in the CSS uses the same timing so the
+// frosted-glass overlay blooms in as the photo grows.
+const ZOOM_IN_MS = 750;
+const ZOOM_OUT_MS = 550;
+const ZOOM_EASING = "cubic-bezier(0.65, 0, 0.25, 1)";
 
 type Props = {
   open: boolean;
@@ -70,7 +75,7 @@ export default function GalleryModal({
           ],
           {
             duration: ZOOM_OUT_MS,
-            easing: "cubic-bezier(0.65, 0, 0.35, 1)",
+            easing: ZOOM_EASING,
             fill: "forwards",
           }
         );

@@ -40,12 +40,37 @@
   transform: scale(1.1);
 }
 
-/* First-load 'pencil sketch' reveal: hero starts as a high-contrast
-   grayscale image with a touch of blur and over-bright exposure (so
-   it reads as outlines), then transitions into the full colour photo
-   over 1.6s once the preloader fades. */
-.revealing .slide_image {
-  filter: grayscale(1) contrast(1.6) brightness(1.25) blur(2px);
+/* First-load reveal: photo "develops" through four stages — held
+   hidden while the preloader is still up (animation-delay matches the
+   preloader's visible+fade duration), then a high-contrast B&W
+   sketch, then softer B&W, then full colour. `fill-mode: both` keeps
+   the 0% state visible during the delay so the hero stays out of
+   sight until the preloader is gone. */
+.revealing .slide.active .slide_image {
+  animation: homeReveal 2.5s cubic-bezier(0.65, 0, 0.25, 1) 2.4s both;
+}
+
+@keyframes homeReveal {
+  0% {
+    opacity: 0;
+    filter: grayscale(1) contrast(2.6) brightness(1.55) blur(3px);
+  }
+  10% {
+    opacity: 1;
+    filter: grayscale(1) contrast(2.6) brightness(1.55) blur(3px);
+  }
+  35% {
+    opacity: 1;
+    filter: grayscale(1) contrast(2.2) brightness(1.25) blur(0);
+  }
+  65% {
+    opacity: 1;
+    filter: grayscale(1) contrast(1.15) brightness(1.05) blur(0);
+  }
+  100% {
+    opacity: 1;
+    filter: grayscale(0) contrast(1) brightness(1) blur(0);
+  }
 }
 
 /* Edge click zones (with arrow cursor). Keep clear of the logo/burger area. */

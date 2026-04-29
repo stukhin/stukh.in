@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useLayoutEffect, useState } from "react";
+import { HOME_INTRO_KEY } from "../Preloader/Preloader";
 import styles from "./HomeSlider.module.css";
 
 const slides = [
@@ -11,29 +12,52 @@ const slides = [
 ];
 
 const AUTOPLAY_MS = 7000;
+// Wait for the preloader (2400ms visible + 400ms fade) before kicking
+// off the develop animation, so the user sees: loader → reveal → photo.
+const PRELOADER_DURATION = 2800;
+const REVEAL_DURATION = 2500;
 
 export default function HomeSlider() {
   const [active, setActive] = useState(0);
-  /** First-load reveal: hero photo starts as a high-contrast B&W
-   * sketch and transitions into full colour. Drops back to the
-   * normal slider behaviour once the reveal has played once. */
+  /** First-load reveal: photo "develops" through 4 stages — hidden,
+   * high-contrast B&W sketch, softer B&W, full colour. Plays only on
+   * the first visit per browser session; subsequent visits show the
+   * photo directly. */
   const [revealing, setRevealing] = useState(true);
 
-  useEffect(() => {
-    const t = window.setTimeout(() => setRevealing(false), 2400);
-    return () => window.clearTimeout(t);
+  // Sync flag check before paint — avoids a one-frame flash of the
+  // hidden 0% keyframe state on subsequent visits.
+  useLayoutEffect(() => {
+    if (
+      typeof window !== "undefined" &&
+      window.sessionStorage.getItem(HOME_INTRO_KEY) === "1"
+    ) {
+      setRevealing(false);
+    }
   }, []);
+
+  useEffect(() => {
+    if (!revealing) return;
+    const t = window.setTimeout(() => {
+      setRevealing(false);
+      window.sessionStorage.setItem(HOME_INTRO_KEY, "1");
+    }, PRELOADER_DURATION + REVEAL_DURATION);
+    return () => window.clearTimeout(t);
+  }, [revealing]);
 
   const next = () => setActive((i) => (i + 1) % slides.length);
   const prev = () =>
     setActive((i) => (i - 1 + slides.length) % slides.length);
 
+  // Hold autoplay until the develop reveal finishes — otherwise the
+  // active slide could swap mid-animation.
   useEffect(() => {
+    if (revealing) return;
     const id = setInterval(() => {
       setActive((i) => (i + 1) % slides.length);
     }, AUTOPLAY_MS);
     return () => clearInterval(id);
-  }, []);
+  }, [revealing]);
 
   // Keyboard arrows
   useEffect(() => {
