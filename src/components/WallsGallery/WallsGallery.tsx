@@ -122,12 +122,14 @@ export default function WallsGallery({ items }: Props) {
     if (downloads[w.id] === "loading") return;
     setDownloads((s) => ({ ...s, [w.id]: "loading" }));
     try {
-      const res = await fetch(`/images/walls/${w.id}.webp`);
+      // Serve JPG: more phone OSes accept it as a wallpaper file
+      // (notably iOS, which won't take .webp).
+      const res = await fetch(`/images/walls/${w.id}.jpg`);
       const blob = await res.blob();
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `stukhin-${w.id}.webp`;
+      a.download = `stukhin-${w.id}.jpg`;
       document.body.appendChild(a);
       a.click();
       a.remove();
@@ -469,7 +471,7 @@ function WallpaperCard({
 
           <span className={styles.counter}>
             <span>{count.toLocaleString()} downloads</span>
-            <span className={styles.specs}>1080×1920 · webp</span>
+            <span className={styles.specs}>1080×1920 · jpg</span>
           </span>
 
           {state === "loading" && (

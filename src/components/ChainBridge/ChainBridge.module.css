@@ -1,0 +1,58 @@
+/* Full-screen overlay that hides the real page swap behind a single
+   continuous CSS transform. The strip is PAGE_ORDER.length × 100vh
+   tall; we shift it via translateY so exactly one slide fills the
+   viewport at any moment. One animation, no discrete view-transition
+   stops between blocks — that's the difference vs. chaining
+   view-transitions. */
+.bridge {
+  position: fixed;
+  inset: 0;
+  height: 100vh;
+  width: 100vw;
+  z-index: 9000;
+  pointer-events: none;
+  overflow: hidden;
+  background: #000;
+  opacity: 1;
+  transition: opacity var(--bridge-fade, 320ms) ease-out;
+}
+
+.bridge.fading {
+  opacity: 0;
+}
+
+.strip {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  transform: translateY(var(--bridge-from, 0));
+  will-change: transform;
+}
+
+.strip.animating {
+  transform: translateY(var(--bridge-to, 0));
+  /* Gentle ease-in-out: starts from rest, accelerates, decelerates to
+     a clean stop. Single transition over the full duration is what
+     makes this feel smooth — no per-step recapture, no idle frames. */
+  transition: transform var(--bridge-duration, 800ms)
+    cubic-bezier(0.45, 0, 0.55, 1);
+}
+
+.slide {
+  width: 100%;
+  height: 100vh;
+  flex-shrink: 0;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .strip,
+  .strip.animating {
+    transition: none;
+  }
+}

@@ -31,43 +31,22 @@ export function setTransitionDirection(direction: TransitionDirection) {
   document.documentElement.classList.add(`transition-${direction}`);
 }
 
-/**
- * Per-step durations for chained navigation. The first slide has a
- * gentle ease-in (the strip "winds up" from rest); intermediate
- * slides run at constant linear speed so the chain reads as one
- * continuous scroll, no visible stops between blocks; the last slide
- * uses the same constant speed but eases out to a stop.
- *
- * Keep these in sync with the matching `html.chain-first/-mid/-last`
- * rules in globals.css — the JS schedules the next step here, the
- * CSS makes each transition fit inside its budget.
- */
-const CHAIN_FIRST_MS = 600;
-const CHAIN_MID_MS = 520;
-const CHAIN_LAST_MS = 700;
-
-const CHAIN_CLASSES = ["chain-first", "chain-mid", "chain-last"] as const;
-
-function clearChainClasses() {
-  if (typeof document === "undefined") return;
-  document.documentElement.classList.remove(...CHAIN_CLASSES);
-}
-
 type ChainRouter = {
   push: (href: string) => void;
   replace: (href: string) => void;
 };
 
 /**
- * Navigate from `from` to `to` by stepping through every intermediate
- * page in PAGE_ORDER, so the user visibly slides past each in-between
- * block instead of jumping straight there. Adjacent navigations and
- * navigations involving routes outside PAGE_ORDER fall through to a
- * single push.
+ * Navigate from `from` to `to`. Adjacent and off-strip navigations
+ * use the normal view-transition slide. Multi-step navigations
+ * (jumping over 2+ blocks in PAGE_ORDER) defer to ChainBridge, which
+ * runs ONE continuous CSS transform across stacked page-bg slides
+ * — that's what eliminates the per-step jerks the user saw with
+ * chained view-transitions.
  *
- * Intermediate steps use replace() to keep the browser back-stack
- * tidy: hitting Back from `to` lands you on `from` directly, not on
- * a half-seen intermediate.
+ * The actual route change for the multi-step case happens inside
+ * ChainBridge as soon as the bridge mounts, so the destination page
+ * has the full bridge animation to render behind the overlay.
  */
 export function navigateChained(
   router: ChainRouter,
@@ -77,53 +56,20 @@ export function navigateChained(
   const fromIdx = PAGE_ORDER.indexOf(from);
   const toIdx = PAGE_ORDER.indexOf(to);
 
-  // Same page, off-strip route, or already adjacent — single slide.
+  // Multi-step on the strip: hand off to ChainBridge.
   if (
-    fromIdx === -1 ||
-    toIdx === -1 ||
-    fromIdx === toIdx ||
-    Math.abs(fromIdx - toIdx) === 1
+    fromIdx !== -1 &&
+    toIdx !== -1 &&
+    Math.abs(fromIdx - toIdx) >= 2 &&
+    typeof window !== "undefined"
   ) {
-    setTransitionDirection(getDirection(from, to));
-    clearChainClasses();
-    router.push(to);
+    window.dispatchEvent(
+      new CustomEvent("chainNavigate", { detail: { from, to } })
+    );
     return;
   }
 
-  const direction: TransitionDirection =
-    toIdx > fromIdx ? "forward" : "backward";
-  const step = direction === "forward" ? 1 : -1;
-  const stops: string[] = [];
-  for (let i = fromIdx + step; i !== toIdx; i += step) {
-    stops.push(PAGE_ORDER[i]);
-  }
-  stops.push(to);
-
-  let cumulative = 0;
-  stops.forEach((href, i) => {
-    const isFirst = i === 0;
-    const isFinal = i === stops.length - 1;
-    const cls = isFinal ? "chain-last" : isFirst ? "chain-first" : "chain-mid";
-    const stepDuration = isFinal
-      ? CHAIN_LAST_MS
-      : isFirst
-        ? CHAIN_FIRST_MS
-        : CHAIN_MID_MS;
-
-    window.setTimeout(() => {
-      setTransitionDirection(direction);
-      clearChainClasses();
-      document.documentElement.classList.add(cls);
-      if (isFinal) {
-        router.push(href);
-      } else {
-        router.replace(href);
-      }
-    }, cumulative);
-    cumulative += stepDuration;
-  });
-
-  // Drop the chain class once the final slide has settled, so the
-  // next single navigation isn't accidentally tagged.
-  window.setTimeout(clearChainClasses, cumulative + 100);
+  // Single slide for adjacent, same-page, or off-strip navigations.
+  setTransitionDirection(getDirection(from, to));
+  router.push(to);
 }

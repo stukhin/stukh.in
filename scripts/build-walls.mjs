@@ -7,8 +7,10 @@
  *
  * For each file the script:
  *   - centre-crops to 9:16
- *   - writes <id>.webp        (1080×1920, q=88)  ← downloadable full-size
+ *   - writes <id>.webp        (1080×1920, q=88)  ← grid display
  *   - writes <id>_thumb.webp  (360×640,   q=80)  ← grid preview
+ *   - writes <id>.jpg         (1080×1920, q=92)  ← downloadable file
+ *     (most phones, especially iOS, don't accept .webp as wallpaper)
  *   - moves the original to incoming/processed/
  *   - appends an entry to src/data/walls.json with default metadata
  *     (title from filename, location/year/story/category placeholder,
@@ -82,6 +84,7 @@ async function processOne(filename, walls) {
   }
   const fullOut = join(OUT_DIR, `${id}.webp`);
   const thumbOut = join(OUT_DIR, `${id}_thumb.webp`);
+  const jpgOut = join(OUT_DIR, `${id}.jpg`);
   if (walls.some((w) => w.id === id) && (await pathExists(fullOut))) {
     console.log("skip (already exists):", id);
     return null;
@@ -95,11 +98,15 @@ async function processOne(filename, walls) {
   const left = Math.round((meta.width - cropW) / 2);
   const top = Math.round((meta.height - cropH) / 2);
 
-  await sharp(inputPath)
+  const cropped = sharp(inputPath)
     .extract({ left, top, width: cropW, height: cropH })
-    .resize({ width: FULL_W, height: FULL_H, fit: "cover" })
-    .webp({ quality: 88, effort: 6 })
-    .toFile(fullOut);
+    .resize({ width: FULL_W, height: FULL_H, fit: "cover" });
+
+  await cropped.clone().webp({ quality: 88, effort: 6 }).toFile(fullOut);
+  await cropped
+    .clone()
+    .jpeg({ quality: 92, mozjpeg: true })
+    .toFile(jpgOut);
 
   await sharp(inputPath)
     .extract({ left, top, width: cropW, height: cropH })

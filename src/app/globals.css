@@ -161,27 +161,6 @@ html.zoom-open button[aria-label="Close menu"] {
   animation-timing-function: cubic-bezier(0.65, 0, 0.35, 1);
 }
 
-/* Chained navigation pacing: the strip should feel like one
-   continuous scroll across blocks, not a sequence of separate
-   slides. The first hop eases in from rest, every middle hop runs
-   at a constant linear speed so neighbours connect without a visible
-   stop, and the final hop eases out to a clean stop on the
-   destination block. Durations match the schedule in
-   src/lib/pageOrder.ts (navigateChained). */
-html.chain-first ::view-transition-group(root) {
-  animation-duration: 0.6s;
-  animation-timing-function: cubic-bezier(0.42, 0, 1, 1);
-}
-
-html.chain-mid ::view-transition-group(root) {
-  animation-duration: 0.52s;
-  animation-timing-function: linear;
-}
-
-html.chain-last ::view-transition-group(root) {
-  animation-duration: 0.7s;
-  animation-timing-function: cubic-bezier(0, 0, 0.58, 1);
-}
 
 /* Default (forward) — covers the case where a navigation happens
    without a direction class being set (e.g. typing a URL). */
