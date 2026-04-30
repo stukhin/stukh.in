@@ -468,7 +468,8 @@ function WallpaperCard({
           </span>
 
           <span className={styles.counter}>
-            {count.toLocaleString()} downloads
+            <span>{count.toLocaleString()} downloads</span>
+            <span className={styles.specs}>1080×1920 · webp</span>
           </span>
 
           {state === "loading" && (

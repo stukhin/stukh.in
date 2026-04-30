@@ -305,6 +305,7 @@
   z-index: 2;
   letter-spacing: -0.02em;
   color: #fff;
+  text-align: left;
   pointer-events: none;
   opacity: 0;
   transform: translateZ(28px);
@@ -320,7 +321,6 @@
   font-weight: 300;
   margin: 0;
   text-transform: lowercase;
-  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.45);
 }
 
 .meta {
@@ -348,7 +348,6 @@
   left: 16px;
   z-index: 2;
   font-size: 11px;
-  opacity: 0.6;
   letter-spacing: 0.04em;
   text-transform: lowercase;
   font-weight: 300;
@@ -356,6 +355,15 @@
   pointer-events: none;
   opacity: 0;
   transform: translateZ(20px);
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.specs {
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 
 .card:hover .counter {

@@ -2,7 +2,7 @@
   {
     "id": "wall-1-april27-lo",
     "title": "Lone Mare",
-    "location": "Caucasus",
+    "location": "Russia",
     "year": 2024,
     "story": "A solitary mare grazing on the steep green slopes at sunset.",
     "downloads": 0,
@@ -12,7 +12,7 @@
   {
     "id": "wall-1-july11-la",
     "title": "Road to the Range",
-    "location": "Pyrenees, France",
+    "location": "France",
     "year": 2025,
     "story": "A car drifting toward the limestone wall of the Pyrenees at dusk.",
     "downloads": 0,
@@ -22,7 +22,7 @@
   {
     "id": "wall-1-may30-la",
     "title": "Pines in Snow",
-    "location": "Karelia, Russia",
+    "location": "Russia",
     "year": 2024,
     "story": "Pine trees clinging to a snow-covered hill in heavy fog.",
     "downloads": 0,
@@ -32,7 +32,7 @@
   {
     "id": "wall-1-december25-b1",
     "title": "Concert Hall Arch",
-    "location": "Moscow, Russia",
+    "location": "Russia",
     "year": 2023,
     "story": "Sweeping arch of a contemporary concert hall against a clear winter sky.",
     "downloads": 0,
@@ -42,7 +42,7 @@
   {
     "id": "wall-1-december25-b2",
     "title": "Corner Lights",
-    "location": "Moscow, Russia",
+    "location": "Russia",
     "year": 2023,
     "story": "A modern brick block at the end of a quiet street, lit from within.",
     "downloads": 0,
@@ -62,7 +62,7 @@
   {
     "id": "wall-1-december25-fl",
     "title": "Heather at Dusk",
-    "location": "Karelia, Russia",
+    "location": "Russia",
     "year": 2023,
     "story": "Pink heather catching the last light over still water.",
     "downloads": 0,
@@ -72,7 +72,7 @@
   {
     "id": "wall-1-december25-h",
     "title": "Mist Over Stones",
-    "location": "Mediterranean",
+    "location": "Spain",
     "year": 2023,
     "story": "Long exposure of waves wrapping rocks under a violet sky.",
     "downloads": 0,
@@ -82,7 +82,7 @@
   {
     "id": "wall-1-december25-t",
     "title": "Twilight Pine",
-    "location": "Mediterranean",
+    "location": "Spain",
     "year": 2023,
     "story": "A wind-shaped pine on a rocky outcrop just after sundown.",
     "downloads": 0,
@@ -92,7 +92,7 @@
   {
     "id": "wall-2-april27-tr",
     "title": "Stone Steps",
-    "location": "Crimea",
+    "location": "Russia",
     "year": 2024,
     "story": "An old footpath threaded between cliffs and a wind-twisted tree.",
     "downloads": 0,
@@ -102,7 +102,7 @@
   {
     "id": "wall-2-july11-ge",
     "title": "Kazbek at Night",
-    "location": "Stepantsminda, Georgia",
+    "location": "Georgia",
     "year": 2025,
     "story": "Mount Kazbek catching moonlight under a sky full of stars.",
     "downloads": 0,
@@ -112,7 +112,7 @@
   {
     "id": "wall-2-may30-or",
     "title": "Pasture Patchwork",
-    "location": "Caucasus",
+    "location": "Russia",
     "year": 2024,
     "story": "A lone tree marking the seam of two valleys, seen from above.",
     "downloads": 0,
@@ -122,7 +122,7 @@
   {
     "id": "wall-2-january10-b",
     "title": "Looking Up",
-    "location": "Moscow, Russia",
+    "location": "Russia",
     "year": 2024,
     "story": "Concrete monoliths converging on a thin slice of winter sky.",
     "downloads": 0,
@@ -142,7 +142,7 @@
   {
     "id": "wall-2-january10-le",
     "title": "Wave Trail",
-    "location": "Atlantic Coast",
+    "location": "Portugal",
     "year": 2024,
     "story": "A long-exposure wave dragging silk-white foam across dark stone.",
     "downloads": 0,
@@ -152,7 +152,7 @@
   {
     "id": "wall-2-january10-s",
     "title": "Sunset Cove",
-    "location": "Mediterranean",
+    "location": "Spain",
     "year": 2024,
     "story": "Rugged sea stacks silhouetted against a peach sunset.",
     "downloads": 0,
@@ -162,7 +162,7 @@
   {
     "id": "wall-2-january10-sq",
     "title": "Snowy Alley",
-    "location": "Saint Petersburg, Russia",
+    "location": "Russia",
     "year": 2024,
     "story": "An empty park alley deep in falling snow.",
     "downloads": 0,
@@ -182,7 +182,7 @@
   {
     "id": "wall-3-april27-ca",
     "title": "Tabby",
-    "location": "Crimea",
+    "location": "Russia",
     "year": 2024,
     "story": "A sun-warmed ginger cat owning the path.",
     "downloads": 0,
@@ -202,7 +202,7 @@
   {
     "id": "wall-3-february14-i",
     "title": "Mangrove Shrine",
-    "location": "Bali, Indonesia",
+    "location": "Indonesia",
     "year": 2023,
     "story": "A small mangrove tree perched on coral, shrine offerings still on its branches.",
     "downloads": 0,
@@ -212,7 +212,7 @@
   {
     "id": "wall-3-february14-m",
     "title": "Old Lighthouse",
-    "location": "Russian Far East",
+    "location": "Russia",
     "year": 2023,
     "story": "A small red lighthouse against a cold, restless sea.",
     "downloads": 0,
@@ -222,7 +222,7 @@
   {
     "id": "wall-3-february14-p",
     "title": "Sandstone at Sunset",
-    "location": "Algarve, Portugal",
+    "location": "Portugal",
     "year": 2023,
     "story": "Tilted sandstone strata catching the last light at low tide.",
     "downloads": 0,
@@ -232,7 +232,7 @@
   {
     "id": "wall-3-february14-ts",
     "title": "Heather Bokeh",
-    "location": "Karelia, Russia",
+    "location": "Russia",
     "year": 2023,
     "story": "Pink heather in soft afternoon light, water sparkling behind.",
     "downloads": 0,
@@ -252,7 +252,7 @@
   {
     "id": "wall-3-july11-ca",
     "title": "Cliff Tree",
-    "location": "Mediterranean",
+    "location": "Spain",
     "year": 2025,
     "story": "A wiry tree clinging to a cliff above a pale sea.",
     "downloads": 0,
@@ -262,7 +262,7 @@
   {
     "id": "wall-3-may30-o2",
     "title": "Verdant Hollow",
-    "location": "Caucasus",
+    "location": "Russia",
     "year": 2024,
     "story": "A curved fold of hills hides a small grove deep in green.",
     "downloads": 0,
@@ -272,7 +272,7 @@
   {
     "id": "wall-4-april27-fl",
     "title": "Star of Bethlehem",
-    "location": "Crimea",
+    "location": "Russia",
     "year": 2024,
     "story": "A wild star-of-Bethlehem flower opening in a dark forest understory.",
     "downloads": 0,
@@ -282,7 +282,7 @@
   {
     "id": "wall-4-july11-cr",
     "title": "Adriatic Bay",
-    "location": "Hvar, Croatia",
+    "location": "Croatia",
     "year": 2025,
     "story": "A pine-covered cape on glass-still Adriatic water.",
     "downloads": 0,
@@ -292,7 +292,7 @@
   {
     "id": "wall-4-march11-h",
     "title": "White in the Caucasus",
-    "location": "Caucasus",
+    "location": "Russia",
     "year": 2024,
     "story": "A white horse browsing in golden grass below sharp grey peaks.",
     "downloads": 0,
@@ -302,7 +302,7 @@
   {
     "id": "wall-4-march11-ms",
     "title": "Bridge in Fog",
-    "location": "Moscow, Russia",
+    "location": "Russia",
     "year": 2024,
     "story": "Zhivopisny bridge fading into a snowy fog.",
     "downloads": 0,
@@ -312,7 +312,7 @@
   {
     "id": "wall-4-march11-s",
     "title": "Moon Over the Strand",
-    "location": "Mediterranean",
+    "location": "Spain",
     "year": 2024,
     "story": "A half-moon over the mountains as the tide combs the rocks.",
     "downloads": 0,
@@ -322,7 +322,7 @@
   {
     "id": "wall-4-march11-se",
     "title": "Twilight Foam",
-    "location": "Atlantic Coast",
+    "location": "Portugal",
     "year": 2024,
     "story": "A wide rock catching the last of the dusk in slow water.",
     "downloads": 0,
@@ -332,7 +332,7 @@
   {
     "id": "wall-4-march11-sp",
     "title": "Long Pier",
-    "location": "Catalonia, Spain",
+    "location": "Spain",
     "year": 2024,
     "story": "A modernist pier reaching out across a smoke-blue sea.",
     "downloads": 0,
@@ -342,7 +342,7 @@
   {
     "id": "wall-4-march11-ur",
     "title": "Frosted Forest",
-    "location": "Lapland",
+    "location": "Finland",
     "year": 2024,
     "story": "Spruce trees crusted with rime at the moment the sun rises.",
     "downloads": 0,
@@ -352,7 +352,7 @@
   {
     "id": "wall-4-may30-mk",
     "title": "Sedum",
-    "location": "Crimea",
+    "location": "Russia",
     "year": 2024,
     "story": "A close-up of a sedum's chubby green leaves.",
     "downloads": 0,
@@ -362,7 +362,7 @@
   {
     "id": "wall-5-april27-bl",
     "title": "Brutalist Tower",
-    "location": "Moscow, Russia",
+    "location": "Russia",
     "year": 2024,
     "story": "A windowed concrete slab catching a single warm window in a grey sky.",
     "downloads": 0,
@@ -372,7 +372,7 @@
   {
     "id": "wall-5-july11-ld",
     "title": "Lone Pine, Frozen",
-    "location": "Urals, Russia",
+    "location": "Russia",
     "year": 2025,
     "story": "A small pine surviving on a snow-bound rocky shelf.",
     "downloads": 0,
@@ -382,7 +382,7 @@
   {
     "id": "wall-5-may30-ur",
     "title": "Cabin Under Stars",
-    "location": "Urals, Russia",
+    "location": "Russia",
     "year": 2024,
     "story": "A snow-buried cabin under the cold first stars of evening.",
     "downloads": 0,
@@ -392,7 +392,7 @@
   {
     "id": "wall-6-april27-wi",
     "title": "Dawn Trees",
-    "location": "Lapland",
+    "location": "Finland",
     "year": 2024,
     "story": "Snow-encased trees lit pink by the first morning light.",
     "downloads": 0,
@@ -402,7 +402,7 @@
   {
     "id": "wall-6-july11-se",
     "title": "Stone Sunset",
-    "location": "Mediterranean",
+    "location": "Spain",
     "year": 2025,
     "story": "Heavy stones under streamlining clouds at sundown.",
     "downloads": 0,
@@ -412,7 +412,7 @@
   {
     "id": "wall-6-may30-u2",
     "title": "Wandering in Snow",
-    "location": "Urals, Russia",
+    "location": "Russia",
     "year": 2024,
     "story": "A figure walking through a windblown snowfield with low sun.",
     "downloads": 0,

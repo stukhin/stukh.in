@@ -32,13 +32,26 @@ export function setTransitionDirection(direction: TransitionDirection) {
 }
 
 /**
- * Duration (ms) of each intermediate slide while a chained navigation
- * is in flight. The CSS override lives in globals.css under
- * `html.chain-step ::view-transition-group(root)`. Keep these two in
- * sync — the JS schedules the next step here, the CSS makes the
- * transition itself fit inside the budget.
+ * Per-step durations for chained navigation. The first slide has a
+ * gentle ease-in (the strip "winds up" from rest); intermediate
+ * slides run at constant linear speed so the chain reads as one
+ * continuous scroll, no visible stops between blocks; the last slide
+ * uses the same constant speed but eases out to a stop.
+ *
+ * Keep these in sync with the matching `html.chain-first/-mid/-last`
+ * rules in globals.css — the JS schedules the next step here, the
+ * CSS makes each transition fit inside its budget.
  */
-const CHAIN_STEP_MS = 560;
+const CHAIN_FIRST_MS = 600;
+const CHAIN_MID_MS = 520;
+const CHAIN_LAST_MS = 700;
+
+const CHAIN_CLASSES = ["chain-first", "chain-mid", "chain-last"] as const;
+
+function clearChainClasses() {
+  if (typeof document === "undefined") return;
+  document.documentElement.classList.remove(...CHAIN_CLASSES);
+}
 
 type ChainRouter = {
   push: (href: string) => void;
@@ -72,9 +85,7 @@ export function navigateChained(
     Math.abs(fromIdx - toIdx) === 1
   ) {
     setTransitionDirection(getDirection(from, to));
-    if (typeof document !== "undefined") {
-      document.documentElement.classList.remove("chain-step");
-    }
+    clearChainClasses();
     router.push(to);
     return;
   }
@@ -90,17 +101,29 @@ export function navigateChained(
 
   let cumulative = 0;
   stops.forEach((href, i) => {
+    const isFirst = i === 0;
     const isFinal = i === stops.length - 1;
+    const cls = isFinal ? "chain-last" : isFirst ? "chain-first" : "chain-mid";
+    const stepDuration = isFinal
+      ? CHAIN_LAST_MS
+      : isFirst
+        ? CHAIN_FIRST_MS
+        : CHAIN_MID_MS;
+
     window.setTimeout(() => {
       setTransitionDirection(direction);
+      clearChainClasses();
+      document.documentElement.classList.add(cls);
       if (isFinal) {
-        document.documentElement.classList.remove("chain-step");
         router.push(href);
       } else {
-        document.documentElement.classList.add("chain-step");
         router.replace(href);
       }
     }, cumulative);
-    if (!isFinal) cumulative += CHAIN_STEP_MS;
+    cumulative += stepDuration;
   });
+
+  // Drop the chain class once the final slide has settled, so the
+  // next single navigation isn't accidentally tagged.
+  window.setTimeout(clearChainClasses, cumulative + 100);
 }
