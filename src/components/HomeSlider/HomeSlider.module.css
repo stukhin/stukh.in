@@ -11,42 +11,23 @@
   overflow: hidden;
 }
 
-.slide {
+/* Wraps the GridDistortion canvas. Filters apply to the wrapper so
+   the develop reveal still works the same way (canvas inherits the
+   visual filter pipeline). */
+.canvas {
   position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  opacity: 0;
-  transition: opacity 0.5s;
-}
-
-.slide.active {
-  opacity: 1;
-}
-
-.slide_image {
-  width: 100%;
-  height: 100%;
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
-  transform: scale(1);
+  inset: 0;
   filter: none;
-  transition: transform 5s ease 0.3s, filter 1.6s cubic-bezier(0.65, 0, 0.35, 1);
+  transition: filter 1.6s cubic-bezier(0.65, 0, 0.35, 1);
 }
 
-.slide.active .slide_image {
-  transform: scale(1.1);
-}
-
-/* First-load reveal: hero is already on the canvas in B&W under the
+/* First-load reveal: image is already on the canvas in B&W under the
    preloader (no opacity gap, so when the preloader fades there's no
    moment of empty/black between loader and photo). After the
    preloader-visible delay, the filter eases from B&W through softer
    B&W to full colour over ~2.5s. `fill-mode: both` keeps the 0%
    filter applied during the delay. */
-.revealing .slide.active .slide_image {
+.revealing .canvas {
   animation: homeReveal 2.5s cubic-bezier(0.4, 0, 0.2, 1) 2.4s both;
 }
 

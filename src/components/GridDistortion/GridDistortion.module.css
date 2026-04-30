@@ -1,0 +1,15 @@
+.container {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  /* Pointer events disabled so the existing edge-click zones / nav
+     buttons / cursor system underneath stay clickable. The mousemove
+     handler on window picks up cursor position regardless. */
+  pointer-events: none;
+}
+
+.container canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}

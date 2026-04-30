@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useLayoutEffect, useState } from "react";
+import GridDistortion from "../GridDistortion/GridDistortion";
 import { HOME_INTRO_KEY } from "../Preloader/Preloader";
 import styles from "./HomeSlider.module.css";
 
@@ -72,17 +73,15 @@ export default function HomeSlider() {
   return (
     <div className={`${styles.wrap} ${revealing ? styles.revealing : ""}`}>
       <div className={styles.slider}>
-        {slides.map((src, i) => (
-          <div
-            key={src}
-            className={`${styles.slide} ${i === active ? styles.active : ""}`}
-          >
-            <div
-              className={styles.slide_image}
-              style={{ backgroundImage: `url(${src})` }}
-            />
-          </div>
-        ))}
+        <div className={styles.canvas}>
+          <GridDistortion
+            imageSrc={slides[active]}
+            grid={18}
+            mouse={0.18}
+            strength={0.18}
+            relaxation={0.92}
+          />
+        </div>
       </div>
 
       {/* Edge click zones with custom arrow cursor */}
