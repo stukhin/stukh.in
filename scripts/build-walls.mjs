@@ -64,6 +64,40 @@ async function listIncoming() {
     .filter((n) => /\.(jpe?g|png|webp)$/i.test(n));
 }
 
+/**
+ * Perceptual hash: resize to 8x8 grayscale, set each bit by whether
+ * the pixel is brighter than the average. Two photos that "look the
+ * same" land within ~5-8 Hamming distance of each other; very
+ * different photos sit at 25+.
+ */
+async function pHash(filepath) {
+  const buf = await sharp(filepath)
+    .resize(8, 8, { fit: "fill" })
+    .grayscale()
+    .raw()
+    .toBuffer();
+  let sum = 0;
+  for (const v of buf) sum += v;
+  const avg = sum / buf.length;
+  let hash = 0n;
+  for (let i = 0; i < buf.length; i++) {
+    if (buf[i] > avg) hash |= 1n << BigInt(i);
+  }
+  return hash;
+}
+
+function hammingDistance(a, b) {
+  let xor = a ^ b;
+  let count = 0;
+  while (xor) {
+    if (xor & 1n) count++;
+    xor >>= 1n;
+  }
+  return count;
+}
+
+const DUP_THRESHOLD = 8;
+
 async function loadData() {
   if (!(await pathExists(DATA_FILE))) return [];
   const raw = await readFile(DATA_FILE, "utf-8");
@@ -135,20 +169,71 @@ async function processOne(filename, walls) {
     return;
   }
   const walls = await loadData();
+
+  // Pre-hash every existing full-size wallpaper so we can match new
+  // arrivals against them. Cheap (8x8 grayscale resize) — 42 of them
+  // is ~0.5s.
+  console.log(`Hashing ${walls.length} existing wallpaper(s)…`);
+  const existingHashes = [];
+  for (const w of walls) {
+    const p = join(OUT_DIR, `${w.id}.webp`);
+    if (!(await pathExists(p))) continue;
+    existingHashes.push({ id: w.id, hash: await pHash(p) });
+  }
+
+  // Track hashes added in this run too — catches dupes among the
+  // batch the user just dropped in.
+  const addedHashes = [];
   let added = 0;
+  let skippedDup = 0;
+
   for (const f of files) {
+    const inputPath = join(INCOMING, f);
+
+    let incomingHash;
+    try {
+      incomingHash = await pHash(inputPath);
+    } catch (err) {
+      console.warn(`skip (unreadable): ${f} — ${err.message}`);
+      continue;
+    }
+
+    const findDup = (pool) => {
+      for (const e of pool) {
+        const d = hammingDistance(incomingHash, e.hash);
+        if (d < DUP_THRESHOLD) return { id: e.id, distance: d };
+      }
+      return null;
+    };
+
+    const dup = findDup(existingHashes) || findDup(addedHashes);
+    if (dup) {
+      console.log(
+        `skip (visual dup of ${dup.id}, distance ${dup.distance}): ${f}`
+      );
+      skippedDup++;
+      continue;
+    }
+
     const entry = await processOne(f, walls);
     if (!entry) continue;
     walls.push(entry);
+    addedHashes.push({ id: entry.id, hash: incomingHash });
     added++;
     console.log("added:", entry.id);
   }
+
   if (added) {
     await saveData(walls);
     console.log(`\n${added} wallpaper(s) added to ${DATA_FILE}.`);
+    if (skippedDup) {
+      console.log(`${skippedDup} skipped as visual duplicates.`);
+    }
     console.log(
-      "Open the JSON to fill in real title / location / year / story / category."
+      "Open the JSON to fill in real title / location / year / story / category / tone."
     );
+  } else if (skippedDup) {
+    console.log(`Nothing new added. ${skippedDup} skipped as visual duplicates.`);
   } else {
     console.log("Nothing new added.");
   }
