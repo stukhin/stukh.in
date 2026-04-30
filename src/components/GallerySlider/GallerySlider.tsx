@@ -59,6 +59,26 @@ export default function GallerySlider({ category, items }: Props) {
     return () => window.removeEventListener("keydown", onKey);
   }, [modalOpen]);
 
+  // Preload + DECODE the modal's full-size image for the active slide
+  // as soon as it becomes active. Without this the modal opens, the
+  // FLIP morph runs on an empty <img> (no natural dimensions yet),
+  // and the photo pops in once bytes arrive — that's the visible
+  // "first-zoom lag". `img.decode()` blocks until the bitmap is fully
+  // decoded, so by the time the user clicks the modal mounts an
+  // already-cached, already-decoded image.
+  // Horizontal alt is fetched lazily — most users never flip
+  // orientation, so don't double the network on every slide.
+  useEffect(() => {
+    const pic = String(activeIndex + 1).padStart(2, "0");
+    const eager = new window.Image();
+    eager.src = `/images/gallery/${category}/vertical/${pic}.jpg`;
+    eager.decode?.().catch(() => {
+      // Decode can reject if the URL fails or the user navigates away
+      // mid-fetch; nothing to do, the modal will just fall back to its
+      // own load path.
+    });
+  }, [activeIndex, category]);
+
   const total = items.length;
   const activeItem = items[activeIndex];
 

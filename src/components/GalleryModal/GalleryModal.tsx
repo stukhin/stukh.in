@@ -122,11 +122,19 @@ export default function GalleryModal({
 
   useEffect(() => {
     if (!open) return;
+    // Hide the burger while the modal is open — its z-index sits above
+    // the modal and was overlapping the close button. The same
+    // `zoom-open` class is read by globals.css to flip the burger to
+    // visibility:hidden.
+    document.documentElement.classList.add("zoom-open");
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();
     };
     window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
+    return () => {
+      document.documentElement.classList.remove("zoom-open");
+      window.removeEventListener("keydown", onKey);
+    };
   }, [open, onClose]);
 
   if (!mounted || !item) return null;
@@ -160,8 +168,8 @@ export default function GalleryModal({
         </span>
         <img
           alt={item.title}
-          loading="lazy"
-          decoding="async"
+          loading="eager"
+          decoding="sync"
           className={`${styles.picture} ${
             imgLoaded ? styles.pictureLoaded : ""
           }`}
