@@ -58,7 +58,7 @@ type Props = {
 };
 
 const ALL = "All";
-const GHOST_COUNT = 4;
+const GHOST_COUNT = 1;
 // Slower, more deliberate FLIP: a touch of ease-in at the start, slow
 // growth through the middle, soft deceleration at the end.
 const ZOOM_IN_MS = 750;

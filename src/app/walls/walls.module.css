@@ -2,18 +2,18 @@
   position: relative;
   min-height: 100vh;
   background-color: #0a0a0c;
-  background-image: radial-gradient(
-      ellipse at top,
-      rgba(40, 40, 48, 0.6) 0%,
-      transparent 60%
-    ),
-    radial-gradient(
-      ellipse at bottom,
-      rgba(20, 20, 26, 0.8) 0%,
-      transparent 70%
-    );
   color: #fff;
   overflow-x: hidden;
+}
+
+/* Grainient WebGL bg fills the viewport behind everything else. */
+.bg {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 0;
+  pointer-events: none;
 }
 
 .main {
