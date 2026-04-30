@@ -7,6 +7,14 @@
      MenuPopup (50) so the menu can cover the logo when open. */
   z-index: 45;
   line-height: 0;
+  /* Pure white SVG painted with mix-blend-mode: difference, so the
+     logo auto-inverts against whatever's painted behind it (light
+     bg → dark logo, dark bg → light logo). This also handles the
+     during-slide colour blending the user asked for: as a page
+     transitions over the logo's position, the bg under it changes
+     and the blend updates per frame. */
+  color: #fff;
+  mix-blend-mode: difference;
   /* Stay anchored across page transitions — globals.css zeros the
      view-transition-group duration so the logo doesn't slide with the
      rest of the page. */

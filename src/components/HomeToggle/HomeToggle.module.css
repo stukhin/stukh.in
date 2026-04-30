@@ -1,19 +1,30 @@
 /* Hobby / work toggle for the homepage. Sits at the top-right of the
-   page, vertically aligned with the logo on the left. Hidden on
-   mobile (the burger handles its own job there). */
+   page, vertically aligned with the logo on the left. Behind the
+   text is a frosted-glass pill (semi-transparent dark fill +
+   backdrop-filter blur) that lifts the labels off whichever photo
+   is currently behind, so they read clearly without us having to
+   compute the bg luminance. Hidden on mobile (the burger handles
+   its own job there). */
 .toggle {
   position: fixed;
-  top: 38px;
+  top: 95px;
   right: 67px;
   z-index: 50;
   display: flex;
   align-items: center;
   gap: 12px;
+  padding: 9px 18px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(14px) saturate(140%);
+  -webkit-backdrop-filter: blur(14px) saturate(140%);
+  border: 1px solid rgba(255, 255, 255, 0.18);
   font-family: inherit;
   font-size: 13px;
   text-transform: lowercase;
   font-weight: 300;
   letter-spacing: -0.02em;
+  color: #fff;
 }
 
 @media (max-width: 1024px) {

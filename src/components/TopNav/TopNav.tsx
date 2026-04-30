@@ -8,8 +8,9 @@ import styles from "./TopNav.module.css";
 
 type Props = {
   /**
-   * Text colour. Pages pass this so the nav stays contrasty against
-   * each page's background (light cities, dark grids, etc.).
+   * Reserved for parity with other shell components. The nav itself
+   * uses mix-blend-mode: difference to auto-invert against whatever
+   * is painted behind it, so this is currently a no-op.
    */
   color?: string;
   className?: string;
@@ -28,7 +29,7 @@ const links = [
  * on the wrong viewport). The whole nav rides through view-transitions
  * as the `site-nav` group so it stays put across page-to-page slides.
  */
-export default function TopNav({ color = "#fff", className = "" }: Props) {
+export default function TopNav({ className = "" }: Props) {
   const pathname = usePathname();
   const router = useTransitionRouter();
 
@@ -41,7 +42,6 @@ export default function TopNav({ color = "#fff", className = "" }: Props) {
   return (
     <nav
       className={`${styles.nav} ${className}`}
-      style={{ color }}
       aria-label="Site navigation"
     >
       <ul className={styles.list}>

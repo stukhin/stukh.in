@@ -1,13 +1,16 @@
-/* Pinned horizontal site nav. Visible on desktop only — the burger
-   keeps the same job on mobile, where horizontal real estate is
-   tight. Text colour is driven by inline style (set per page from
-   AppShell) so the nav stays readable on dark grids, light cities,
-   etc. */
+/* Pinned horizontal site nav at the bottom-right of the viewport.
+   Visible on desktop only — the burger keeps the same job on mobile,
+   where horizontal real estate is tight. Text is rendered in pure
+   white with mix-blend-mode: difference, so it auto-inverts against
+   whatever is painted behind it (works through view-transitions too,
+   since the DOM element stays mounted while pages slide). */
 .nav {
   position: fixed;
-  top: 95px;
+  bottom: 65px;
   right: 67px;
   z-index: 50;
+  color: #fff;
+  mix-blend-mode: difference;
   view-transition-name: site-nav;
 }
 
