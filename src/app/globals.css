@@ -116,11 +116,13 @@ html.zoom-open button[aria-label="Close menu"] {
   visibility: hidden;
 }
 
-/* Logo and burger ride along with the navigation as their own
-   view-transition groups, but with zero duration — they stay
-   stationary while the rest of the page slides between routes. */
+/* Logo, burger, and the persistent top nav each ride along with the
+   navigation as their own view-transition groups, with zero duration
+   — they stay stationary while the rest of the page slides between
+   routes. */
 ::view-transition-group(site-logo),
-::view-transition-group(site-burger) {
+::view-transition-group(site-burger),
+::view-transition-group(site-nav) {
   animation-duration: 0s;
 }
 

@@ -1,6 +1,6 @@
 import AppShell from "@/components/AppShell/AppShell";
 import HomeSlider from "@/components/HomeSlider/HomeSlider";
-import Menu from "@/components/Menu/Menu";
+import HomeToggle from "@/components/HomeToggle/HomeToggle";
 import Socials from "@/components/Socials/Socials";
 import Preloader from "@/components/Preloader/Preloader";
 import styles from "./page.module.css";
@@ -19,7 +19,7 @@ export default function Home() {
           burgerClassName={styles.burger}
         >
           <HomeSlider />
-          <Menu className={styles.inlineMenu} />
+          <HomeToggle color="#F5F9FA" />
           <Socials className={styles.inlineSocials} />
         </AppShell>
       </main>

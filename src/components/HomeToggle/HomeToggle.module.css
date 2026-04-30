@@ -1,0 +1,81 @@
+/* Hobby / work toggle for the homepage. Sits at the top-right of the
+   page, vertically aligned with the logo on the left. Hidden on
+   mobile (the burger handles its own job there). */
+.toggle {
+  position: fixed;
+  top: 38px;
+  right: 67px;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-family: inherit;
+  font-size: 13px;
+  text-transform: lowercase;
+  font-weight: 300;
+  letter-spacing: -0.02em;
+}
+
+@media (max-width: 1024px) {
+  .toggle {
+    display: none;
+  }
+}
+
+.label {
+  background: transparent;
+  border: 0;
+  color: inherit;
+  opacity: 0.45;
+  cursor: none;
+  padding: 0;
+  font: inherit;
+  text-transform: inherit;
+  letter-spacing: inherit;
+  transition: opacity 0.2s ease;
+}
+
+.label:hover {
+  opacity: 0.75;
+}
+
+.label.active {
+  opacity: 1;
+}
+
+/* Pill switch. Track is a transparent rounded rect with a 1px outline
+   in currentColor; thumb is a small filled circle that slides between
+   left and right. */
+.track {
+  position: relative;
+  width: 36px;
+  height: 18px;
+  border-radius: 999px;
+  border: 1px solid currentColor;
+  background: transparent;
+  cursor: none;
+  padding: 0;
+  flex-shrink: 0;
+  opacity: 0.7;
+  transition: opacity 0.2s ease;
+}
+
+.track:hover {
+  opacity: 1;
+}
+
+.thumb {
+  position: absolute;
+  top: 50%;
+  left: 3px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: currentColor;
+  transform: translateY(-50%);
+  transition: left 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.track.right .thumb {
+  left: calc(100% - 13px);
+}

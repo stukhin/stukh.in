@@ -27,7 +27,7 @@ const links = [
   { href: "/nature", label: "nature" },
   { href: "/city", label: "city" },
   { href: "/walls", label: "walls" },
-  { href: "/trips", label: "trips" },
+  { href: "/blog", label: "blog" },
 ];
 
 export default function Menu({

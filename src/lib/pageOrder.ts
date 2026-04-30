@@ -7,7 +7,7 @@
  * Routes not listed here (e.g. /order, /404) are treated as forward
  * transitions to keep the default behaviour.
  */
-export const PAGE_ORDER = ["/", "/nature", "/city", "/walls", "/trips"];
+export const PAGE_ORDER = ["/", "/nature", "/city", "/walls", "/blog"];
 
 export type TransitionDirection = "forward" | "backward";
 

@@ -4,19 +4,10 @@
   background-color: #0d1117;
 }
 
-/* Desktop: hide burger, show inline menu + socials */
+/* Desktop: pin socials at bottom-left. Burger is now hidden globally
+   on desktop (handled by Burger.module.css) so nothing extra needed
+   here for it. */
 @media (min-width: 1025px) {
-  .burger {
-    display: none;
-  }
-
-  .inlineMenu {
-    position: absolute;
-    bottom: 65px;
-    right: 67px;
-    z-index: 2;
-  }
-
   .inlineSocials {
     position: absolute;
     display: flex;
@@ -26,9 +17,8 @@
   }
 }
 
-/* Tablet + mobile: hide inline menu and socials, show burger */
+/* Tablet + mobile: hide inline socials. */
 @media (max-width: 1024px) {
-  .inlineMenu,
   .inlineSocials {
     display: none;
   }

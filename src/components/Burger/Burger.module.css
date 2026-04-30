@@ -52,9 +52,11 @@
   }
 }
 
+/* On desktop the persistent TopNav handles navigation, so the burger
+   isn't needed. We don't render its popup either, but hiding the
+   button avoids ever showing both controls at once. */
 @media (min-width: 1025px) {
   .burger {
-    top: 82px;
-    right: 70px;
+    display: none;
   }
 }

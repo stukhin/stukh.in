@@ -18,7 +18,7 @@ const PAGE_VISUALS: Record<string, { bg?: string; color: string }> = {
   "/nature": { bg: "/images/misc/bg_nature.webp", color: "#151616" },
   "/city": { bg: "/images/misc/bg_city.webp", color: "#3a3a3a" },
   "/walls": { color: "#0a0a0c" },
-  "/trips": { color: "#0a0a0c" },
+  "/blog": { color: "#0a0a0c" },
 };
 
 const BASE_DURATION = 800;
