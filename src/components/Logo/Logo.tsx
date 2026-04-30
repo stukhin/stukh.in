@@ -1,8 +1,10 @@
 "use client";
 
 import { Link } from "next-view-transitions";
+import { useTransitionRouter } from "next-view-transitions";
 import { usePathname } from "next/navigation";
-import { getDirection, setTransitionDirection } from "@/lib/pageOrder";
+import { MouseEvent } from "react";
+import { navigateChained } from "@/lib/pageOrder";
 import styles from "./Logo.module.css";
 
 type Props = {
@@ -17,6 +19,7 @@ export default function Logo({
   className = "",
 }: Props) {
   const pathname = usePathname();
+  const router = useTransitionRouter();
   const classes = [
     styles.logo,
     noClick ? styles.noClick : "",
@@ -42,13 +45,19 @@ export default function Logo({
     );
   }
 
+  const handleClick = (e: MouseEvent<HTMLAnchorElement>) => {
+    if (pathname === "/") return;
+    e.preventDefault();
+    navigateChained(router, pathname, "/");
+  };
+
   return (
     <Link
       href="/"
       className={classes}
       title="Go to main"
       aria-label="Go to main"
-      onClick={() => setTransitionDirection(getDirection(pathname, "/"))}
+      onClick={handleClick}
     >
       {svg}
     </Link>

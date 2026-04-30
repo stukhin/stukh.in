@@ -161,6 +161,16 @@ html.zoom-open button[aria-label="Close menu"] {
   animation-timing-function: cubic-bezier(0.65, 0, 0.35, 1);
 }
 
+/* While a chained navigation is in flight (Logo / Menu jumping across
+   non-adjacent blocks), every intermediate slide uses a tighter
+   duration so the user can actually pass through 2-3 pages without
+   the trip dragging. Kept in sync with CHAIN_STEP_MS in pageOrder.ts.
+   The class is removed on the final step so the landing slide gets
+   the full, normal-paced animation. */
+html.chain-step ::view-transition-group(root) {
+  animation-duration: 0.52s;
+}
+
 /* Default (forward) — covers the case where a navigation happens
    without a direction class being set (e.g. typing a URL). */
 ::view-transition-old(root) {
