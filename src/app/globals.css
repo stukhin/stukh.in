@@ -124,13 +124,10 @@ img {
   user-select: none;
 }
 
-/* When a wallpaper zoom is open the burger should sit behind the dim
-   layer and not be tappable. Hide it explicitly so even a 92% dim
-   doesn't leak the silhouette through. */
-html.zoom-open button[aria-label="Open menu"],
-html.zoom-open button[aria-label="Close menu"] {
-  visibility: hidden;
-}
+/* `html.zoom-open` is set by the gallery and walls modals while the
+   zoom is active. Each shell module (Burger, TopNav, Socials) hides
+   its own scoped class against this attribute — see the matching
+   :global rules in those .module.css files. */
 
 /* Logo, burger, and the persistent top nav each ride along with the
    navigation as their own view-transition groups, with zero duration

@@ -60,3 +60,11 @@
     display: none;
   }
 }
+
+/* When the gallery zoom modal is open, hide the burger behind the
+   modal's frosted glass — without this it sits in the same top-right
+   corner as the close button and reads as visual noise. */
+:global(html.zoom-open) .burger {
+  visibility: hidden;
+  opacity: 0;
+}

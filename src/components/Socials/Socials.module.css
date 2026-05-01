@@ -8,6 +8,13 @@
   list-style: none;
 }
 
+/* Hidden along with the rest of the shell while a gallery zoom is
+   open, so the modal reads as a clean canvas. */
+:global(html.zoom-open) .socials {
+  visibility: hidden;
+  opacity: 0;
+}
+
 .link {
   position: relative;
   height: 28px;

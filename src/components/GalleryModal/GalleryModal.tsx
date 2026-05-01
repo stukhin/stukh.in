@@ -50,6 +50,10 @@ export default function GalleryModal({
   const [imgLoaded, setImgLoaded] = useState(false);
   const [closing, setClosing] = useState(false);
   const imgRef = useRef<HTMLImageElement>(null);
+  // Tracks whether the open-FLIP has already played for the current
+  // modal session. Without this we'd run the morph twice if the
+  // image happens to load between mount and the imgLoaded effect.
+  const flipRanRef = useRef(false);
 
   // Control mounted state so we can animate in/out
   useEffect(() => {
@@ -89,14 +93,18 @@ export default function GalleryModal({
     }
   }, [open, mounted, getCurrentRect]);
 
-  // FLIP zoom-in: when the modal mounts, grow the photo from the
-  // thumbnail's exact rect to its centred position.
-  useLayoutEffect(() => {
+  // FLIP zoom-in: grow the photo from the thumbnail's exact rect to
+  // its centred position. We try this both when the modal mounts and
+  // when the image finally finishes loading — whichever happens
+  // second wins, but `flipRanRef` keeps it from playing twice.
+  const runFlipIn = () => {
     if (!open || closing || !fromRect) return;
+    if (flipRanRef.current) return;
     const target = imgRef.current;
     if (!target) return;
     const tRect = target.getBoundingClientRect();
     if (!tRect.width || !tRect.height) return;
+    flipRanRef.current = true;
     const dx =
       fromRect.left + fromRect.width / 2 - (tRect.left + tRect.width / 2);
     const dy =
@@ -109,32 +117,57 @@ export default function GalleryModal({
       ],
       {
         duration: ZOOM_IN_MS,
-        easing: "cubic-bezier(0.65, 0, 0.35, 1)",
+        easing: ZOOM_EASING,
         fill: "forwards",
       }
     );
+  };
+
+  useLayoutEffect(() => {
+    runFlipIn();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, closing, fromRect, mounted]);
 
-  // Reset load state whenever the displayed image changes (index/orientation).
+  // If the picture was still decoding when the modal mounted, the
+  // initial useLayoutEffect found a zero-sized rect and bailed.
+  // Re-run the morph once the bytes land and the <img> takes its
+  // natural size — that's what fixes the "first-time zoom jerks"
+  // case the user reported.
+  useEffect(() => {
+    if (imgLoaded) runFlipIn();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [imgLoaded]);
+
+  // Reset load + flip state whenever the displayed image changes
+  // (index / orientation / category) and on close.
   useEffect(() => {
     setImgLoaded(false);
+    flipRanRef.current = false;
   }, [index, orientation, category]);
 
   useEffect(() => {
+    if (!open) flipRanRef.current = false;
+  }, [open]);
+
+  // Toggle the global `zoom-open` class synchronously before paint
+  // so the burger / top-nav / socials hide on the same frame the
+  // modal mounts. With a regular useEffect the shell elements would
+  // flash for one frame above the modal.
+  useLayoutEffect(() => {
     if (!open) return;
-    // Hide the burger while the modal is open — its z-index sits above
-    // the modal and was overlapping the close button. The same
-    // `zoom-open` class is read by globals.css to flip the burger to
-    // visibility:hidden.
     document.documentElement.classList.add("zoom-open");
+    return () => {
+      document.documentElement.classList.remove("zoom-open");
+    };
+  }, [open]);
+
+  useEffect(() => {
+    if (!open) return;
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();
     };
     window.addEventListener("keydown", onKey);
-    return () => {
-      document.documentElement.classList.remove("zoom-open");
-      window.removeEventListener("keydown", onKey);
-    };
+    return () => window.removeEventListener("keydown", onKey);
   }, [open, onClose]);
 
   if (!mounted || !item) return null;

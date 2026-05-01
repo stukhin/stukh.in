@@ -23,6 +23,14 @@
   }
 }
 
+/* When the gallery zoom modal is open, fade the nav out behind the
+   modal's frosted glass — having it visible bottom-right while the
+   photo fills the screen reads as clutter. */
+:global(html.zoom-open) .nav {
+  visibility: hidden;
+  opacity: 0;
+}
+
 .list {
   display: flex;
   flex-direction: row;
@@ -72,14 +80,12 @@
 }
 
 .link:hover .underline,
-.link:active .underline,
-.link.active .underline {
+.link:active .underline {
   width: 100%;
 }
 
 .link:hover .underline::before,
-.link:active .underline::before,
-.link.active .underline::before {
+.link:active .underline::before {
   width: 100%;
   left: 50%;
   transform: translateX(-50%);
@@ -90,12 +96,17 @@
   bottom: -7px;
 }
 
-.link:active .underline::before,
-.link.active .underline::before {
+.link:active .underline::before {
   bottom: -5px;
 }
 
+/* Active item — no underline (idle or animated) and the same
+   brightness as the rest. The fact that it's the current page is
+   communicated by the URL itself; the menu stays uniform. */
 .link.active {
-  opacity: 0.55;
   pointer-events: none;
+}
+
+.link.active .underline {
+  display: none;
 }
