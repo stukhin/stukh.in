@@ -150,9 +150,9 @@ export default function HomeSlider() {
             <GridDistortion
               imageSrc={slides[active]}
               grid={18}
-              mouse={0.12}
-              strength={0.04}
-              relaxation={0.93}
+              mouse={0.10}
+              strength={0.02}
+              relaxation={0.92}
             />
           ) : (
             <div

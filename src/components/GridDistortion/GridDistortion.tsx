@@ -187,47 +187,114 @@ export default function GridDistortion({
       prevY: 0,
       vX: 0,
       vY: 0,
+      lastEventAt: 0,
     };
+    // Hard cap on per-event mouse delta. Without this a focus-regain
+    // / window-blur jump or a long pause between events can produce a
+    // huge vX/vY that pumps the data texture out to extreme offsets.
+    const MAX_DELTA = 0.04;
+    // Cap on absolute data-texture values so a missed relaxation
+    // tick (e.g., rAF throttled while the window is unfocused)
+    // can't produce the runaway-grid glitch.
+    const MAX_OFFSET = 50;
+    // If more than this gap passed since the last mousemove, treat
+    // the next event as a fresh start (zero velocity) instead of a
+    // jump from a stale previous position.
+    const STALE_GAP_MS = 250;
 
-    const handleMouseMove = (e: MouseEvent) => {
-      const rect = container.getBoundingClientRect();
-      const x = (e.clientX - rect.left) / rect.width;
-      const y = 1 - (e.clientY - rect.top) / rect.height;
-      mouseState.vX = x - mouseState.prevX;
-      mouseState.vY = y - mouseState.prevY;
-      mouseState.x = x;
-      mouseState.y = y;
-      mouseState.prevX = x;
-      mouseState.prevY = y;
-    };
-
-    const handleMouseLeave = () => {
-      dataTexture.needsUpdate = true;
+    const resetMouse = () => {
       mouseState.x = 0;
       mouseState.y = 0;
       mouseState.prevX = 0;
       mouseState.prevY = 0;
       mouseState.vX = 0;
       mouseState.vY = 0;
+      mouseState.lastEventAt = 0;
     };
+
+    const clearData = () => {
+      const arr = dataTexture.image.data as unknown as Float32Array;
+      for (let i = 0; i < arr.length; i++) arr[i] = 0;
+      dataTexture.needsUpdate = true;
+    };
+
+    const handleMouseMove = (e: MouseEvent) => {
+      const rect = container.getBoundingClientRect();
+      const x = (e.clientX - rect.left) / rect.width;
+      const y = 1 - (e.clientY - rect.top) / rect.height;
+      const now = performance.now();
+      const stale = now - mouseState.lastEventAt > STALE_GAP_MS;
+      let dx = x - mouseState.prevX;
+      let dy = y - mouseState.prevY;
+      if (stale) {
+        dx = 0;
+        dy = 0;
+      }
+      // Hard cap on instantaneous velocity.
+      if (dx > MAX_DELTA) dx = MAX_DELTA;
+      else if (dx < -MAX_DELTA) dx = -MAX_DELTA;
+      if (dy > MAX_DELTA) dy = MAX_DELTA;
+      else if (dy < -MAX_DELTA) dy = -MAX_DELTA;
+      mouseState.vX = dx;
+      mouseState.vY = dy;
+      mouseState.x = x;
+      mouseState.y = y;
+      mouseState.prevX = x;
+      mouseState.prevY = y;
+      mouseState.lastEventAt = now;
+    };
+
+    const handleMouseLeave = () => {
+      resetMouse();
+      dataTexture.needsUpdate = true;
+    };
+
+    // Tab/window focus changes can throttle rAF and skip mousemoves —
+    // when the user comes back, reset the mouse state and clear any
+    // leftover displacement so we don't render a stale grid.
+    const handleVisibility = () => {
+      if (document.hidden) return;
+      resetMouse();
+      clearData();
+    };
+    const handleBlur = () => resetMouse();
 
     // The container itself is pointer-events: none in CSS so cursors
     // and edge-zone clicks pass through to the page; we listen on
     // window for the mouse position instead.
     window.addEventListener("mousemove", handleMouseMove);
     container.addEventListener("mouseleave", handleMouseLeave);
+    document.addEventListener("visibilitychange", handleVisibility);
+    window.addEventListener("blur", handleBlur);
 
     handleResize();
 
     let raf = 0;
-    const animate = () => {
+    let lastFrame = performance.now();
+    const animate = (now: number) => {
       raf = requestAnimationFrame(animate);
       uniforms.time.value += 0.05;
 
+      // Frame-rate-independent relaxation: scale the per-frame decay
+      // so that a missed frame still decays the right amount when the
+      // browser eventually catches up. Capped so a 5+ second pause
+      // doesn't immediately zero everything jarringly.
+      const dt = Math.min((now - lastFrame) / 16.67, 30);
+      lastFrame = now;
+      const decay = Math.pow(relaxation, dt);
+
       const arr = dataTexture.image.data as unknown as Float32Array;
       for (let i = 0; i < size * size; i++) {
-        arr[i * 4] *= relaxation;
-        arr[i * 4 + 1] *= relaxation;
+        let a = arr[i * 4] * decay;
+        let b = arr[i * 4 + 1] * decay;
+        // Clamp absolute value — a runaway accumulation here is what
+        // produces the dark-grid glitch the user reported.
+        if (a > MAX_OFFSET) a = MAX_OFFSET;
+        else if (a < -MAX_OFFSET) a = -MAX_OFFSET;
+        if (b > MAX_OFFSET) b = MAX_OFFSET;
+        else if (b < -MAX_OFFSET) b = -MAX_OFFSET;
+        arr[i * 4] = a;
+        arr[i * 4 + 1] = b;
       }
 
       const gridMouseX = size * mouseState.x;
@@ -250,13 +317,15 @@ export default function GridDistortion({
       dataTexture.needsUpdate = true;
       renderer.render(scene, camera);
     };
-    animate();
+    animate(performance.now());
 
     return () => {
       cancelAnimationFrame(raf);
       if (resizeObserver) resizeObserver.disconnect();
       else window.removeEventListener("resize", handleResize);
       window.removeEventListener("mousemove", handleMouseMove);
+      document.removeEventListener("visibilitychange", handleVisibility);
+      window.removeEventListener("blur", handleBlur);
       container.removeEventListener("mouseleave", handleMouseLeave);
 
       renderer.dispose();
