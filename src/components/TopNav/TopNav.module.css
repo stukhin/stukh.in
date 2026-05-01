@@ -1,17 +1,20 @@
 /* Pinned horizontal site nav at the bottom-right of the viewport.
-   Visible on desktop only — the burger keeps the same job on mobile,
-   where horizontal real estate is tight. Text is rendered in pure
-   white with mix-blend-mode: difference, so it auto-inverts against
-   whatever is painted behind it (works through view-transitions too,
-   since the DOM element stays mounted while pages slide). */
+   Visible on desktop only — the burger keeps the same job on mobile.
+   Text colour is driven by --shell-fg-strong (set by data-theme on
+   <html>), and the underline uses --shell-fg-soft / -strong so the
+   pattern matches Socials and Menu exactly. */
 .nav {
   position: fixed;
   bottom: 65px;
   right: 67px;
   z-index: 50;
-  color: #fff;
-  mix-blend-mode: difference;
+  color: var(--shell-fg-strong);
+  transition: color 0.4s ease;
   view-transition-name: site-nav;
+  font-size: 20px;
+  line-height: 15px;
+  font-weight: 300;
+  letter-spacing: -0.03em;
 }
 
 @media (max-width: 1024px) {
@@ -23,10 +26,11 @@
 .list {
   display: flex;
   flex-direction: row;
-  gap: 36px;
+  gap: 46px;
   list-style: none;
   margin: 0;
   padding: 0;
+  text-align: right;
 }
 
 .link {
@@ -35,38 +39,63 @@
   text-decoration: none;
   text-transform: lowercase;
   color: inherit;
-  font-size: 18px;
-  line-height: 1;
-  font-weight: 300;
-  letter-spacing: -0.02em;
-  padding-bottom: 8px;
   user-select: none;
   cursor: none;
-  transition: opacity 0.2s ease;
+  height: 19px;
 }
 
-.link:hover {
-  opacity: 0.8;
-}
-
+/* Underline pattern matches Socials / Menu: an outer span fixes the
+   centring; the visible bar is rendered via ::before, which expands
+   from a small idle bar (var(--shell-fg-soft)) under the text into a
+   full-width bar (var(--shell-fg-strong)) on hover, with a slight
+   bottom shift so it pops up toward the text. */
 .underline {
   position: absolute;
   left: 50%;
-  bottom: 0;
-  width: 0;
-  height: 1px;
-  background: currentColor;
   transform: translateX(-50%);
-  transition: width 0.2s ease;
+  height: 1px;
+  bottom: 0;
+  width: 22px;
+}
+
+.underline::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  height: 1px;
+  bottom: -12px;
+  width: 22px;
+  border-radius: 3px;
+  background-color: var(--shell-fg-soft);
+  transition: width 0.2s ease-in-out, bottom 0.1s linear,
+    background-color 0.4s ease;
 }
 
 .link:hover .underline,
+.link:active .underline,
 .link.active .underline {
-  width: 22px;
+  width: 100%;
+}
+
+.link:hover .underline::before,
+.link:active .underline::before,
+.link.active .underline::before {
+  width: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: var(--shell-fg-strong);
+}
+
+.link:hover .underline::before {
+  bottom: -7px;
+}
+
+.link:active .underline::before,
+.link.active .underline::before {
+  bottom: -5px;
 }
 
 .link.active {
   opacity: 0.55;
   pointer-events: none;
-  cursor: none;
 }

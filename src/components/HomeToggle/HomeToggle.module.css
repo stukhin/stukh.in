@@ -1,19 +1,17 @@
-/* Hobby / work toggle for the homepage. Sits at the top-right of the
-   page, vertically aligned with the logo on the left. Behind the
-   text is a frosted-glass pill (semi-transparent dark fill +
-   backdrop-filter blur) that lifts the labels off whichever photo
-   is currently behind, so they read clearly without us having to
-   compute the bg luminance. Hidden on mobile (the burger handles
-   its own job there). */
+/* Hobby / work toggle for the homepage. Sits at the top-right of
+   the page, vertically aligned with the logo on the left. Behind
+   the labels is the frosted-glass pill — semi-transparent dark
+   fill + backdrop-filter blur — so the labels read clearly on
+   whichever photo is currently behind. Hidden on mobile (the
+   burger handles its own job there). */
 .toggle {
   position: fixed;
   top: 95px;
   right: 67px;
   z-index: 50;
   display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 9px 18px;
+  align-items: stretch;
+  padding: 4px;
   border-radius: 999px;
   background: rgba(0, 0, 0, 0.35);
   backdrop-filter: blur(14px) saturate(140%);
@@ -33,60 +31,46 @@
   }
 }
 
+/* Sliding indicator — there's no separate thumb. The pill itself
+   is one of the labels: an absolutely-positioned highlight covers
+   whichever label is active and slides between them. */
+.indicator {
+  position: absolute;
+  top: 4px;
+  bottom: 4px;
+  left: 4px;
+  width: calc(50% - 4px);
+  background: rgba(255, 255, 255, 0.18);
+  border-radius: 999px;
+  transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+  pointer-events: none;
+}
+
+.toggle.modeWork .indicator {
+  transform: translateX(100%);
+}
+
 .label {
+  position: relative;
+  z-index: 1;
   background: transparent;
   border: 0;
   color: inherit;
-  opacity: 0.45;
-  cursor: none;
-  padding: 0;
   font: inherit;
   text-transform: inherit;
   letter-spacing: inherit;
-  transition: opacity 0.2s ease;
+  cursor: none;
+  padding: 6px 16px;
+  flex: 1;
+  text-align: center;
+  opacity: 0.55;
+  transition: opacity 0.25s ease;
 }
 
 .label:hover {
-  opacity: 0.75;
+  opacity: 0.85;
 }
 
 .label.active {
   opacity: 1;
-}
-
-/* Pill switch. Track is a transparent rounded rect with a 1px outline
-   in currentColor; thumb is a small filled circle that slides between
-   left and right. */
-.track {
-  position: relative;
-  width: 36px;
-  height: 18px;
-  border-radius: 999px;
-  border: 1px solid currentColor;
-  background: transparent;
-  cursor: none;
-  padding: 0;
-  flex-shrink: 0;
-  opacity: 0.7;
-  transition: opacity 0.2s ease;
-}
-
-.track:hover {
-  opacity: 1;
-}
-
-.thumb {
-  position: absolute;
-  top: 50%;
-  left: 3px;
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  background: currentColor;
-  transform: translateY(-50%);
-  transition: left 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.track.right .thumb {
-  left: calc(100% - 13px);
 }

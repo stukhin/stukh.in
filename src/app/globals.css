@@ -1,6 +1,22 @@
 @import url("https://fonts.googleapis.com/css2?family=Rubik:wght@300;400&display=swap");
 @import url("https://fonts.googleapis.com/css2?family=Inter:wght@200;300&display=swap");
 
+/* Theme tokens for the persistent shell (logo, top-nav, socials).
+   Pages flip <html data-theme="..."> to switch every shell element
+   to pure white-on-dark or pure black-on-light at once — no greys
+   or colour shifts. The default is `dark` (white text); pages with
+   light backgrounds opt into `light` (black text) explicitly. */
+:root,
+[data-theme="dark"] {
+  --shell-fg-strong: #fff;
+  --shell-fg-soft: hsla(0, 0%, 100%, 0.25);
+}
+
+[data-theme="light"] {
+  --shell-fg-strong: #000;
+  --shell-fg-soft: hsla(0, 0%, 0%, 0.28);
+}
+
 /* Reset */
 html, body, div, span, applet, object, iframe,
 h1, h2, h3, h4, h5, h6, p, blockquote, pre,

@@ -19,7 +19,7 @@ export default function Home() {
           burgerClassName={styles.burger}
         >
           <HomeSlider />
-          <HomeToggle color="#F5F9FA" />
+          <HomeToggle />
           <Socials className={styles.inlineSocials} />
         </AppShell>
       </main>

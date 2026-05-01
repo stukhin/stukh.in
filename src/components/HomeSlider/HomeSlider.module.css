@@ -11,14 +11,25 @@
   overflow: hidden;
 }
 
-/* Wraps the GridDistortion canvas. Filters apply to the wrapper so
-   the develop reveal still works the same way (canvas inherits the
-   visual filter pipeline). */
+/* Wraps either the GridDistortion canvas (desktop) or a plain
+   background-image div (mobile / tablet). Filters apply to the
+   wrapper so the develop reveal works in both modes. */
 .canvas {
   position: absolute;
   inset: 0;
   filter: none;
   transition: filter 1.6s cubic-bezier(0.65, 0, 0.35, 1);
+}
+
+.fallback {
+  width: 100%;
+  height: 100%;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  /* Soft fade when the slide changes — the GridDistortion path
+     swaps texture in-place, but here we cross-fade via opacity. */
+  transition: background-image 0.5s linear;
 }
 
 /* First-load reveal: image is already on the canvas in B&W under the

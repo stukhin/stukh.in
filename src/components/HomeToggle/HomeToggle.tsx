@@ -3,33 +3,27 @@
 import { useState } from "react";
 import styles from "./HomeToggle.module.css";
 
-type Props = {
-  /**
-   * Text/track/thumb colour. Inherits from page (light bg → dark
-   * colour, dark bg → light colour). Defaults to white.
-   */
-  color?: string;
-  className?: string;
-};
-
 type Mode = "hobby" | "work";
 
 /**
- * Hobby / work mode toggle. Lives only on the homepage, top-right
- * area. For now it's a visual stub — flipping the switch updates
- * local state and that's it. Once a separate work portfolio exists
- * the "work" position will navigate there.
+ * Hobby / work mode toggle. Lives only on the homepage, top-right.
+ * The labels themselves are the slider — clicking either one slides
+ * a frosted-glass pill behind it. There's no separate thumb. For
+ * now flipping the switch is a visual stub; the "work" position
+ * will navigate to a separate work portfolio once that exists.
  */
-export default function HomeToggle({ color = "#fff", className = "" }: Props) {
+export default function HomeToggle({ className = "" }: { className?: string }) {
   const [mode, setMode] = useState<Mode>("hobby");
 
   return (
     <div
-      className={`${styles.toggle} ${className}`}
-      style={{ color }}
+      className={`${styles.toggle} ${
+        mode === "work" ? styles.modeWork : styles.modeHobby
+      } ${className}`}
       role="group"
       aria-label="Hobby or work mode"
     >
+      <span className={styles.indicator} aria-hidden="true" />
       <button
         type="button"
         className={`${styles.label} ${mode === "hobby" ? styles.active : ""}`}
@@ -38,15 +32,6 @@ export default function HomeToggle({ color = "#fff", className = "" }: Props) {
         data-cursor="hover"
       >
         hobby
-      </button>
-      <button
-        type="button"
-        className={`${styles.track} ${mode === "work" ? styles.right : ""}`}
-        onClick={() => setMode((m) => (m === "hobby" ? "work" : "hobby"))}
-        aria-label={`Switch to ${mode === "hobby" ? "work" : "hobby"}`}
-        data-cursor="hover"
-      >
-        <span className={styles.thumb} aria-hidden="true" />
       </button>
       <button
         type="button"

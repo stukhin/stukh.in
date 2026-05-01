@@ -13,6 +13,7 @@ export default function Placeholder({
   return (
     <div className={styles.wrap}>
       <AppShell
+        theme="dark"
         logoColor="#F5F9FA"
         cursorVariant="light"
         burgerBg="rgba(149, 174, 181, 0.25)"

@@ -40,6 +40,7 @@ export default function WallsPage() {
         />
       </div>
       <AppShell
+        theme="dark"
         logoColor="#F5F9FA"
         cursorVariant="light"
         burgerBg="rgba(149, 174, 181, 0.25)"

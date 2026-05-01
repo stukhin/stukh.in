@@ -8,8 +8,17 @@ import TopNav from "../TopNav/TopNav";
 import Cursor from "../Cursor/Cursor";
 import EdgeNav from "../EdgeNav/EdgeNav";
 
+type Theme = "light" | "dark";
+
 type Props = {
   children: ReactNode;
+  /**
+   * Light or dark theme for the persistent shell (logo, top-nav,
+   * socials). Pages with bright backgrounds (city) opt into "light";
+   * everything else stays "dark" (white glyphs on dark). The home
+   * page may override this dynamically per-slide via HomeSlider.
+   */
+  theme?: Theme;
   logoColor?: string;
   logoColorScrolled?: string;
   cursorVariant?: "light" | "dark";
@@ -21,6 +30,7 @@ type Props = {
 
 export default function AppShell({
   children,
+  theme,
   logoColor = "#fff",
   logoColorScrolled,
   cursorVariant = "light",
@@ -31,6 +41,15 @@ export default function AppShell({
 }: Props) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+
+  // Apply the page's static theme to <html> via a data-attribute. The
+  // CSS variables in globals.css read it and flip every shell colour
+  // (logo / nav / socials) at once. Home omits the prop and lets
+  // HomeSlider drive it dynamically per-slide instead.
+  useEffect(() => {
+    if (!theme) return;
+    document.documentElement.dataset.theme = theme;
+  }, [theme]);
 
   // Switch the logo to logoColorScrolled once the user has scrolled past the
   // hero area (only applies if a scrolled colour is provided).

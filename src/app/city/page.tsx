@@ -25,6 +25,7 @@ export default function CityPage() {
         distortion={0.02}
       />
       <AppShell
+        theme="light"
         logoColor="#000"
         cursorVariant="dark"
         burgerBg="#3C3C3C"

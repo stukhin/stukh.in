@@ -30,6 +30,7 @@ export default function NaturePage() {
         distortion={0.02}
       />
       <AppShell
+        theme="dark"
         logoColor="#fff"
         cursorVariant="light"
         burgerBg="#3C3C3C"

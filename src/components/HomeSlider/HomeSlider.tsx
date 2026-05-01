@@ -18,6 +18,43 @@ const AUTOPLAY_MS = 7000;
 const PRELOADER_DURATION = 2800;
 const REVEAL_DURATION = 2500;
 
+// Mid-grey threshold (0–1) for picking light vs dark theme. Anything
+// above is "light enough that black glyphs read better"; anything
+// below gets the default dark theme (white glyphs).
+const LUMINANCE_THRESHOLD = 0.55;
+
+/** Compute the average perceived luminance (0–1) of an image, sampled
+ *  via a 16×16 canvas. Uses Rec. 601 weights. */
+async function sampleLuminance(src: string): Promise<number> {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.crossOrigin = "anonymous";
+    img.onload = () => {
+      const c = document.createElement("canvas");
+      c.width = 16;
+      c.height = 16;
+      const ctx = c.getContext("2d");
+      if (!ctx) {
+        resolve(0);
+        return;
+      }
+      try {
+        ctx.drawImage(img, 0, 0, 16, 16);
+        const data = ctx.getImageData(0, 0, 16, 16).data;
+        let sum = 0;
+        for (let i = 0; i < data.length; i += 4) {
+          sum += 0.299 * data[i] + 0.587 * data[i + 1] + 0.114 * data[i + 2];
+        }
+        resolve(sum / (data.length / 4) / 255);
+      } catch {
+        resolve(0);
+      }
+    };
+    img.onerror = () => resolve(0);
+    img.src = src;
+  });
+}
+
 export default function HomeSlider() {
   const [active, setActive] = useState(0);
   /** First-load reveal: photo "develops" through 4 stages — hidden,
@@ -70,17 +107,59 @@ export default function HomeSlider() {
     return () => window.removeEventListener("keydown", onKey);
   }, []);
 
+  // Pre-sample the luminance of every slide once on mount, then flip
+  // <html data-theme="..."> as the active slide changes. Glyphs in
+  // the shell (logo, top-nav, socials) are pure black or pure white
+  // — the threshold here is what decides which.
+  const [luminance, setLuminance] = useState<number[]>([]);
+  useEffect(() => {
+    let cancelled = false;
+    Promise.all(slides.map(sampleLuminance)).then((values) => {
+      if (!cancelled) setLuminance(values);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
+    const v = luminance[active];
+    if (v === undefined) return;
+    document.documentElement.dataset.theme =
+      v > LUMINANCE_THRESHOLD ? "light" : "dark";
+  }, [active, luminance]);
+
+  // GridDistortion is desktop-only: it's a heavy WebGL effect and the
+  // mouse-warp idea doesn't translate to touch input anyway. Below the
+  // desktop breakpoint we fall back to a plain background-image div so
+  // the photo still shows correctly.
+  const [isDesktop, setIsDesktop] = useState(false);
+  useEffect(() => {
+    const mq = window.matchMedia("(min-width: 1280px)");
+    const update = () => setIsDesktop(mq.matches);
+    update();
+    mq.addEventListener("change", update);
+    return () => mq.removeEventListener("change", update);
+  }, []);
+
   return (
     <div className={`${styles.wrap} ${revealing ? styles.revealing : ""}`}>
       <div className={styles.slider}>
         <div className={styles.canvas}>
-          <GridDistortion
-            imageSrc={slides[active]}
-            grid={18}
-            mouse={0.18}
-            strength={0.18}
-            relaxation={0.92}
-          />
+          {isDesktop ? (
+            <GridDistortion
+              imageSrc={slides[active]}
+              grid={18}
+              mouse={0.12}
+              strength={0.04}
+              relaxation={0.93}
+            />
+          ) : (
+            <div
+              className={styles.fallback}
+              style={{ backgroundImage: `url(${slides[active]})` }}
+            />
+          )}
         </div>
       </div>
 
