@@ -132,14 +132,31 @@ export default function GallerySlider({ category, items }: Props) {
                   <button
                     type="button"
                     className={styles.pictureButton}
-                    onClick={() => {
-                      if (isActive) {
-                        setModalFromRect(getActiveImgRect());
-                        setModalOpen(true);
-                      } else {
+                    onClick={async () => {
+                      if (!isActive) {
                         swiperRef.current?.slideToLoop?.(i) ??
                           swiperRef.current?.slideTo(i);
+                        return;
                       }
+                      // Make sure the picture is fully decoded before
+                      // opening the modal. The proactive preload on
+                      // slide change usually has it ready, but if the
+                      // user clicks faster than decode finishes the
+                      // FLIP morph would run on a 0×0 <img> and pop
+                      // the photo in without animation.
+                      const url = verticalSrc(realIdx);
+                      const probe = new window.Image();
+                      probe.src = url;
+                      if (!(probe.complete && probe.naturalWidth > 0)) {
+                        try {
+                          await probe.decode();
+                        } catch {
+                          // Decode rejected (rare) — fall through and
+                          // let the modal handle its own load state.
+                        }
+                      }
+                      setModalFromRect(getActiveImgRect());
+                      setModalOpen(true);
                     }}
                     aria-label={`Open ${item.title}`}
                     data-cursor={isActive ? "picture" : undefined}

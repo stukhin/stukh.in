@@ -74,14 +74,26 @@
 }
 
 /* "Picture" cursor: shown when hovering an active gallery frame (signals click
-   to open the full-screen modal). Matches the original picture.svg icon. */
+   to open the full-screen modal). Painted as a mask + currentColor-style fill
+   so it can be themed dark (city) or light (nature). */
 .picture {
   border: none;
   width: 28px;
   height: 28px;
-  background-image: url(/icons/picture.dd122c30.svg);
-  background-repeat: no-repeat;
-  background-size: contain;
+  background-color: #fefefe;
+  background-image: none;
+  -webkit-mask-image: url(/icons/picture.dd122c30.svg);
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-size: contain;
+  -webkit-mask-position: center;
+  mask-image: url(/icons/picture.dd122c30.svg);
+  mask-repeat: no-repeat;
+  mask-size: contain;
+  mask-position: center;
+}
+
+.dark.picture {
+  background-color: #424242;
 }
 
 /* Magnifier cursor: shown when hovering a wallpaper card so it's clear

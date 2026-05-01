@@ -122,7 +122,12 @@
   flex-shrink: 0;
 }
 
-.bar {
+/* Bars are scoped to .spinner so the keyframe animation doesn't
+   leak into the close button's bars (which also live under .bar
+   and were getting their X-rotation overwritten by modalBar's
+   translateY, which made the close button render as horizontal
+   "burger" stripes instead of a cross). */
+.spinner .bar {
   display: block;
   width: 22px;
   height: 1px;
@@ -131,16 +136,16 @@
   animation: modalBar 1s infinite;
 }
 
-.bar:nth-child(1) {
+.spinner .bar:nth-child(1) {
   animation-delay: 0s;
 }
-.bar:nth-child(2) {
+.spinner .bar:nth-child(2) {
   animation-delay: 0.117s;
 }
-.bar:nth-child(3) {
+.spinner .bar:nth-child(3) {
   animation-delay: 0.233s;
 }
-.bar:nth-child(4) {
+.spinner .bar:nth-child(4) {
   animation-delay: 0.35s;
 }
 
@@ -169,7 +174,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .bar {
+  .spinner .bar {
     animation: none;
   }
 }
