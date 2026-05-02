@@ -9,6 +9,7 @@ import Cursor from "../Cursor/Cursor";
 import EdgeNav from "../EdgeNav/EdgeNav";
 
 type Theme = "light" | "dark";
+type CursorVariant = "light" | "dark";
 
 type Props = {
   children: ReactNode;
@@ -19,9 +20,20 @@ type Props = {
    * page may override this dynamically per-slide via HomeSlider.
    */
   theme?: Theme;
+  /**
+   * Theme to flip to once the user has scrolled past the hero
+   * (default: 200px). Used by /order, which has a dark hero on top
+   * of a white content section. Without this the shell stays in
+   * `theme` for the whole page.
+   */
+  themeScrolled?: Theme;
+  /** Pixel scroll position at which themeScrolled / cursorVariantScrolled kick in. */
+  scrollThreshold?: number;
+  cursorVariant?: CursorVariant;
+  cursorVariantScrolled?: CursorVariant;
+  /** Legacy — no longer affects rendering; kept for prop-API compat. */
   logoColor?: string;
   logoColorScrolled?: string;
-  cursorVariant?: "light" | "dark";
   burgerBg?: string;
   burgerLine?: string;
   logoNoClick?: boolean;
@@ -31,9 +43,10 @@ type Props = {
 export default function AppShell({
   children,
   theme,
-  logoColor = "#fff",
-  logoColorScrolled,
+  themeScrolled,
+  scrollThreshold = 200,
   cursorVariant = "light",
+  cursorVariantScrolled,
   burgerBg = "rgba(149, 174, 181, 0.25)",
   burgerLine = "#F5F9FA",
   logoNoClick = false,
@@ -42,31 +55,33 @@ export default function AppShell({
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
 
-  // Apply the page's static theme to <html> via a data-attribute. The
-  // CSS variables in globals.css read it and flip every shell colour
-  // (logo / nav / socials) at once. Home omits the prop and lets
-  // HomeSlider drive it dynamically per-slide instead.
+  // Track scroll position when either themeScrolled or
+  // cursorVariantScrolled is provided. Single observer handles both.
   useEffect(() => {
-    if (!theme) return;
-    document.documentElement.dataset.theme = theme;
-  }, [theme]);
-
-  // Switch the logo to logoColorScrolled once the user has scrolled past the
-  // hero area (only applies if a scrolled colour is provided).
-  useEffect(() => {
-    if (!logoColorScrolled) return;
-    const onScroll = () => setScrolled(window.scrollY > 200);
+    if (!themeScrolled && !cursorVariantScrolled) return;
+    const onScroll = () => setScrolled(window.scrollY > scrollThreshold);
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
-  }, [logoColorScrolled]);
+  }, [themeScrolled, cursorVariantScrolled, scrollThreshold]);
 
-  const currentLogoColor = scrolled && logoColorScrolled ? logoColorScrolled : logoColor;
+  // Resolve effective theme (post-scroll override) and apply to
+  // <html> via data-attribute. CSS variables in globals.css read it
+  // and flip every shell colour (logo / nav / socials) at once.
+  // Home omits both props and lets HomeSlider drive it dynamically.
+  const effectiveTheme = scrolled && themeScrolled ? themeScrolled : theme;
+  useEffect(() => {
+    if (!effectiveTheme) return;
+    document.documentElement.dataset.theme = effectiveTheme;
+  }, [effectiveTheme]);
+
+  const effectiveCursor =
+    scrolled && cursorVariantScrolled ? cursorVariantScrolled : cursorVariant;
 
   return (
     <>
-      <Cursor variant={cursorVariant} />
-      <Logo color={currentLogoColor} noClick={logoNoClick} />
+      <Cursor variant={effectiveCursor} />
+      <Logo noClick={logoNoClick} />
       <TopNav />
       <Burger
         open={menuOpen}

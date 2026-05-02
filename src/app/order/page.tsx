@@ -11,9 +11,10 @@ export default function OrderPage() {
   return (
     <div className={styles.order}>
       <AppShell
-        logoColor="#fff"
-        logoColorScrolled="#000"
-        cursorVariant="dark"
+        theme="dark"
+        themeScrolled="light"
+        cursorVariant="light"
+        cursorVariantScrolled="dark"
         burgerBg="#B1B1B1"
         burgerLine="#424242"
         burgerClassName={styles.burger}
