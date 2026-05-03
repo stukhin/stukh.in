@@ -1,0 +1,25 @@
+.track {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 2px;
+  background: rgba(255, 255, 255, 0.06);
+  z-index: 80;
+  pointer-events: none;
+}
+
+.fill {
+  display: block;
+  height: 100%;
+  width: calc(var(--progress, 0) * 100%);
+  background: rgba(255, 255, 255, 0.7);
+  transition: width 0.06s linear;
+}
+
+/* Hidden along with the rest of the shell while a gallery zoom is
+   open — the modal already owns the viewport. */
+:global(html.zoom-open) .track {
+  visibility: hidden;
+  opacity: 0;
+}

@@ -1,9 +1,9 @@
-/* Hobby / work toggle for the homepage. Sits at the top-right of
-   the page, vertically aligned with the logo on the left. Behind
-   the labels is the frosted-glass pill — semi-transparent dark
-   fill + backdrop-filter blur — so the labels read clearly on
-   whichever photo is currently behind. Hidden on mobile (the
-   burger handles its own job there). */
+/* Hobby / work toggle for the homepage. The pill itself is white
+   frosted glass — except for whichever label is active. The active
+   side is a transparent "window" cut into the pill so the photo
+   behind shows through, and its text auto-inverts via
+   mix-blend-mode: difference, so it reads on light scenes as dark
+   and on dark scenes as light. */
 .toggle {
   position: fixed;
   top: 95px;
@@ -11,18 +11,13 @@
   z-index: 50;
   display: flex;
   align-items: stretch;
-  padding: 4px;
   border-radius: 999px;
-  background: rgba(0, 0, 0, 0.35);
-  backdrop-filter: blur(14px) saturate(140%);
-  -webkit-backdrop-filter: blur(14px) saturate(140%);
-  border: 1px solid rgba(255, 255, 255, 0.18);
+  overflow: hidden;
   font-family: inherit;
   font-size: 13px;
   text-transform: lowercase;
   font-weight: 300;
   letter-spacing: -0.02em;
-  color: #fff;
 }
 
 @media (max-width: 1024px) {
@@ -31,23 +26,30 @@
   }
 }
 
-/* Sliding indicator — there's no separate thumb. The pill itself
-   is one of the labels: an absolutely-positioned highlight covers
-   whichever label is active and slides between them. */
+/* The white pill background sits on whichever side is NOT active —
+   creating the impression that the active half has been "punched
+   out" of the pill, exposing the photo. */
 .indicator {
   position: absolute;
-  top: 4px;
-  bottom: 4px;
-  left: 4px;
-  width: calc(50% - 4px);
-  background: rgba(255, 255, 255, 0.18);
-  border-radius: 999px;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 50%;
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(14px) saturate(140%);
+  -webkit-backdrop-filter: blur(14px) saturate(140%);
   transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1);
   pointer-events: none;
 }
 
-.toggle.modeWork .indicator {
+/* Hobby selected → expose left half (hobby), white covers right (work) */
+.toggle.modeHobby .indicator {
   transform: translateX(100%);
+}
+
+/* Work selected → expose right half (work), white covers left (hobby) */
+.toggle.modeWork .indicator {
+  transform: translateX(0);
 }
 
 .label {
@@ -55,22 +57,22 @@
   z-index: 1;
   background: transparent;
   border: 0;
-  color: inherit;
+  color: #1a1a1a;
   font: inherit;
   text-transform: inherit;
   letter-spacing: inherit;
   cursor: none;
-  padding: 6px 16px;
+  padding: 9px 18px;
   flex: 1;
   text-align: center;
-  opacity: 0.55;
-  transition: opacity 0.25s ease;
+  transition: color 0.25s ease;
 }
 
-.label:hover {
-  opacity: 0.85;
-}
-
+/* The active label sits over the photo (no white indicator behind),
+   so we use mix-blend-mode: difference + pure white text to
+   auto-invert against whichever frame of the cycling slider is
+   currently showing. */
 .label.active {
-  opacity: 1;
+  color: #ffffff;
+  mix-blend-mode: difference;
 }

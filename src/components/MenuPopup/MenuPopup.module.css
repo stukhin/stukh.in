@@ -9,6 +9,12 @@
   align-items: center;
   z-index: 50;
   backdrop-filter: blur(22px) saturate(140%);
+  /* The popup is always a dark frosted-glass surface, so the menu /
+     socials / footer text inside should always read as light —
+     regardless of which page's auto theme is currently active. */
+  --shell-fg-strong: #ffffff;
+  --shell-fg-soft: rgba(255, 255, 255, 0.55);
+  color: #ffffff;
 }
 
 .popup::before {

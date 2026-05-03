@@ -1,3 +1,6 @@
+/* Frosted-glass pill. The dark-tint + heavy blur reads against any
+   page bg without us having to thread a per-page colour through.
+   Lines are pure white for the same reason. */
 .burger {
   position: fixed;
   top: 40px;
@@ -6,17 +9,22 @@
   height: 50px;
   width: 50px;
   border-radius: 50%;
-  backdrop-filter: blur(4px);
+  background: rgba(0, 0, 0, 0.32);
+  backdrop-filter: blur(14px) saturate(140%);
+  -webkit-backdrop-filter: blur(14px) saturate(140%);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  padding: 0;
   /* Above MenuPopup (50) when the menu is open, so the close (X) state of the
      burger stays clickable on top of the overlay. */
   z-index: 60;
-  transition: background-color 0.5s linear;
+  transition: background 0.4s ease, border-color 0.4s ease;
   /* Stay anchored across page transitions. */
   view-transition-name: site-burger;
 }
 
 .burger.open {
-  background-color: transparent !important;
+  background: rgba(0, 0, 0, 0.18);
+  border-color: rgba(255, 255, 255, 0.28);
 }
 
 .burger.open .line:nth-child(1) {
@@ -33,6 +41,7 @@
   width: 20px;
   height: 3px;
   border-radius: 1px;
+  background: #ffffff;
   transform: rotate(0);
   transition: transform 0.5s ease-in-out;
 }

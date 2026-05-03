@@ -12,7 +12,9 @@
 
 @media (max-width: 597px) {
   .layout {
-    padding: 110px 16px 64px;
+    /* Mobile logo height + breathing room — without this the
+       categories row sits jammed up against the logo. */
+    padding: 170px 16px 80px;
   }
 }
 
@@ -392,59 +394,30 @@
   }
 }
 
-/* Mobile / no-hover devices: drop the frosted-glass reveal entirely
-   and keep the title + counter + download visible at all times under
-   a full-card gradient. */
+/* Mobile / no-hover devices: cards stay clean — no captions, no
+   counter, no gradient overlay. The image fills the cell on its
+   own. Tapping a card opens the modal where the metadata lives. */
 @media (hover: none), (max-width: 597px) {
   .chunk {
     display: none;
   }
-  .frame::after {
-    content: "";
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(
-      180deg,
-      rgba(0, 0, 0, 0) 35%,
-      rgba(0, 0, 0, 0.55) 75%,
-      rgba(0, 0, 0, 0.85) 100%
-    );
-    pointer-events: none;
-    z-index: 1;
-  }
   .info,
-  .counter,
+  .counter {
+    display: none;
+  }
   .downloadBtn {
     opacity: 1;
     transform: none;
     animation: none;
     pointer-events: auto;
-  }
-  .info {
-    top: auto;
-    bottom: 44px;
-    left: 12px;
-    right: 12px;
-  }
-  .cardTitle {
-    font-size: 14px;
-  }
-  .meta {
-    font-size: 11px;
-  }
-  .story {
-    display: none;
-  }
-  .counter {
-    bottom: 12px;
-    left: 12px;
-    font-size: 10px;
-  }
-  .downloadBtn {
     width: 32px;
     height: 32px;
     bottom: 10px;
     right: 10px;
+    background: rgba(0, 0, 0, 0.35);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border-color: rgba(255, 255, 255, 0.4);
   }
   .card:hover .thumb {
     transform: none;

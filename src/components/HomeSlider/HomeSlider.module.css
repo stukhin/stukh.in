@@ -101,26 +101,29 @@
 
 .bar {
   display: block;
-  width: 22px;
-  height: 1px;
+  width: 28px;
+  height: 2px;
   border-radius: 3px;
-  background-color: hsla(0, 0%, 100%, 0.25);
+  background-color: hsla(0, 0%, 100%, 0.35);
   overflow: hidden;
   position: relative;
-  transition: height 0.3s ease;
+  transition: height 0.3s ease, background-color 0.3s ease;
 }
 
 .dot.dotActive .bar {
-  height: 3px;
+  height: 4px;
+  background-color: hsla(0, 0%, 100%, 0.45);
 }
 
+/* Active dot doubles as a slide-progress indicator: the white fill
+   slides in over the same 7s the slide is on screen, so the user
+   gets a visual loader of "how long left until the next photo". */
 .value {
   position: absolute;
   top: 0;
   left: 0;
   bottom: 0;
   right: 0;
-  height: 3px;
   border-radius: 3px;
   background-color: #fff;
   transform: translateX(-100%);

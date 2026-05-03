@@ -79,7 +79,9 @@ export default function MenuPopup({ open, onClose, className = "" }: Props) {
         <div className={`${styles.wrapper} ${animating ? styles.wrapperVisible : ""}`}>
           <Socials className={styles.social} />
           <div className={styles.text}>Sasha Stukhin</div>
-          <div className={styles.text}>All rights reserved © 2023</div>
+          <div className={styles.text}>
+            All rights reserved © {new Date().getFullYear()}
+          </div>
         </div>
       </div>
     </div>

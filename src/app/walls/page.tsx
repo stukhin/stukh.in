@@ -1,5 +1,6 @@
 import AppShell from "@/components/AppShell/AppShell";
 import Grainient from "@/components/Grainient/Grainient";
+import ScrollProgress from "@/components/ScrollProgress/ScrollProgress";
 import WallsGallery, {
   type Wallpaper,
 } from "@/components/WallsGallery/WallsGallery";
@@ -50,6 +51,7 @@ export default function WallsPage() {
           <WallsGallery items={wallsData as Wallpaper[]} />
         </main>
       </AppShell>
+      <ScrollProgress />
     </div>
   );
 }

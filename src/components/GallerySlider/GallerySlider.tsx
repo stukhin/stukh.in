@@ -6,6 +6,7 @@ import { Keyboard, Mousewheel } from "swiper/modules";
 import type { Swiper as SwiperType } from "swiper";
 import "swiper/css";
 import GalleryModal from "../GalleryModal/GalleryModal";
+import { useVerticalPageSwipe } from "@/lib/useVerticalPageSwipe";
 import styles from "./GallerySlider.module.css";
 
 export type GalleryItem = {
@@ -20,6 +21,10 @@ type Props = {
 };
 
 export default function GallerySlider({ category, items }: Props) {
+  // Touch-only: swipe up/down to navigate to the prev/next PAGE_ORDER
+  // block. Horizontal swipes still go to the underlying Swiper.
+  useVerticalPageSwipe();
+
   const [activeIndex, setActiveIndex] = useState(0);
   const [modalOpen, setModalOpen] = useState(false);
   const [modalOrientation, setModalOrientation] = useState<

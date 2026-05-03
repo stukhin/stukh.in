@@ -13,20 +13,24 @@ type Props = {
 export default function Burger({
   open,
   onClick,
-  bgColor = "rgba(149, 174, 181, 0.25)",
-  lineColor = "#F5F9FA",
+  // The frosted-glass background is now CSS-driven, so colour props
+  // become vestigial. We keep them on the type for backwards
+  // compatibility with the page-level AppShell calls.
+  bgColor: _bgColor,
+  lineColor: _lineColor,
   className = "",
 }: Props) {
+  void _bgColor;
+  void _lineColor;
   return (
     <button
       type="button"
       className={`${styles.burger} ${open ? styles.open : ""} ${className}`}
-      style={{ backgroundColor: open ? "transparent" : bgColor }}
       aria-label={open ? "Close menu" : "Open menu"}
       onClick={onClick}
     >
-      <div className={styles.line} style={{ backgroundColor: lineColor }} />
-      <div className={styles.line} style={{ backgroundColor: lineColor }} />
+      <div className={styles.line} />
+      <div className={styles.line} />
     </button>
   );
 }
