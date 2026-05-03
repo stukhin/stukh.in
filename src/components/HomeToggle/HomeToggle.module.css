@@ -12,6 +12,11 @@
   display: flex;
   align-items: stretch;
   border-radius: 999px;
+  /* Unified 3px white outline so the toggle reads as a single
+     interactive block even when one half is "punched out" to expose
+     the photo. Without this the active half blends visually with
+     whatever's behind and the toggle loses its silhouette. */
+  border: 3px solid #ffffff;
   overflow: hidden;
   font-family: inherit;
   font-size: 13px;
