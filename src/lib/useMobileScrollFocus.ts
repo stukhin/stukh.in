@@ -29,10 +29,22 @@ import { MutableRefObject, useEffect } from "react";
  */
 const FADE_DISTANCE_VH = 1.0; // distance, in viewport heights, over which expansion lerps 1 → MIN_EXPANSION
 const MIN_EXPANSION = 0.125;
-/** How long after a scroll event the magnetic snap fires. */
-const SNAP_DEBOUNCE_MS = 220;
-/** Skip snap if the closest row is already this close (in px). */
-const SNAP_TOLERANCE_PX = 2;
+/** How long the user has to be idle after their last scroll event
+ *  before the magnetic snap fires. Long enough that small fingertip
+ *  drifts at the end of a flick don't trigger a snap mid-deceleration,
+ *  and that a deliberate "just look at this for a second" pause feels
+ *  like it earned the auto-centre. */
+const SNAP_DEBOUNCE_MS = 1200;
+/** Skip snap if the closest row is already this close (in px). Bumped
+ *  up so single-pixel fractional offsets that result from rounding in
+ *  the smooth-scroll engine don't trigger a follow-up snap. */
+const SNAP_TOLERANCE_PX = 6;
+/** Window after a programmatic snap during which incoming scroll
+ *  events are treated as the snap finishing, not the user scrolling.
+ *  Without this guard the smooth-scroll fires scroll events, those
+ *  schedule a fresh snap, that snap fires another scroll, and the
+ *  page ping-pongs by ±2 rows ad infinitum. */
+const PROGRAMMATIC_GUARD_MS = 900;
 
 export function useMobileScrollFocus(
   cardRefs: MutableRefObject<(HTMLLIElement | null)[]>,
@@ -45,9 +57,15 @@ export function useMobileScrollFocus(
 
     let raf: number | null = null;
     let snapTimer: number | null = null;
+    let programmaticGuardTimer: number | null = null;
     /** Stays false until the user has actually scrolled, so the
      *  initial page-load layout isn't snapped under their feet. */
     let userScrolled = false;
+    /** True while a snap-induced smooth-scroll is in flight. Scroll
+     *  events fired during this window are still used to update card
+     *  heights, but they don't (re)schedule another snap — otherwise
+     *  the snap fires forever in a loop. */
+    let programmaticScroll = false;
 
     const reset = () => {
       cardRefs.current.forEach((card) => {
@@ -121,6 +139,18 @@ export function useMobileScrollFocus(
 
       if (closestDelta === null) return;
       if (Math.abs(closestDelta) < SNAP_TOLERANCE_PX) return;
+
+      // Mark the upcoming smooth-scroll as programmatic so its own
+      // scroll events don't re-arm the snap and ping-pong us into the
+      // next row.
+      programmaticScroll = true;
+      if (programmaticGuardTimer !== null) {
+        window.clearTimeout(programmaticGuardTimer);
+      }
+      programmaticGuardTimer = window.setTimeout(() => {
+        programmaticScroll = false;
+      }, PROGRAMMATIC_GUARD_MS);
+
       window.scrollBy({ top: closestDelta, behavior: "smooth" });
     };
 
@@ -130,8 +160,14 @@ export function useMobileScrollFocus(
     };
 
     const onScroll = () => {
-      userScrolled = true;
+      // Always keep heights in sync — that's a pure read of viewport
+      // geometry and doesn't risk re-firing the snap.
       if (raf === null) raf = requestAnimationFrame(update);
+      // Don't (re)schedule a snap on scrolls we caused ourselves —
+      // those should ride out without triggering another snap on the
+      // tail end.
+      if (programmaticScroll) return;
+      userScrolled = true;
       scheduleSnap();
     };
 
@@ -151,6 +187,9 @@ export function useMobileScrollFocus(
       mq.removeEventListener("change", update);
       if (raf !== null) cancelAnimationFrame(raf);
       if (snapTimer !== null) window.clearTimeout(snapTimer);
+      if (programmaticGuardTimer !== null) {
+        window.clearTimeout(programmaticGuardTimer);
+      }
       reset();
     };
   }, [cardRefs, cols, count]);

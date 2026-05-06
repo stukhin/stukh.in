@@ -1,13 +1,13 @@
 import AppShell from "@/components/AppShell/AppShell";
 import HomeSlider from "@/components/HomeSlider/HomeSlider";
 import Socials from "@/components/Socials/Socials";
-import Preloader from "@/components/Preloader/Preloader";
 import styles from "./page.module.css";
 
 export default function Home() {
   return (
     <>
-      <Preloader />
+      {/* Preloader is mounted in the root layout so it also runs when
+          the user lands directly on /nature, /city, /walls, etc. */}
       <main className={styles.main}>
         <AppShell
           logoColor="#F5F9FA"

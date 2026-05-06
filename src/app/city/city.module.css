@@ -1,6 +1,11 @@
 .city {
   position: relative;
+  /* See nature.module.css — 100dvh keeps the framed photo and its
+     description inside the live mobile viewport regardless of the
+     address bar's state, so the page never asks the user to scroll
+     to see the description. */
   height: 100vh;
+  height: 100dvh;
   background: gray;
   background-image: url(/images/misc/bg_city.webp);
   background-repeat: no-repeat;

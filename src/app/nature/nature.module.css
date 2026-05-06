@@ -1,11 +1,16 @@
 .nature {
   position: relative;
+  /* Lock the page to the visible viewport. 100vh on mobile measures
+     the largest-possible viewport (with the address bar retracted),
+     so when the bar is on screen the page actually overflows and the
+     user can scroll it. 100dvh tracks the live viewport so the photo
+     and its description always fit without scrolling. */
   height: 100vh;
+  height: 100dvh;
   background: #151616;
   background-image: url(/images/misc/bg_nature.webp);
   background-repeat: no-repeat;
   background-size: cover;
-  overflow-x: hidden;
   display: flex;
   flex-direction: column;
   justify-content: center;

@@ -23,23 +23,31 @@
   z-index: 1;
 }
 
-/* Percentage counter, top-right corner. Uses the site's font and a
-   subtle weight so it reads as a quiet number, not a loud HUD. */
+/* Wrapper that pairs the percentage and the bar: percentage on top,
+   bar underneath. flex-end aligns the percentage to the bar's right
+   edge so the number always sits flush above where the fill is
+   heading. */
+.barWrap {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+}
+
+/* Percentage counter, sitting above and right-aligned to the bar. */
 .percent {
-  position: fixed;
-  top: 41px;
-  right: 41px;
   font-family: "Rubik", "Inter", sans-serif;
   font-weight: 300;
   font-size: 14px;
   letter-spacing: -0.02em;
   color: #1a1a1a;
+  /* Stable monospace-feeling slot so the bar doesn't shift left-right
+     as the digit count changes (1% / 12% / 100%). */
+  font-variant-numeric: tabular-nums;
 }
 
 @media (min-width: 598px) {
   .percent {
-    top: 66px;
-    right: 67px;
     font-size: 18px;
     line-height: 15px;
   }

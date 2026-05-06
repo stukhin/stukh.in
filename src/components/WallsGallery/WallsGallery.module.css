@@ -647,23 +647,27 @@
   will-change: transform;
 }
 
+/* Bottom-right corner arrow icon — same shape as the on-card download
+   button so the affordance is consistent. Visible on hover (desktop)
+   and always on touch (so phone users can tap to save). */
 .zoomDownload {
   position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
+  bottom: 14px;
+  right: 14px;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   background: rgba(0, 0, 0, 0.45);
   border: 1px solid rgba(255, 255, 255, 0.55);
   color: #fff;
-  padding: 12px 28px;
-  font-size: 13px;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
   cursor: none;
   opacity: 0;
   pointer-events: none;
-  transition: opacity 0.2s ease, background 0.2s ease, border-color 0.2s ease;
+  transition: opacity 0.18s ease, background 0.2s ease, border-color 0.2s ease;
   backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
 }
 
 /* Only show the Download button once the FLIP zoom-in has completed
@@ -672,6 +676,15 @@
 .photoBoxReady:hover .zoomDownload {
   opacity: 1;
   pointer-events: auto;
+}
+
+/* Touch / no-hover devices: keep the button always visible (no
+   hovering possible) once the FLIP-in finishes. */
+@media (hover: none) {
+  .photoBoxReady .zoomDownload {
+    opacity: 1;
+    pointer-events: auto;
+  }
 }
 
 .zoomDownload:hover {

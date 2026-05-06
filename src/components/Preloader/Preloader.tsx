@@ -154,11 +154,16 @@ export default function Preloader() {
       aria-hidden={phase === "hiding"}
     >
       <Logo color="#000" noClick className={styles.logo} />
-      <div className={styles.percent} aria-live="polite">
-        {pct}%
-      </div>
-      <div className={styles.bar} aria-label={`Loading ${pct}%`}>
-        <span className={styles.fill} style={{ width: `${pct}%` }} />
+      {/* Bar + percentage are wrapped together so the percentage can
+          sit directly above the bar's right edge regardless of where
+          the bar lands on screen. */}
+      <div className={styles.barWrap}>
+        <div className={styles.percent} aria-live="polite">
+          {pct}%
+        </div>
+        <div className={styles.bar} aria-label={`Loading ${pct}%`}>
+          <span className={styles.fill} style={{ width: `${pct}%` }} />
+        </div>
       </div>
     </div>
   );

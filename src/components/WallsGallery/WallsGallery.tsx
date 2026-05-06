@@ -380,9 +380,25 @@ export default function WallsGallery({ items }: Props) {
                 download(zoomed);
               }}
               disabled={(downloads[zoomed.id] || "idle") === "loading"}
+              aria-label={`Download ${zoomed.title}`}
               data-cursor="hover"
             >
-              Download
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.6"
+              >
+                <path d="M12 4v12" strokeLinecap="round" />
+                <path
+                  d="m6 11 6 6 6-6"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+                <path d="M5 20h14" strokeLinecap="round" />
+              </svg>
             </button>
           </div>
         </div>
