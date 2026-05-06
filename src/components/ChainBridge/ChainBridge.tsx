@@ -37,6 +37,18 @@ export default function ChainBridge() {
   const [duration, setDuration] = useState(BASE_DURATION);
   const timersRef = useRef<number[]>([]);
 
+  // Warm the HTTP cache on mount so the very first cross-page slide
+  // doesn't hitch fetching the bg images. The Image() instances go
+  // out of scope after the effect runs; the browser keeps the bytes
+  // in its cache.
+  useEffect(() => {
+    Object.values(PAGE_VISUALS).forEach((v) => {
+      if (!v.bg) return;
+      const img = new window.Image();
+      img.src = v.bg;
+    });
+  }, []);
+
   useEffect(() => {
     const clearTimers = () => {
       timersRef.current.forEach(window.clearTimeout);

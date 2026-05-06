@@ -16,22 +16,11 @@
   letter-spacing: -0.03em;
 }
 
-/* While ChainBridge slides the strip, the nav uses white +
-   mix-blend so its colour tracks the moving bg per-pixel. */
-:global(html.chain-active) .nav {
-  color: #ffffff;
-  mix-blend-mode: difference;
-  transition: none;
-}
-
-/* Settling phase (bridge fading out): snap to theme colour with
-   no transition so we don't lerp from white through grey to the
-   destination colour and produce the flash the user reported. */
-:global(html.chain-settling) .nav {
-  color: var(--shell-fg-strong);
-  mix-blend-mode: normal;
-  transition: none;
-}
+/* The mix-blend boundary treatment lives only on the logo (see
+   Logo.module.css). The nav stays at its normal data-theme
+   colour during slides — that's cheaper to composite and
+   removes the secondary "grey on light fonds" the per-pixel
+   blend produced on this element. */
 
 @media (max-width: 1024px) {
   .nav {
