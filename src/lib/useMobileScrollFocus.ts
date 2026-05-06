@@ -28,7 +28,11 @@ import { MutableRefObject, useEffect } from "react";
  * the row's first ref.
  */
 const FADE_DISTANCE_VH = 1.0; // distance, in viewport heights, over which expansion lerps 1 → MIN_EXPANSION
-const MIN_EXPANSION = 0.25;
+const MIN_EXPANSION = 0.125;
+/** How long after a scroll event the magnetic snap fires. */
+const SNAP_DEBOUNCE_MS = 220;
+/** Skip snap if the closest row is already this close (in px). */
+const SNAP_TOLERANCE_PX = 2;
 
 export function useMobileScrollFocus(
   cardRefs: MutableRefObject<(HTMLLIElement | null)[]>,
@@ -40,6 +44,10 @@ export function useMobileScrollFocus(
     const mq = window.matchMedia("(max-width: 597px)");
 
     let raf: number | null = null;
+    let snapTimer: number | null = null;
+    /** Stays false until the user has actually scrolled, so the
+     *  initial page-load layout isn't snapped under their feet. */
+    let userScrolled = false;
 
     const reset = () => {
       cardRefs.current.forEach((card) => {
@@ -85,13 +93,52 @@ export function useMobileScrollFocus(
       }
     };
 
+    /** Magnetic snap: after the user stops scrolling, find the row
+     *  whose centre is closest to viewport centre and smooth-scroll
+     *  by the offset so it lands exactly on centre. The smooth
+     *  scroll re-fires the scroll listener, which keeps `update`
+     *  running, so heights stay in sync as the snap animates. */
+    const snap = () => {
+      snapTimer = null;
+      if (!mq.matches || !userScrolled) return;
+
+      const vh = window.innerHeight;
+      const center = vh / 2;
+      const numRows = Math.ceil(count / cols);
+
+      let closestDelta: number | null = null;
+      for (let r = 0; r < numRows; r++) {
+        const lead = cardRefs.current[r * cols];
+        if (!lead) continue;
+        const rect = lead.getBoundingClientRect();
+        if (rect.width === 0) continue;
+        const rowCenter = rect.top + rect.height / 2;
+        const delta = rowCenter - center;
+        if (closestDelta === null || Math.abs(delta) < Math.abs(closestDelta)) {
+          closestDelta = delta;
+        }
+      }
+
+      if (closestDelta === null) return;
+      if (Math.abs(closestDelta) < SNAP_TOLERANCE_PX) return;
+      window.scrollBy({ top: closestDelta, behavior: "smooth" });
+    };
+
+    const scheduleSnap = () => {
+      if (snapTimer !== null) window.clearTimeout(snapTimer);
+      snapTimer = window.setTimeout(snap, SNAP_DEBOUNCE_MS);
+    };
+
     const onScroll = () => {
-      if (raf !== null) return;
-      raf = requestAnimationFrame(update);
+      userScrolled = true;
+      if (raf === null) raf = requestAnimationFrame(update);
+      scheduleSnap();
     };
 
     // Run once on mount so the cards land at the correct heights
-    // before the user scrolls.
+    // before the user scrolls. No snap on initial load — `userScrolled`
+    // gate makes sure the magnet only kicks in after the user has
+    // actually moved the page themselves.
     update();
 
     window.addEventListener("scroll", onScroll, { passive: true });
@@ -103,6 +150,7 @@ export function useMobileScrollFocus(
       window.removeEventListener("resize", update);
       mq.removeEventListener("change", update);
       if (raf !== null) cancelAnimationFrame(raf);
+      if (snapTimer !== null) window.clearTimeout(snapTimer);
       reset();
     };
   }, [cardRefs, cols, count]);

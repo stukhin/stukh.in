@@ -16,6 +16,9 @@ import {
   useSpring,
 } from "motion/react";
 import { useMobileScrollFocus } from "@/lib/useMobileScrollFocus";
+import WallpaperHoverPlate, {
+  type HoverState,
+} from "./WallpaperHoverPlate";
 import styles from "./WallsGallery.module.css";
 
 export type Wallpaper = {
@@ -59,7 +62,6 @@ type Props = {
 };
 
 const ALL = "All";
-const GHOST_COUNT = 1;
 // Slower, more deliberate FLIP: a touch of ease-in at the start, slow
 // growth through the middle, soft deceleration at the end.
 const ZOOM_IN_MS = 750;
@@ -76,6 +78,7 @@ export default function WallsGallery({ items }: Props) {
   const [zoomReady, setZoomReady] = useState(false);
   const [activeCategory, setActiveCategory] = useState<string>(ALL);
   const [activeTone, setActiveTone] = useState<string>(ALL_TONE);
+  const [hover, setHover] = useState<HoverState | null>(null);
 
   const cardImgRefs = useRef<Record<string, HTMLImageElement | null>>({});
   const cardElRefs = useRef<(HTMLLIElement | null)[]>([]);
@@ -107,9 +110,21 @@ export default function WallsGallery({ items }: Props) {
   );
 
   // Mobile-only: row currently centred in the viewport renders at
-  // full 9:16 height; rows above/below taper smoothly to half height.
-  // No-ops on wider viewports.
+  // full 9:16 height; rows above/below taper smoothly to a quarter,
+  // and the magnet snap pulls the nearest row to centre on each
+  // scroll-end. No-ops on wider viewports.
   useMobileScrollFocus(cardElRefs, 2, visibleItems.length);
+
+  // Desktop hover-plate plumbing. Cards fire enter/leave; the
+  // download button fires its own pair on top so the plate can
+  // include the format hint when the user is over it.
+  const onCardEnter = (w: Wallpaper) =>
+    setHover({ wallpaper: w, isHoveringDownload: false });
+  const onCardLeave = () => setHover(null);
+  const onDownloadEnter = () =>
+    setHover((prev) => (prev ? { ...prev, isHoveringDownload: true } : prev));
+  const onDownloadLeave = () =>
+    setHover((prev) => (prev ? { ...prev, isHoveringDownload: false } : prev));
 
   // Persist download counts in localStorage so they grow over visits.
   useEffect(() => {
@@ -309,16 +324,18 @@ export default function WallsGallery({ items }: Props) {
           <AnimatePresence mode="popLayout" initial={false}>
             {visibleItems.map((w, i) => {
               const state = downloads[w.id] || "idle";
-              const count = counts[w.id] ?? w.downloads;
               return (
                 <WallpaperCard
                   key={w.id}
                   wallpaper={w}
-                  count={count}
                   state={state}
                   isZoomed={zoomed?.id === w.id}
                   onZoom={openZoom}
                   onDownload={download}
+                  onCardEnter={onCardEnter}
+                  onCardLeave={onCardLeave}
+                  onDownloadEnter={onDownloadEnter}
+                  onDownloadLeave={onDownloadLeave}
                   registerImg={(el) => {
                     cardImgRefs.current[w.id] = el;
                   }}
@@ -329,20 +346,10 @@ export default function WallsGallery({ items }: Props) {
               );
             })}
           </AnimatePresence>
-
-          {/* Soft empty placeholders hinting more wallpapers will land
-              here. */}
-          {Array.from({ length: GHOST_COUNT }).map((_, i) => (
-            <li
-              key={`ghost-${i}`}
-              className={styles.ghost}
-              aria-hidden="true"
-            >
-              <span className={styles.ghostHint}>soon</span>
-            </li>
-          ))}
         </ul>
       </div>
+
+      <WallpaperHoverPlate hover={hover} />
 
       {zoomed && (
         <div
@@ -386,7 +393,6 @@ export default function WallsGallery({ items }: Props) {
 
 type CardProps = {
   wallpaper: Wallpaper;
-  count: number;
   state: DownloadState;
   isZoomed: boolean;
   onZoom: (w: Wallpaper) => void;
@@ -398,17 +404,30 @@ type CardProps = {
    * compute per-row heights based on viewport-centre distance.
    */
   registerCard?: (el: HTMLLIElement | null) => void;
+  /**
+   * Desktop hover-plate hooks. The card forwards mouseenter /
+   * mouseleave so the parent can render a frosted plate next to the
+   * cursor; the download button has its own enter/leave so the plate
+   * can swap to a "format hint" variant when the user is over it.
+   */
+  onCardEnter?: (w: Wallpaper) => void;
+  onCardLeave?: () => void;
+  onDownloadEnter?: () => void;
+  onDownloadLeave?: () => void;
 };
 
 function WallpaperCard({
   wallpaper,
-  count,
   state,
   isZoomed,
   onZoom,
   onDownload,
   registerImg,
   registerCard,
+  onCardEnter,
+  onCardLeave,
+  onDownloadEnter,
+  onDownloadLeave,
 }: CardProps) {
   const ref = useRef<HTMLLIElement>(null);
   const rotateX = useSpring(useMotionValue(0), SPRING);
@@ -427,12 +446,14 @@ function WallpaperCard({
 
   function handleEnter() {
     scale.set(1.04);
+    onCardEnter?.(wallpaper);
   }
 
   function handleLeave() {
     rotateX.set(0);
     rotateY.set(0);
     scale.set(1);
+    onCardLeave?.();
   }
 
   return (
@@ -470,29 +491,12 @@ function WallpaperCard({
             draggable={false}
           />
 
-          {/* Six frosted-glass chunks of different shapes. */}
-          <span className={`${styles.chunk} ${styles.chunk1}`} />
-          <span className={`${styles.chunk} ${styles.chunk2}`} />
-          <span className={`${styles.chunk} ${styles.chunk3}`} />
-          <span className={`${styles.chunk} ${styles.chunk4}`} />
-          <span className={`${styles.chunk} ${styles.chunk5}`} />
-          <span className={`${styles.chunk} ${styles.chunk6}`} />
-
-          {/* Description sits at the top-left, fades in after the glass
-              settles. translateZ pushes it slightly forward so the
-              tilt makes it feel like it's floating above the photo. */}
-          <span className={styles.info}>
-            <span className={styles.cardTitle}>{wallpaper.title}</span>
-            <span className={styles.meta}>
-              {wallpaper.location} · {wallpaper.year}
-            </span>
-            <span className={styles.story}>{wallpaper.story}</span>
-          </span>
-
-          {/* Downloads count was noise — only the resolution + format
-              line stays, left-aligned alongside the title block. */}
-          <span className={styles.specs}>1080×1920 · jpg</span>
-
+          {/* All on-card overlays (chunks, info, specs) were lifted
+              out into the cursor-following <WallpaperHoverPlate> on
+              desktop — keeps the photo clean and the metadata where
+              the eye already is. The loader / saved toast still need
+              to render on the card itself because they're per-card
+              progress feedback. */}
           {state === "loading" && (
             <span className={styles.loader} aria-hidden="true">
               <span className={styles.bar} />
@@ -509,6 +513,8 @@ function WallpaperCard({
           type="button"
           className={styles.downloadBtn}
           onClick={() => onDownload(wallpaper)}
+          onMouseEnter={onDownloadEnter}
+          onMouseLeave={onDownloadLeave}
           disabled={state === "loading"}
           aria-label={`Download ${wallpaper.title}`}
           data-cursor="hover"

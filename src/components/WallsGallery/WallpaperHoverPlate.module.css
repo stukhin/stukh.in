@@ -1,0 +1,61 @@
+.plate {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 100;
+  pointer-events: none;
+  /* Initial off-screen position via translate3d will be overwritten
+     by JS on the first mousemove. Keep it here so the very first
+     frame doesn't paint at (0, 0). */
+  transform: translate3d(-9999px, -9999px, 0);
+  background: rgba(0, 0, 0, 0.42);
+  backdrop-filter: blur(14px) saturate(140%);
+  -webkit-backdrop-filter: blur(14px) saturate(140%);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 10px;
+  padding: 10px 14px;
+  color: #fff;
+  font-family: "Rubik", "Inter", sans-serif;
+  font-weight: 300;
+  letter-spacing: -0.02em;
+  white-space: nowrap;
+  opacity: 0;
+  transition: opacity 0.15s ease-out;
+  will-change: transform, opacity;
+}
+
+.plate.opaque {
+  opacity: 1;
+}
+
+/* Plate is desktop-only: tablets / phones don't have a cursor to
+   hang it off, and the cards on those breakpoints render the photo
+   full-bleed without text overlays anyway. */
+@media (max-width: 1024px) {
+  .plate {
+    display: none;
+  }
+}
+
+.title {
+  font-size: 15px;
+  text-transform: lowercase;
+  margin-bottom: 4px;
+}
+
+.meta {
+  font-size: 11px;
+  opacity: 0.65;
+  text-transform: lowercase;
+  letter-spacing: 0.04em;
+}
+
+.format {
+  font-size: 10px;
+  opacity: 0.6;
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid rgba(255, 255, 255, 0.14);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
