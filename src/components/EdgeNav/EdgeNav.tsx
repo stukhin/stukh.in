@@ -1,10 +1,9 @@
 "use client";
 
-import { useTransitionRouter } from "next-view-transitions";
-import { usePathname } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import {
   PAGE_ORDER,
-  setTransitionDirection,
+  navigateChained,
 } from "@/lib/pageOrder";
 import styles from "./EdgeNav.module.css";
 
@@ -21,7 +20,7 @@ import styles from "./EdgeNav.module.css";
  */
 export default function EdgeNav() {
   const pathname = usePathname();
-  const router = useTransitionRouter();
+  const router = useRouter();
 
   const idx = PAGE_ORDER.indexOf(pathname);
   if (idx === -1) return null;
@@ -31,14 +30,12 @@ export default function EdgeNav() {
 
   const goPrev = () => {
     if (!prevHref) return;
-    setTransitionDirection("backward");
-    router.push(prevHref);
+    navigateChained(router, pathname, prevHref);
   };
 
   const goNext = () => {
     if (!nextHref) return;
-    setTransitionDirection("forward");
-    router.push(nextHref);
+    navigateChained(router, pathname, nextHref);
   };
 
   return (

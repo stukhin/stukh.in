@@ -95,6 +95,20 @@ export default function ChainBridge() {
     };
   }, [router]);
 
+  // Tag <html> while the bridge is in flight. Shell elements
+  // (Logo, TopNav, Socials) flip to mix-blend-mode: difference
+  // against this class, so their colour tracks the moving page
+  // boundary live for the duration of the slide. After the bridge
+  // unmounts, they fall back to their static data-theme colour.
+  useEffect(() => {
+    if (active) {
+      document.documentElement.classList.add("chain-active");
+      return () => {
+        document.documentElement.classList.remove("chain-active");
+      };
+    }
+  }, [active]);
+
   if (!active) return null;
 
   const style: CSSProperties = {

@@ -1,7 +1,7 @@
 "use client";
 
-import { Link, useTransitionRouter } from "next-view-transitions";
-import { usePathname } from "next/navigation";
+import Link from "next/link";
+import { useRouter, usePathname } from "next/navigation";
 import { MouseEvent } from "react";
 import { navigateChained } from "@/lib/pageOrder";
 import styles from "./TopNav.module.css";
@@ -31,7 +31,7 @@ const links = [
  */
 export default function TopNav({ className = "" }: Props) {
   const pathname = usePathname();
-  const router = useTransitionRouter();
+  const router = useRouter();
 
   const handleClick = (e: MouseEvent<HTMLAnchorElement>, href: string) => {
     if (pathname === href) return;

@@ -129,101 +129,11 @@ img {
    its own scoped class against this attribute — see the matching
    :global rules in those .module.css files. */
 
-/* Logo, burger, and the persistent top nav each ride along with the
-   navigation as their own view-transition groups, with zero duration
-   — they stay stationary while the rest of the page slides between
-   routes. */
-::view-transition-group(site-logo),
-::view-transition-group(site-burger),
-::view-transition-group(site-nav) {
-  animation-duration: 0s;
-}
-
-/* During a route transition the actual logo / nav DOM elements get
-   replaced by ::view-transition pseudo "snapshots" (a captured-image
-   layer above the sliding page snapshots). To keep the
-   mix-blend-mode: difference behaviour active *during* the slide —
-   so the glyphs auto-invert per pixel as the boundary between the
-   old and new page sweeps across them — re-apply the blend mode to
-   both halves of each snapshot pair. Without this the snapshots
-   render as flat raster and the colour appears to "snap" rather
-   than dissolve along the moving page edge. */
-::view-transition-old(site-logo),
-::view-transition-new(site-logo),
-::view-transition-old(site-nav),
-::view-transition-new(site-nav) {
-  mix-blend-mode: difference;
-}
-
-/* Page-to-page transition. Pages live in a fixed order (see
-   src/lib/pageOrder.ts). Forward navigation slides the outgoing page
-   up off the top of the viewport while the incoming page rises from
-   below — feels like scrolling to the next chapter of one tall site.
-   Backward navigation runs the same animation in reverse so the user
-   feels they're scrolling back up.
-   View Transitions API works in Chromium and Safari 18+; Firefox
-   ignores these rules and the swap is instant. */
-@keyframes pageSlideOutUp {
-  to {
-    transform: translateY(-100%);
-  }
-}
-
-@keyframes pageSlideInUp {
-  from {
-    transform: translateY(100%);
-  }
-}
-
-@keyframes pageSlideOutDown {
-  to {
-    transform: translateY(100%);
-  }
-}
-
-@keyframes pageSlideInDown {
-  from {
-    transform: translateY(-100%);
-  }
-}
-
-::view-transition-group(root) {
-  animation-duration: 1.05s;
-  animation-timing-function: cubic-bezier(0.65, 0, 0.35, 1);
-}
-
-
-/* Default (forward) — covers the case where a navigation happens
-   without a direction class being set (e.g. typing a URL). */
-::view-transition-old(root) {
-  animation-name: pageSlideOutUp;
-  animation-fill-mode: both;
-}
-
-::view-transition-new(root) {
-  animation-name: pageSlideInUp;
-  animation-fill-mode: both;
-}
-
-html.transition-forward::view-transition-old(root) {
-  animation-name: pageSlideOutUp;
-}
-
-html.transition-forward::view-transition-new(root) {
-  animation-name: pageSlideInUp;
-}
-
-html.transition-backward::view-transition-old(root) {
-  animation-name: pageSlideOutDown;
-}
-
-html.transition-backward::view-transition-new(root) {
-  animation-name: pageSlideInDown;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  ::view-transition-old(root),
-  ::view-transition-new(root) {
-    animation: none;
-  }
-}
+/* Page-to-page transitions are no longer driven by the View
+   Transitions API — see ChainBridge for the implementation. The
+   browser snapshots that VT creates put each transition group in
+   its own stacking context, which prevented mix-blend-mode on the
+   logo / nav from reaching the underlying page snapshots. The
+   custom overlay keeps the shell as live DOM above the slide, so
+   the blend reads the moving bg pixels frame-by-frame and the
+   colour boundary tracks the page edge. */

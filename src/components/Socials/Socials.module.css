@@ -27,6 +27,14 @@
   transition: color 0.4s ease;
 }
 
+/* Live colour-blend during a ChainBridge slide. See Logo /
+   TopNav for the same pattern. */
+:global(html.chain-active) .link {
+  color: #ffffff;
+  mix-blend-mode: difference;
+  transition: none;
+}
+
 .icon {
   position: absolute;
   inset: 0;

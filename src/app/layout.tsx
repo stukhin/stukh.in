@@ -1,5 +1,4 @@
 import type { Metadata, Viewport } from "next";
-import { ViewTransitions } from "next-view-transitions";
 import ChainBridge from "@/components/ChainBridge/ChainBridge";
 import "./globals.css";
 
@@ -27,13 +26,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <ViewTransitions>
-      <html lang="en">
-        <body>
-          {children}
-          <ChainBridge />
-        </body>
-      </html>
-    </ViewTransitions>
+    <html lang="en">
+      <body>
+        {children}
+        <ChainBridge />
+      </body>
+    </html>
   );
 }

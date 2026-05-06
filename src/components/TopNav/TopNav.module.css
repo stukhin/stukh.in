@@ -10,11 +10,21 @@
   z-index: 50;
   color: var(--shell-fg-strong);
   transition: color 0.4s ease;
-  view-transition-name: site-nav;
   font-size: 20px;
   line-height: 15px;
   font-weight: 300;
   letter-spacing: -0.03em;
+}
+
+/* While ChainBridge slides between strip pages, switch the nav to
+   white + mix-blend-mode: difference so its text colour blends
+   live against the moving bg below (the bridge sits at z-index 30,
+   nav at 50). After the bridge unmounts the class is removed and
+   we fall back to the static --shell-fg-strong colour. */
+:global(html.chain-active) .nav {
+  color: #ffffff;
+  mix-blend-mode: difference;
+  transition: none;
 }
 
 @media (max-width: 1024px) {

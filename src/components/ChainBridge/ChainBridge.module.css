@@ -9,7 +9,12 @@
   inset: 0;
   height: 100vh;
   width: 100vw;
-  z-index: 9000;
+  /* Above page content (auto = 0) but BELOW the shell (Logo z=45,
+     TopNav z=50, MenuPopup z=50, Burger z=60). The shell needs to
+     paint above the bridge so its mix-blend-mode reads the
+     bridge's sliding bg pixels live and the colour boundary
+     tracks the moving page edge per-pixel. */
+  z-index: 30;
   pointer-events: none;
   overflow: hidden;
   background: #000;

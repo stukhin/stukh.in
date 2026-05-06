@@ -1,8 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { useTransitionRouter } from "next-view-transitions";
-import { usePathname } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { PAGE_ORDER, navigateChained } from "./pageOrder";
 
 /**
@@ -15,7 +14,7 @@ import { PAGE_ORDER, navigateChained } from "./pageOrder";
  * still handles slide-to-slide swipes without us interfering.
  */
 export function useVerticalPageSwipe() {
-  const router = useTransitionRouter();
+  const router = useRouter();
   const pathname = usePathname();
 
   useEffect(() => {

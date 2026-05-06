@@ -1,8 +1,7 @@
 "use client";
 
-import { Link } from "next-view-transitions";
-import { useTransitionRouter } from "next-view-transitions";
-import { usePathname } from "next/navigation";
+import Link from "next/link";
+import { useRouter, usePathname } from "next/navigation";
 import { MouseEvent } from "react";
 import { navigateChained } from "@/lib/pageOrder";
 import styles from "./Logo.module.css";
@@ -19,7 +18,7 @@ export default function Logo({
   className = "",
 }: Props) {
   const pathname = usePathname();
-  const router = useTransitionRouter();
+  const router = useRouter();
   const classes = [
     styles.logo,
     noClick ? styles.noClick : "",
