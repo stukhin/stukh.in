@@ -43,12 +43,6 @@ export default function ChainBridge() {
       timersRef.current = [];
     };
 
-    const restoreShellTransitions = () => {
-      document.documentElement.style.removeProperty(
-        "--shell-color-transition"
-      );
-    };
-
     const handler = (raw: Event) => {
       const e = raw as ChainEvent;
       const fIdx = PAGE_ORDER.indexOf(e.detail.from);
@@ -66,22 +60,14 @@ export default function ChainBridge() {
       setFading(false);
       setActive(true);
 
-      // Kill the shell's colour transition for the entire bridge
-      // lifetime. The destination page's AppShell flips data-theme
-      // a frame after we mount, and without this the shell would
-      // lerp through grey midtones to the new theme over 0.4s,
-      // making the logo / nav / socials look washed-out for most of
-      // the slide. With transition: none, the colour swap is
-      // single-frame and the shell holds the destination theme
-      // colour solidly throughout the rest of the slide.
-      document.documentElement.style.setProperty(
-        "--shell-color-transition",
-        "none"
-      );
-
       // Kick off the route change immediately — the destination page
       // mounts behind the bridge while the strip is scrolling, so by
       // the time the bridge fades out the page is already settled.
+      // The destination AppShell flips data-theme a frame later;
+      // the shell's own `transition: color 0.4s ease` (in
+      // Logo/TopNav/Socials .module.css, driven by
+      // --shell-color-transition with a 0.4s default) handles the
+      // colour cross-fade smoothly.
       router.push(e.detail.to);
 
       // Two RAFs: one to commit the initial transform (from-position),
@@ -97,16 +83,12 @@ export default function ChainBridge() {
       timersRef.current.push(
         window.setTimeout(() => setFading(true), dur)
       );
-      // End of the fade-out: bridge unmounts and the shell's
-      // colour transition is restored, so future theme changes
-      // (e.g. HomeSlider's per-photo luminance flip) animate
-      // smoothly again.
+      // End of the fade-out: bridge unmounts.
       timersRef.current.push(
         window.setTimeout(() => {
           setActive(false);
           setAnimating(false);
           setFading(false);
-          restoreShellTransitions();
         }, dur + FADE_OUT_MS)
       );
     };
@@ -115,7 +97,6 @@ export default function ChainBridge() {
     return () => {
       window.removeEventListener("chainNavigate", handler);
       clearTimers();
-      restoreShellTransitions();
     };
   }, [router]);
 
