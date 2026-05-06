@@ -12,29 +12,11 @@
      No mix-blend tricks — those produced grey/coloured glyphs on
      busy photo backgrounds. */
   color: var(--shell-fg-strong);
-  transition: color 0.4s ease;
-}
-
-/* While ChainBridge is sliding the strip behind, switch the logo
-   to white + mix-blend-mode: difference. The bridge sits below
-   the logo (z-index 30 vs 45), so the blend reads the actual
-   moving bg pixels and the colour boundary tracks the page edge
-   live. */
-:global(html.chain-active) .logo {
-  color: #ffffff;
-  mix-blend-mode: difference;
-  transition: none;
-}
-
-/* Settling phase: bridge is still on screen but fading out. We
-   snap the logo to the new theme's static colour with NO
-   transition (otherwise the colour would lerp from white to the
-   theme value over 0.4s and flash white on light pages). The
-   bridge's own opacity fade visually covers this hand-off. */
-:global(html.chain-settling) .logo {
-  color: var(--shell-fg-strong);
-  mix-blend-mode: normal;
-  transition: none;
+  /* Variable lets ChainBridge (or any future controller) flip the
+     transition to `none` for the duration of a slide, so colour
+     changes during the slide are sharp instead of lerping through
+     grey mid-tones. */
+  transition: var(--shell-color-transition, color 0.4s ease);
 }
 
 .logo.hidden {

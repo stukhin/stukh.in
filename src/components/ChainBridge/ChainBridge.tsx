@@ -43,10 +43,9 @@ export default function ChainBridge() {
       timersRef.current = [];
     };
 
-    const clearShellClasses = () => {
-      document.documentElement.classList.remove(
-        "chain-active",
-        "chain-settling"
+    const restoreShellTransitions = () => {
+      document.documentElement.style.removeProperty(
+        "--shell-color-transition"
       );
     };
 
@@ -60,7 +59,6 @@ export default function ChainBridge() {
       const dur = BASE_DURATION + (distance - 1) * PER_EXTRA_STEP;
 
       clearTimers();
-      clearShellClasses();
       setFromIdx(fIdx);
       setToIdx(tIdx);
       setDuration(dur);
@@ -68,9 +66,18 @@ export default function ChainBridge() {
       setFading(false);
       setActive(true);
 
-      // chain-active: shell elements use white + mix-blend-difference,
-      // so their colour tracks the moving bridge bgs per-pixel.
-      document.documentElement.classList.add("chain-active");
+      // Kill the shell's colour transition for the entire bridge
+      // lifetime. The destination page's AppShell flips data-theme
+      // a frame after we mount, and without this the shell would
+      // lerp through grey midtones to the new theme over 0.4s,
+      // making the logo / nav / socials look washed-out for most of
+      // the slide. With transition: none, the colour swap is
+      // single-frame and the shell holds the destination theme
+      // colour solidly throughout the rest of the slide.
+      document.documentElement.style.setProperty(
+        "--shell-color-transition",
+        "none"
+      );
 
       // Kick off the route change immediately — the destination page
       // mounts behind the bridge while the strip is scrolling, so by
@@ -86,26 +93,20 @@ export default function ChainBridge() {
         requestAnimationFrame(() => setAnimating(true));
       });
 
-      // End of the strip animation: hand off from chain-active to
-      // chain-settling. The shell now snaps to its data-theme colour
-      // with no transition (so we don't lerp from white through grey
-      // to black and produce the "flash white" flicker the user saw).
-      // The bridge fade-out continues to mask the colour swap.
+      // End of the strip animation: bridge starts fading out.
       timersRef.current.push(
-        window.setTimeout(() => {
-          setFading(true);
-          document.documentElement.classList.remove("chain-active");
-          document.documentElement.classList.add("chain-settling");
-        }, dur)
+        window.setTimeout(() => setFading(true), dur)
       );
-      // End of the fade-out: drop chain-settling, restore the
-      // shell's normal transition. Bridge unmounts.
+      // End of the fade-out: bridge unmounts and the shell's
+      // colour transition is restored, so future theme changes
+      // (e.g. HomeSlider's per-photo luminance flip) animate
+      // smoothly again.
       timersRef.current.push(
         window.setTimeout(() => {
           setActive(false);
           setAnimating(false);
           setFading(false);
-          document.documentElement.classList.remove("chain-settling");
+          restoreShellTransitions();
         }, dur + FADE_OUT_MS)
       );
     };
@@ -114,7 +115,7 @@ export default function ChainBridge() {
     return () => {
       window.removeEventListener("chainNavigate", handler);
       clearTimers();
-      clearShellClasses();
+      restoreShellTransitions();
     };
   }, [router]);
 
