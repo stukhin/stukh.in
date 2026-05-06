@@ -3,23 +3,8 @@
 import { CSSProperties, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { PAGE_ORDER } from "@/lib/pageOrder";
+import { PAGE_VISUALS } from "@/lib/pageVisuals";
 import styles from "./ChainBridge.module.css";
-
-/**
- * Each entry in PAGE_ORDER gets a "stand-in" visual the bridge can
- * scroll through — full-bleed background image where the real page
- * has one (nature, city, /), or the page's own dark base colour
- * (walls, trips). The bridge isn't pixel-perfect with the real page,
- * but it's close enough that the user reads it as one continuous
- * scroll across the strip.
- */
-const PAGE_VISUALS: Record<string, { bg?: string; color: string }> = {
-  "/": { bg: "/images/gallery/main/desktop/1.webp", color: "#0d1117" },
-  "/nature": { bg: "/images/misc/bg_nature.webp", color: "#151616" },
-  "/city": { bg: "/images/misc/bg_city.webp", color: "#3a3a3a" },
-  "/walls": { color: "#0a0a0c" },
-  "/blog": { color: "#0a0a0c" },
-};
 
 const BASE_DURATION = 800;
 const PER_EXTRA_STEP = 320;
