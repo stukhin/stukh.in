@@ -117,7 +117,6 @@ export default function GallerySlider({ category, items }: Props) {
         slidesPerView="auto"
         centeredSlides
         spaceBetween={0}
-        grabCursor
         keyboard
         loop
         mousewheel={{ forceToAxis: true, sensitivity: 0.6 }}

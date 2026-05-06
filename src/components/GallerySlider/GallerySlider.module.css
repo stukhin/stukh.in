@@ -71,10 +71,17 @@
   height: 100%;
   width: 100%;
   display: flex;
+  /* Force the custom cursor through; Swiper sometimes leaks an
+     auto / grab native cursor via its drag handlers, which then
+     painted on top of (or alongside) our fixed-position .cursor
+     dot. */
+  cursor: none;
 }
 
-.swiper :global(.swiper-wrapper) {
+.swiper :global(.swiper-wrapper),
+.swiper :global(.swiper-slide) {
   align-items: center;
+  cursor: none;
 }
 
 .slide {
