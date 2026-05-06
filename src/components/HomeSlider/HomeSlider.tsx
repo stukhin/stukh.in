@@ -1,8 +1,7 @@
 "use client";
 
-import { useEffect, useLayoutEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import GridDistortion from "../GridDistortion/GridDistortion";
-import { HOME_INTRO_KEY } from "../Preloader/Preloader";
 import { useVerticalPageSwipe } from "@/lib/useVerticalPageSwipe";
 import styles from "./HomeSlider.module.css";
 
@@ -14,10 +13,6 @@ const slides = [
 ];
 
 const AUTOPLAY_MS = 7000;
-// Wait for the preloader (2400ms visible + 400ms fade) before kicking
-// off the develop animation, so the user sees: loader → reveal → photo.
-const PRELOADER_DURATION = 2800;
-const REVEAL_DURATION = 2500;
 
 // Mid-grey threshold (0–1) for picking light vs dark theme. Anything
 // above is "light enough that black glyphs read better"; anything
@@ -58,45 +53,20 @@ async function sampleLuminance(src: string): Promise<number> {
 
 export default function HomeSlider() {
   const [active, setActive] = useState(0);
-  /** First-load reveal: photo "develops" through 4 stages — hidden,
-   * high-contrast B&W sketch, softer B&W, full colour. Plays only on
-   * the first visit per browser session; subsequent visits show the
-   * photo directly. */
-  const [revealing, setRevealing] = useState(true);
-
-  // Sync flag check before paint — avoids a one-frame flash of the
-  // hidden 0% keyframe state on subsequent visits.
-  useLayoutEffect(() => {
-    if (
-      typeof window !== "undefined" &&
-      window.sessionStorage.getItem(HOME_INTRO_KEY) === "1"
-    ) {
-      setRevealing(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    if (!revealing) return;
-    const t = window.setTimeout(() => {
-      setRevealing(false);
-      window.sessionStorage.setItem(HOME_INTRO_KEY, "1");
-    }, PRELOADER_DURATION + REVEAL_DURATION);
-    return () => window.clearTimeout(t);
-  }, [revealing]);
 
   const next = () => setActive((i) => (i + 1) % slides.length);
   const prev = () =>
     setActive((i) => (i - 1 + slides.length) % slides.length);
 
-  // Hold autoplay until the develop reveal finishes — otherwise the
-  // active slide could swap mid-animation.
+  // Autoplay starts right away — the preloader gates first-visit
+  // display, so by the time HomeSlider is visible the photos are
+  // already cached and ready to cycle.
   useEffect(() => {
-    if (revealing) return;
     const id = setInterval(() => {
       setActive((i) => (i + 1) % slides.length);
     }, AUTOPLAY_MS);
     return () => clearInterval(id);
-  }, [revealing]);
+  }, []);
 
   // Keyboard arrows
   useEffect(() => {
@@ -195,7 +165,7 @@ export default function HomeSlider() {
   }, []);
 
   return (
-    <div className={`${styles.wrap} ${revealing ? styles.revealing : ""}`}>
+    <div className={styles.wrap}>
       <div className={styles.slider}>
         <div className={styles.canvas}>
           {isDesktop ? (

@@ -8,13 +8,14 @@ import { MutableRefObject, useEffect } from "react";
  *  - The two cards in the row whose vertical centre is closest to
  *    the viewport's vertical centre render at their full 9:16
  *    height ("expansion = 1").
- *  - Cards above and below taper smoothly down to half height as
- *    they move away from centre ("expansion = 0.5"). The image
- *    inside keeps `object-fit: cover; object-position: center`, so
- *    a half-height card shows the middle slice of the photo.
+ *  - Cards above and below taper smoothly down to a quarter of
+ *    their full height as they move away from centre
+ *    ("expansion = 0.25"). The image inside keeps
+ *    `object-fit: cover; object-position: center`, so a quarter-
+ *    height card shows the middle slice of the photo.
  *  - The taper is a linear lerp on distance from the viewport
  *    centre, capped one-viewport-height away (cards further than
- *    that are pinned at 0.5).
+ *    that are pinned at 0.25).
  *
  * The hook touches the card elements' inline `height` directly:
  *   - On mobile (`max-width: 597px`) it sets a per-row height each
@@ -26,8 +27,8 @@ import { MutableRefObject, useEffect } from "react";
  * Both cards in a row share the same target height, computed from
  * the row's first ref.
  */
-const FADE_DISTANCE_VH = 1.0; // distance, in viewport heights, over which expansion lerps 1 → 0.5
-const MIN_EXPANSION = 0.5;
+const FADE_DISTANCE_VH = 1.0; // distance, in viewport heights, over which expansion lerps 1 → MIN_EXPANSION
+const MIN_EXPANSION = 0.25;
 
 export function useMobileScrollFocus(
   cardRefs: MutableRefObject<(HTMLLIElement | null)[]>,

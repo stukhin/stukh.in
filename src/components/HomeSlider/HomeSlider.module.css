@@ -12,13 +12,10 @@
 }
 
 /* Wraps either the GridDistortion canvas (desktop) or a plain
-   background-image div (mobile / tablet). Filters apply to the
-   wrapper so the develop reveal works in both modes. */
+   background-image div (mobile / tablet). */
 .canvas {
   position: absolute;
   inset: 0;
-  filter: none;
-  transition: filter 1.6s cubic-bezier(0.65, 0, 0.35, 1);
 }
 
 .fallback {
@@ -30,28 +27,6 @@
   /* Soft fade when the slide changes — the GridDistortion path
      swaps texture in-place, but here we cross-fade via opacity. */
   transition: background-image 0.5s linear;
-}
-
-/* First-load reveal: image is already on the canvas in B&W under the
-   preloader (no opacity gap, so when the preloader fades there's no
-   moment of empty/black between loader and photo). After the
-   preloader-visible delay, the filter eases from B&W through softer
-   B&W to full colour over ~2.5s. `fill-mode: both` keeps the 0%
-   filter applied during the delay. */
-.revealing .canvas {
-  animation: homeReveal 2.5s cubic-bezier(0.4, 0, 0.2, 1) 2.4s both;
-}
-
-@keyframes homeReveal {
-  0% {
-    filter: grayscale(1) contrast(1.35) brightness(1.05);
-  }
-  45% {
-    filter: grayscale(1) contrast(1.12) brightness(1);
-  }
-  100% {
-    filter: grayscale(0) contrast(1) brightness(1);
-  }
 }
 
 /* Edge click zones (with arrow cursor). Keep clear of the logo/burger area. */
