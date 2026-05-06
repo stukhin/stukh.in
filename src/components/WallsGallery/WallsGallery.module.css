@@ -432,8 +432,10 @@
   }
 }
 
-/* Download button: bottom-right of the card, only visible during
-   hover so it doesn't compete with the photo. */
+/* Download button: bottom-right of the card. Appears the instant
+   the cursor enters the card — no delay, no fade-up, just opacity in.
+   The metadata plate that follows the cursor is already populated by
+   then, so there's nothing to wait for. */
 .downloadBtn {
   position: absolute;
   bottom: 14px;
@@ -449,25 +451,15 @@
   cursor: none;
   z-index: 4;
   opacity: 0;
-  transform: translateY(6px) translateZ(28px);
+  transform: translateZ(28px);
   pointer-events: none;
-  transition: background 0.2s ease, border-color 0.2s ease;
+  transition: opacity 0.12s ease-out, background 0.2s ease,
+    border-color 0.2s ease;
 }
 
 .card:hover .downloadBtn {
-  animation: downloadBtnIn 0.2s ease-out 0.5s forwards;
+  opacity: 1;
   pointer-events: auto;
-}
-
-@keyframes downloadBtnIn {
-  from {
-    opacity: 0;
-    transform: translateY(6px) translateZ(28px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) translateZ(28px);
-  }
 }
 
 .downloadBtn:hover {
