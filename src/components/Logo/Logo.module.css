@@ -19,11 +19,21 @@
    to white + mix-blend-mode: difference. The bridge sits below
    the logo (z-index 30 vs 45), so the blend reads the actual
    moving bg pixels and the colour boundary tracks the page edge
-   live. After the bridge unmounts the class is removed and we
-   fall back to the page's static data-theme colour. */
+   live. */
 :global(html.chain-active) .logo {
   color: #ffffff;
   mix-blend-mode: difference;
+  transition: none;
+}
+
+/* Settling phase: bridge is still on screen but fading out. We
+   snap the logo to the new theme's static colour with NO
+   transition (otherwise the colour would lerp from white to the
+   theme value over 0.4s and flash white on light pages). The
+   bridge's own opacity fade visually covers this hand-off. */
+:global(html.chain-settling) .logo {
+  color: var(--shell-fg-strong);
+  mix-blend-mode: normal;
   transition: none;
 }
 

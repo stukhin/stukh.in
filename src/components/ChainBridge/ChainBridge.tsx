@@ -43,6 +43,13 @@ export default function ChainBridge() {
       timersRef.current = [];
     };
 
+    const clearShellClasses = () => {
+      document.documentElement.classList.remove(
+        "chain-active",
+        "chain-settling"
+      );
+    };
+
     const handler = (raw: Event) => {
       const e = raw as ChainEvent;
       const fIdx = PAGE_ORDER.indexOf(e.detail.from);
@@ -53,12 +60,17 @@ export default function ChainBridge() {
       const dur = BASE_DURATION + (distance - 1) * PER_EXTRA_STEP;
 
       clearTimers();
+      clearShellClasses();
       setFromIdx(fIdx);
       setToIdx(tIdx);
       setDuration(dur);
       setAnimating(false);
       setFading(false);
       setActive(true);
+
+      // chain-active: shell elements use white + mix-blend-difference,
+      // so their colour tracks the moving bridge bgs per-pixel.
+      document.documentElement.classList.add("chain-active");
 
       // Kick off the route change immediately — the destination page
       // mounts behind the bridge while the strip is scrolling, so by
@@ -74,16 +86,26 @@ export default function ChainBridge() {
         requestAnimationFrame(() => setAnimating(true));
       });
 
-      // After the strip animation completes, fade the bridge out.
+      // End of the strip animation: hand off from chain-active to
+      // chain-settling. The shell now snaps to its data-theme colour
+      // with no transition (so we don't lerp from white through grey
+      // to black and produce the "flash white" flicker the user saw).
+      // The bridge fade-out continues to mask the colour swap.
       timersRef.current.push(
-        window.setTimeout(() => setFading(true), dur)
+        window.setTimeout(() => {
+          setFading(true);
+          document.documentElement.classList.remove("chain-active");
+          document.documentElement.classList.add("chain-settling");
+        }, dur)
       );
-      // Then unmount.
+      // End of the fade-out: drop chain-settling, restore the
+      // shell's normal transition. Bridge unmounts.
       timersRef.current.push(
         window.setTimeout(() => {
           setActive(false);
           setAnimating(false);
           setFading(false);
+          document.documentElement.classList.remove("chain-settling");
         }, dur + FADE_OUT_MS)
       );
     };
@@ -92,22 +114,9 @@ export default function ChainBridge() {
     return () => {
       window.removeEventListener("chainNavigate", handler);
       clearTimers();
+      clearShellClasses();
     };
   }, [router]);
-
-  // Tag <html> while the bridge is in flight. Shell elements
-  // (Logo, TopNav, Socials) flip to mix-blend-mode: difference
-  // against this class, so their colour tracks the moving page
-  // boundary live for the duration of the slide. After the bridge
-  // unmounts, they fall back to their static data-theme colour.
-  useEffect(() => {
-    if (active) {
-      document.documentElement.classList.add("chain-active");
-      return () => {
-        document.documentElement.classList.remove("chain-active");
-      };
-    }
-  }, [active]);
 
   if (!active) return null;
 

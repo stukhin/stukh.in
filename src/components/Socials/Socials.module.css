@@ -35,6 +35,14 @@
   transition: none;
 }
 
+/* Settling phase: snap to theme colour without animation so the
+   icon doesn't visibly lerp from white to its data-theme target. */
+:global(html.chain-settling) .link {
+  color: var(--shell-fg-strong);
+  mix-blend-mode: normal;
+  transition: none;
+}
+
 .icon {
   position: absolute;
   inset: 0;
