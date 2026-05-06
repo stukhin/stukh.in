@@ -24,8 +24,23 @@
      while the underline below stays a separate element so it isn't
      swept up in any colour treatment applied to the icon. */
   color: var(--shell-fg-strong);
-  /* See Logo.module.css for why this uses the variable. */
-  transition: var(--shell-color-transition, color 0.4s ease);
+  transition: color 0.4s ease;
+}
+
+/* Live colour-blend during a ChainBridge slide. See Logo /
+   TopNav for the same pattern. */
+:global(html.chain-active) .link {
+  color: #ffffff;
+  mix-blend-mode: difference;
+  transition: none;
+}
+
+/* Settling phase: snap to theme colour without animation so the
+   icon doesn't visibly lerp from white to its data-theme target. */
+:global(html.chain-settling) .link {
+  color: var(--shell-fg-strong);
+  mix-blend-mode: normal;
+  transition: none;
 }
 
 .icon {

@@ -9,12 +9,28 @@
   right: 67px;
   z-index: 50;
   color: var(--shell-fg-strong);
-  /* See Logo.module.css for why this uses the variable. */
-  transition: var(--shell-color-transition, color 0.4s ease);
+  transition: color 0.4s ease;
   font-size: 20px;
   line-height: 15px;
   font-weight: 300;
   letter-spacing: -0.03em;
+}
+
+/* While ChainBridge slides the strip, the nav uses white +
+   mix-blend so its colour tracks the moving bg per-pixel. */
+:global(html.chain-active) .nav {
+  color: #ffffff;
+  mix-blend-mode: difference;
+  transition: none;
+}
+
+/* Settling phase (bridge fading out): snap to theme colour with
+   no transition so we don't lerp from white through grey to the
+   destination colour and produce the flash the user reported. */
+:global(html.chain-settling) .nav {
+  color: var(--shell-fg-strong);
+  mix-blend-mode: normal;
+  transition: none;
 }
 
 @media (max-width: 1024px) {
