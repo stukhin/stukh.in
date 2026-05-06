@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { CSSProperties, useEffect, useState } from "react";
 import styles from "./Cursor.module.css";
 
 type CursorShape =
@@ -87,5 +87,16 @@ export default function Cursor({ variant = "light" }: Props) {
     .filter(Boolean)
     .join(" ");
 
-  return <div className={cls} style={{ left: pos.x, top: pos.y }} />;
+  // Position via CSS variables that feed a translate3d transform
+  // (see Cursor.module.css). Avoids the per-frame layout / paint
+  // hit you'd get from animating `left` and `top` directly — the
+  // cursor stays on its own GPU compositor layer and tracks the
+  // pointer cleanly even while the rest of the page is busy
+  // (mix-blend logo, sliding bridge, etc.).
+  const style = {
+    "--cursor-x": `${pos.x}px`,
+    "--cursor-y": `${pos.y}px`,
+  } as CSSProperties;
+
+  return <div className={cls} style={style} />;
 }

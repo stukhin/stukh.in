@@ -1,3 +1,13 @@
+/* Position is driven by --cursor-x / --cursor-y (set inline by
+   Cursor.tsx every mousemove) folded into a translate3d, which
+   keeps the cursor on its own GPU compositor layer. Animating
+   `left` / `top` would trigger layout + paint each frame and the
+   cursor would lag behind under load (mix-blend logo, sliding
+   bridge, etc.).
+
+   Shape rotations (arrowLeft / Right / Up / Down) feed
+   --cursor-rot so the transform chain stays a single declaration —
+   no rule has to repeat the position component. */
 .cursor {
   width: 16px;
   height: 16px;
@@ -5,13 +15,15 @@
   border-radius: 100%;
   background-color: transparent;
   position: fixed;
-  left: 150px;
-  top: 150px;
-  transform: translate(-50%, -50%);
+  top: 0;
+  left: 0;
+  transform: translate3d(var(--cursor-x, -100px), var(--cursor-y, -100px), 0)
+    translate(-50%, -50%) rotate(var(--cursor-rot, 0deg));
   pointer-events: none;
   transition: width 0.15s ease, height 0.15s ease,
-    border-radius 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
+    border-radius 0.15s ease, box-shadow 0.15s ease;
   z-index: 9999;
+  will-change: transform;
 }
 
 .dark {
@@ -24,38 +36,11 @@
   height: 6px;
 }
 
-/* Arrow shapes: use box-shadow to draw the two edges of an L that — when
-   rotated — becomes an arrowhead. Matches the original site. */
-.arrowLeft {
-  width: 10px;
-  height: 10px;
-  border: none;
-  border-radius: 0;
-  outline: none;
-  box-shadow: -2px 2px 0 #fefefe;
-  transform: translate(-50%, -50%) rotate(45deg);
-}
-
-.arrowRight {
-  width: 10px;
-  height: 10px;
-  border: none;
-  border-radius: 0;
-  outline: none;
-  box-shadow: -2px 2px 0 #fefefe;
-  transform: translate(-50%, -50%) rotate(-135deg);
-}
-
-.arrowUp {
-  width: 10px;
-  height: 10px;
-  border: none;
-  border-radius: 0;
-  outline: none;
-  box-shadow: -2px 2px 0 #fefefe;
-  transform: translate(-50%, -50%) rotate(135deg);
-}
-
+/* Arrow shapes: a small square with one inset corner painted via
+   box-shadow — when rotated it reads as an arrowhead. */
+.arrowLeft,
+.arrowRight,
+.arrowUp,
 .arrowDown {
   width: 10px;
   height: 10px;
@@ -63,7 +48,22 @@
   border-radius: 0;
   outline: none;
   box-shadow: -2px 2px 0 #fefefe;
-  transform: translate(-50%, -50%) rotate(-45deg);
+}
+
+.arrowLeft {
+  --cursor-rot: 45deg;
+}
+
+.arrowRight {
+  --cursor-rot: -135deg;
+}
+
+.arrowUp {
+  --cursor-rot: 135deg;
+}
+
+.arrowDown {
+  --cursor-rot: -45deg;
 }
 
 .dark.arrowLeft,
