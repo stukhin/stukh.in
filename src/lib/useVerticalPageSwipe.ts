@@ -13,12 +13,6 @@ import { pageVisualFor } from "./pageVisuals";
  * the way and the route commits; otherwise it springs back off
  * screen and nothing happens.
  *
- * Replaces the older "swipe + bridge" pattern, which felt
- * disconnected: the user lifted their finger, then ~250ms later a
- * fade-in started and the slide began. Driving the preview from
- * the finger's position closes that gap — the page literally
- * tracks the gesture.
- *
  * Mounted by HomeSlider (on /) and GallerySlider (on /nature, /city).
  * Long-scroll pages (/walls) don't use it, so their normal vertical
  * scroll stays untouched.
@@ -26,6 +20,8 @@ import { pageVisualFor } from "./pageVisuals";
 const VISUAL_THRESHOLD_PX = 12;
 const COMMIT_RATIO = 0.22;
 const DOMINANCE = 1.5;
+const COMMIT_ANIM_MS = 320;
+const BOUNCE_ANIM_MS = 240;
 
 const STYLE_BASE = `
   position: fixed;
@@ -50,21 +46,17 @@ export function useVerticalPageSwipe() {
     let startX = 0;
     let dragging = false;
     let cancelled = false;
+    /** True between touchend (commit) and the cleanup of its preview.
+     *  While set, fresh touch sequences are ignored so the user can't
+     *  start a second drag mid-flight. */
+    let committing = false;
     let direction: "next" | "prev" | null = null;
     let preview: HTMLDivElement | null = null;
 
-    const cleanupPreview = () => {
-      if (preview && preview.parentNode) {
-        preview.parentNode.removeChild(preview);
+    const removeEl = (el: HTMLDivElement | null) => {
+      if (el && el.parentNode) {
+        el.parentNode.removeChild(el);
       }
-      preview = null;
-    };
-
-    const reset = () => {
-      cleanupPreview();
-      dragging = false;
-      cancelled = false;
-      direction = null;
     };
 
     const targetForDirection = (dir: "next" | "prev"): string | null => {
@@ -88,20 +80,36 @@ export function useVerticalPageSwipe() {
     };
 
     const onTouchStart = (e: TouchEvent) => {
+      // While a previous commit's preview is still on screen we
+      // ignore new touches; otherwise we end up with two previews.
+      if (committing) {
+        cancelled = true;
+        return;
+      }
       if (e.touches.length !== 1) {
         cancelled = true;
         return;
       }
-      reset();
+      // Reset any leftover state. Note: this also cleans up an idle
+      // preview if one's still mounted (it shouldn't be, but defensive).
+      removeEl(preview);
+      preview = null;
+      dragging = false;
+      direction = null;
+      cancelled = false;
+
       startY = e.touches[0].clientY;
       startX = e.touches[0].clientX;
     };
 
     const onTouchMove = (e: TouchEvent) => {
-      if (cancelled) return;
+      if (cancelled || committing) return;
       if (e.touches.length !== 1) {
         cancelled = true;
-        cleanupPreview();
+        removeEl(preview);
+        preview = null;
+        dragging = false;
+        direction = null;
         return;
       }
 
@@ -111,7 +119,8 @@ export function useVerticalPageSwipe() {
       if (!dragging) {
         if (Math.abs(dy) < VISUAL_THRESHOLD_PX) return;
         // Direction-of-first-significant-move check: must be vertical-
-        // dominant or a horizontal handler (e.g. HomeSlider) takes over.
+        // dominant or the horizontal handler (e.g. HomeSlider) takes
+        // over.
         if (Math.abs(dy) < Math.abs(dx) * DOMINANCE) {
           cancelled = true;
           return;
@@ -126,22 +135,23 @@ export function useVerticalPageSwipe() {
 
         direction = dir;
         preview = createPreview(target);
-        // Park the preview just off-screen on the side the user is
-        // pulling it from. `next` (finger moving up) → preview
-        // starts below the viewport. `prev` → above.
+        // Park preview just off-screen on the side the user is pulling
+        // it from. `next` (finger moving up) → starts below the
+        // viewport. `prev` → above.
         preview.style.transform =
-          dir === "next" ? "translateY(100%)" : "translateY(-100%)";
-        // Force layout commit so the next transform paints as a transition.
-        // (Not strictly required since we don't use transitions during
-        // the drag, but it's cheap.)
+          dir === "next" ? "translate3d(0, 100%, 0)" : "translate3d(0, -100%, 0)";
+        // Force the parked transform to commit before any subsequent
+        // updates so the user's first frame always sees the parked
+        // state, not a flash at translateY(0).
         void preview.offsetHeight;
         dragging = true;
       }
 
       if (dragging && preview) {
-        // Track the finger 1:1. dy is the displacement from where the
-        // touch started; the preview's parked offset is ±100%, so the
-        // visible translation is the parked offset PLUS dy.
+        // 1:1 finger tracking. Parked offset is ±100% (off-screen);
+        // the displacement adds dy on top so the preview's edge tracks
+        // exactly where the finger was when it crossed the start
+        // point.
         const offset =
           direction === "next"
             ? `translate3d(0, calc(100% + ${dy}px), 0)`
@@ -151,8 +161,13 @@ export function useVerticalPageSwipe() {
     };
 
     const onTouchEnd = (e: TouchEvent) => {
+      if (committing) return;
       if (!dragging || !preview || !direction) {
-        reset();
+        removeEl(preview);
+        preview = null;
+        dragging = false;
+        direction = null;
+        cancelled = false;
         return;
       }
 
@@ -163,55 +178,52 @@ export function useVerticalPageSwipe() {
       const target = targetForDirection(direction);
 
       if (commit && target) {
-        // Animate preview into place, then push the route. The preview
-        // remains until just after the route commits so the new page
-        // has a frame to render behind it.
-        preview.style.transition =
-          "transform 0.32s cubic-bezier(0.45, 0, 0.25, 1)";
-        preview.style.transform = "translate3d(0, 0, 0)";
+        // Capture the live preview into a local — once we null
+        // `preview`, only this local closure holds the DOM ref, so
+        // the cleanup timeout can still find and remove it.
+        const live = preview;
+        live.style.transition = `transform ${COMMIT_ANIM_MS}ms cubic-bezier(0.45, 0, 0.25, 1)`;
+        live.style.transform = "translate3d(0, 0, 0)";
 
-        const commitDir = direction;
-        window.setTimeout(() => {
-          router.push(target);
-          // Drop the preview shortly after — by then React has rendered
-          // the new page underneath. If we drop too early the user sees
-          // a flash of the OLD page; too late and the new page can't
-          // settle its first paint.
-          window.setTimeout(() => {
-            cleanupPreview();
-          }, 80);
-        }, 320);
-
-        // Clear local state so a follow-up gesture during the commit
-        // animation doesn't try to drive the same preview.
+        committing = true;
+        preview = null;
         dragging = false;
         direction = null;
-        preview = null;
-        cancelled = true;
-        // commitDir is captured by the timeout's closure; not needed
-        // outside.
-        void commitDir;
+
+        // Push the route immediately — the destination page mounts
+        // behind the still-animating preview, so by the time the
+        // preview is removed the new page is already painted.
+        router.push(target);
+
+        window.setTimeout(() => {
+          removeEl(live);
+          committing = false;
+        }, COMMIT_ANIM_MS + 40);
         return;
       }
 
-      // Bounce-back: animate to off-screen, then remove.
-      const dir = direction;
-      preview.style.transition = "transform 0.24s ease-out";
-      preview.style.transform =
-        dir === "next" ? "translate3d(0, 100%, 0)" : "translate3d(0, -100%, 0)";
+      // Bounce-back: animate the preview off-screen, then remove.
       const dyingPreview = preview;
+      const dyingDir = direction;
       preview = null;
       dragging = false;
       direction = null;
+      dyingPreview.style.transition = `transform ${BOUNCE_ANIM_MS}ms ease-out`;
+      dyingPreview.style.transform =
+        dyingDir === "next"
+          ? "translate3d(0, 100%, 0)"
+          : "translate3d(0, -100%, 0)";
       window.setTimeout(() => {
-        if (dyingPreview.parentNode) {
-          dyingPreview.parentNode.removeChild(dyingPreview);
-        }
-      }, 250);
+        removeEl(dyingPreview);
+      }, BOUNCE_ANIM_MS + 20);
     };
 
     const onTouchCancel = () => {
-      reset();
+      removeEl(preview);
+      preview = null;
+      dragging = false;
+      direction = null;
+      cancelled = false;
     };
 
     window.addEventListener("touchstart", onTouchStart, { passive: true });
@@ -223,7 +235,12 @@ export function useVerticalPageSwipe() {
       window.removeEventListener("touchmove", onTouchMove);
       window.removeEventListener("touchend", onTouchEnd);
       window.removeEventListener("touchcancel", onTouchCancel);
-      cleanupPreview();
+      // Clear any preview still attached. A preview owned by a still-
+      // pending commit timeout (committing=true) lives in the
+      // setTimeout's closure as `live`; it removes itself when the
+      // timer fires.
+      removeEl(preview);
+      preview = null;
     };
   }, [pathname, router]);
 }
