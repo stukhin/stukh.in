@@ -15,6 +15,7 @@ import {
   useMotionValue,
   useSpring,
 } from "motion/react";
+import { useMobileScrollFocus } from "@/lib/useMobileScrollFocus";
 import styles from "./WallsGallery.module.css";
 
 export type Wallpaper = {
@@ -77,6 +78,7 @@ export default function WallsGallery({ items }: Props) {
   const [activeTone, setActiveTone] = useState<string>(ALL_TONE);
 
   const cardImgRefs = useRef<Record<string, HTMLImageElement | null>>({});
+  const cardElRefs = useRef<(HTMLLIElement | null)[]>([]);
   const modalImgRef = useRef<HTMLImageElement>(null);
   const fromRectRef = useRef<DOMRect | null>(null);
 
@@ -103,6 +105,11 @@ export default function WallsGallery({ items }: Props) {
       ),
     [items, activeCategory, activeTone]
   );
+
+  // Mobile-only: row currently centred in the viewport renders at
+  // full 9:16 height; rows above/below taper smoothly to half height.
+  // No-ops on wider viewports.
+  useMobileScrollFocus(cardElRefs, 2, visibleItems.length);
 
   // Persist download counts in localStorage so they grow over visits.
   useEffect(() => {
@@ -300,7 +307,7 @@ export default function WallsGallery({ items }: Props) {
 
         <ul className={styles.grid}>
           <AnimatePresence mode="popLayout" initial={false}>
-            {visibleItems.map((w) => {
+            {visibleItems.map((w, i) => {
               const state = downloads[w.id] || "idle";
               const count = counts[w.id] ?? w.downloads;
               return (
@@ -314,6 +321,9 @@ export default function WallsGallery({ items }: Props) {
                   onDownload={download}
                   registerImg={(el) => {
                     cardImgRefs.current[w.id] = el;
+                  }}
+                  registerCard={(el) => {
+                    cardElRefs.current[i] = el;
                   }}
                 />
               );
@@ -382,6 +392,12 @@ type CardProps = {
   onZoom: (w: Wallpaper) => void;
   onDownload: (w: Wallpaper) => void;
   registerImg: (el: HTMLImageElement | null) => void;
+  /**
+   * Optional callback the parent uses to collect a ref to each
+   * card's <li>. The mobile scroll-focus hook needs these refs to
+   * compute per-row heights based on viewport-centre distance.
+   */
+  registerCard?: (el: HTMLLIElement | null) => void;
 };
 
 function WallpaperCard({
@@ -392,6 +408,7 @@ function WallpaperCard({
   onZoom,
   onDownload,
   registerImg,
+  registerCard,
 }: CardProps) {
   const ref = useRef<HTMLLIElement>(null);
   const rotateX = useSpring(useMotionValue(0), SPRING);
@@ -420,7 +437,10 @@ function WallpaperCard({
 
   return (
     <motion.li
-      ref={ref}
+      ref={(el) => {
+        ref.current = el;
+        registerCard?.(el);
+      }}
       layout
       initial={{ opacity: 0, scale: 0.85 }}
       animate={{ opacity: 1, scale: 1 }}
