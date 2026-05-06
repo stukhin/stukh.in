@@ -23,13 +23,15 @@ const PAGE_VISUALS: Record<string, { bg?: string; color: string }> = {
 
 const BASE_DURATION = 800;
 const PER_EXTRA_STEP = 320;
-const FADE_OUT_MS = 320;
+const FADE_IN_MS = 250;
+const FADE_OUT_MS = 280;
 
 type ChainEvent = CustomEvent<{ from: string; to: string }>;
 
 export default function ChainBridge() {
   const router = useRouter();
   const [active, setActive] = useState(false);
+  const [opaque, setOpaque] = useState(false);
   const [animating, setAnimating] = useState(false);
   const [fading, setFading] = useState(false);
   const [fromIdx, setFromIdx] = useState(0);
@@ -76,49 +78,58 @@ export default function ChainBridge() {
       setFromIdx(fIdx);
       setToIdx(tIdx);
       setDuration(dur);
+      setOpaque(false);
       setAnimating(false);
       setFading(false);
+      // Mount the bridge at opacity 0 (default in CSS); it fades in
+      // over FADE_IN_MS so the OLD page (and its gallery) blends
+      // out smoothly behind the rising overlay instead of being
+      // covered by an instant black screen.
       setActive(true);
 
-      // chain-active: shell elements use white + mix-blend-difference,
-      // so their colour tracks the moving bridge bgs per-pixel.
-      document.documentElement.classList.add("chain-active");
-
-      // Kick off the route change immediately — the destination page
-      // mounts behind the bridge while the strip is scrolling, so by
-      // the time the bridge fades out the page is already settled.
-      router.push(e.detail.to);
-
-      // Two RAFs: one to commit the initial transform (from-position),
-      // one to flip the animating class so the transition runs from
-      // there. Single rAF can fire before the browser has painted the
-      // initial state, leaving the transition to skip its starting
-      // keyframe.
+      // Two RAFs to ensure the initial opaque=false / animating=false
+      // state is committed before flipping it on — without that the
+      // CSS transition would skip its start keyframe.
       requestAnimationFrame(() => {
-        requestAnimationFrame(() => setAnimating(true));
+        requestAnimationFrame(() => setOpaque(true));
       });
 
+      // After the fade-in completes, kick off the route change AND
+      // start the strip animation. Holding off the route swap until
+      // the bridge is fully opaque keeps the OLD page DOM alive (and
+      // visible behind the fading bridge) so the user reads it as
+      // "page softly disappearing" rather than an abrupt cut.
+      timersRef.current.push(
+        window.setTimeout(() => {
+          // chain-active toggles the logo's mix-blend-mode so the
+          // boundary effect cuts through the glyphs while the
+          // strip is moving.
+          document.documentElement.classList.add("chain-active");
+          router.push(e.detail.to);
+          setAnimating(true);
+        }, FADE_IN_MS)
+      );
+
       // End of the strip animation: hand off from chain-active to
-      // chain-settling. The shell now snaps to its data-theme colour
-      // with no transition (so we don't lerp from white through grey
-      // to black and produce the "flash white" flicker the user saw).
-      // The bridge fade-out continues to mask the colour swap.
+      // chain-settling. The shell snaps to its data-theme colour
+      // with no transition (no flash white), and the bridge starts
+      // fading out, revealing the NEW page's gallery underneath.
       timersRef.current.push(
         window.setTimeout(() => {
           setFading(true);
           document.documentElement.classList.remove("chain-active");
           document.documentElement.classList.add("chain-settling");
-        }, dur)
+        }, FADE_IN_MS + dur)
       );
-      // End of the fade-out: drop chain-settling, restore the
-      // shell's normal transition. Bridge unmounts.
+      // End of the fade-out: drop chain-settling, unmount.
       timersRef.current.push(
         window.setTimeout(() => {
           setActive(false);
+          setOpaque(false);
           setAnimating(false);
           setFading(false);
           document.documentElement.classList.remove("chain-settling");
-        }, dur + FADE_OUT_MS)
+        }, FADE_IN_MS + dur + FADE_OUT_MS)
       );
     };
 
@@ -136,15 +147,20 @@ export default function ChainBridge() {
     "--bridge-from": `${-fromIdx * 100}vh`,
     "--bridge-to": `${-toIdx * 100}vh`,
     "--bridge-duration": `${duration}ms`,
-    "--bridge-fade": `${FADE_OUT_MS}ms`,
+    "--bridge-fade-in": `${FADE_IN_MS}ms`,
+    "--bridge-fade-out": `${FADE_OUT_MS}ms`,
   } as CSSProperties;
 
+  const bridgeClasses = [
+    styles.bridge,
+    opaque ? styles.opaque : "",
+    fading ? styles.fading : "",
+  ]
+    .filter(Boolean)
+    .join(" ");
+
   return (
-    <div
-      className={`${styles.bridge} ${fading ? styles.fading : ""}`}
-      style={style}
-      aria-hidden="true"
-    >
+    <div className={bridgeClasses} style={style} aria-hidden="true">
       <div className={`${styles.strip} ${animating ? styles.animating : ""}`}>
         {PAGE_ORDER.map((href) => {
           const v = PAGE_VISUALS[href] || { color: "#0a0a0c" };

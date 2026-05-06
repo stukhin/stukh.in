@@ -18,12 +18,24 @@
   pointer-events: none;
   overflow: hidden;
   background: #000;
-  opacity: 1;
-  transition: opacity var(--bridge-fade, 320ms) ease-out;
+  opacity: 0;
+  transition: opacity var(--bridge-fade-in, 250ms) ease-out;
 }
 
+/* Fade-in: bridge becomes opaque while the OLD page is still
+   mounted underneath, so the page's gallery / content reads as
+   "fading out" behind the rising overlay. */
+.bridge.opaque {
+  opacity: 1;
+}
+
+/* Fade-out: bridge dissolves over the NEW page after the strip
+   animation has docked. .fading is declared after .opaque so it
+   wins the cascade when both classes are present, and uses its
+   own (slightly longer) duration. */
 .bridge.fading {
   opacity: 0;
+  transition: opacity var(--bridge-fade-out, 280ms) ease-in;
 }
 
 .strip {

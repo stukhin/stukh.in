@@ -3,6 +3,7 @@
 import { useEffect, useLayoutEffect, useState } from "react";
 import GridDistortion from "../GridDistortion/GridDistortion";
 import { HOME_INTRO_KEY } from "../Preloader/Preloader";
+import { useVerticalPageSwipe } from "@/lib/useVerticalPageSwipe";
 import styles from "./HomeSlider.module.css";
 
 const slides = [
@@ -105,6 +106,57 @@ export default function HomeSlider() {
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
+  }, []);
+
+  // Touch (mobile only): swipe up/down navigates between PAGE_ORDER
+  // blocks; swipe left/right cycles between hero photos. Vertical
+  // sits in a shared hook (also used by GallerySlider on /nature
+  // and /city); horizontal is local because it talks to this
+  // component's prev/next.
+  useVerticalPageSwipe();
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (!window.matchMedia("(hover: none)").matches) return;
+
+    let start: { x: number; y: number; t: number } | null = null;
+
+    const onTouchStart = (e: TouchEvent) => {
+      if (e.touches.length !== 1) {
+        start = null;
+        return;
+      }
+      start = {
+        x: e.touches[0].clientX,
+        y: e.touches[0].clientY,
+        t: performance.now(),
+      };
+    };
+
+    const onTouchEnd = (e: TouchEvent) => {
+      const s = start;
+      start = null;
+      if (!s) return;
+
+      const touch = e.changedTouches[0];
+      const dx = touch.clientX - s.x;
+      const dy = touch.clientY - s.y;
+      const dt = performance.now() - s.t;
+
+      // Horizontal-dominant swipe with sensible distance / duration.
+      if (Math.abs(dx) < Math.abs(dy) * 1.5) return;
+      if (Math.abs(dx) < 50) return;
+      if (dt > 800) return;
+
+      if (dx < 0) next();
+      else prev();
+    };
+
+    window.addEventListener("touchstart", onTouchStart, { passive: true });
+    window.addEventListener("touchend", onTouchEnd, { passive: true });
+    return () => {
+      window.removeEventListener("touchstart", onTouchStart);
+      window.removeEventListener("touchend", onTouchEnd);
+    };
   }, []);
 
   // Pre-sample the luminance of every slide once on mount, then flip
