@@ -139,6 +139,22 @@ img {
   animation-duration: 0s;
 }
 
+/* During a route transition the actual logo / nav DOM elements get
+   replaced by ::view-transition pseudo "snapshots" (a captured-image
+   layer above the sliding page snapshots). To keep the
+   mix-blend-mode: difference behaviour active *during* the slide —
+   so the glyphs auto-invert per pixel as the boundary between the
+   old and new page sweeps across them — re-apply the blend mode to
+   both halves of each snapshot pair. Without this the snapshots
+   render as flat raster and the colour appears to "snap" rather
+   than dissolve along the moving page edge. */
+::view-transition-old(site-logo),
+::view-transition-new(site-logo),
+::view-transition-old(site-nav),
+::view-transition-new(site-nav) {
+  mix-blend-mode: difference;
+}
+
 /* Page-to-page transition. Pages live in a fixed order (see
    src/lib/pageOrder.ts). Forward navigation slides the outgoing page
    up off the top of the viewport while the incoming page rises from

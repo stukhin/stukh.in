@@ -1,6 +1,5 @@
 import AppShell from "@/components/AppShell/AppShell";
 import HomeSlider from "@/components/HomeSlider/HomeSlider";
-import HomeToggle from "@/components/HomeToggle/HomeToggle";
 import Socials from "@/components/Socials/Socials";
 import Preloader from "@/components/Preloader/Preloader";
 import styles from "./page.module.css";
@@ -19,7 +18,9 @@ export default function Home() {
           burgerClassName={styles.burger}
         >
           <HomeSlider />
-          <HomeToggle />
+          {/* HomeToggle (hobby/work) parked for now — see
+              src/components/HomeToggle/, will land back on the page
+              once the design is settled. */}
           <Socials className={styles.inlineSocials} />
         </AppShell>
       </main>

@@ -240,10 +240,11 @@
   pointer-events: none;
   /* Twice as transparent as the previous tuning: thinner white veil,
      less darkening — the photo behind clearly comes through, the
-     glass still reads as 'frosted'. */
+     glass still reads as 'frosted'. The inset highlight that used
+     to sit here was reading as a one-pixel frame around the card on
+     hover; dropped. */
   background: hsla(0, 0%, 100%, 0.04);
   backdrop-filter: blur(28px) saturate(130%) brightness(0.78);
-  box-shadow: inset 1px 1px 0 hsla(0, 0%, 100%, 0.12);
   opacity: 0;
   z-index: 1;
 }
@@ -344,31 +345,23 @@
   max-width: 18em;
 }
 
-.counter {
+.specs {
   position: absolute;
   bottom: 14px;
   left: 16px;
   z-index: 2;
-  font-size: 11px;
-  letter-spacing: 0.04em;
-  text-transform: lowercase;
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
   font-weight: 300;
   color: #fff;
   pointer-events: none;
   opacity: 0;
   transform: translateZ(20px);
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
+  text-align: left;
 }
 
-.specs {
-  font-size: 10px;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
-.card:hover .counter {
+.card:hover .specs {
   animation: counterIn 0.2s ease-out 0.55s forwards;
 }
 
@@ -395,14 +388,14 @@
 }
 
 /* Mobile / no-hover devices: cards stay clean — no captions, no
-   counter, no gradient overlay. The image fills the cell on its
+   specs, no gradient overlay. The image fills the cell on its
    own. Tapping a card opens the modal where the metadata lives. */
 @media (hover: none), (max-width: 597px) {
   .chunk {
     display: none;
   }
   .info,
-  .counter {
+  .specs {
     display: none;
   }
   .downloadBtn {

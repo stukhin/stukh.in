@@ -469,10 +469,9 @@ function WallpaperCard({
             <span className={styles.story}>{wallpaper.story}</span>
           </span>
 
-          <span className={styles.counter}>
-            <span>{count.toLocaleString()} downloads</span>
-            <span className={styles.specs}>1080×1920 · jpg</span>
-          </span>
+          {/* Downloads count was noise — only the resolution + format
+              line stays, left-aligned alongside the title block. */}
+          <span className={styles.specs}>1080×1920 · jpg</span>
 
           {state === "loading" && (
             <span className={styles.loader} aria-hidden="true">

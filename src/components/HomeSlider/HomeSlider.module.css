@@ -117,7 +117,11 @@
 
 /* Active dot doubles as a slide-progress indicator: the white fill
    slides in over the same 7s the slide is on screen, so the user
-   gets a visual loader of "how long left until the next photo". */
+   gets a visual loader of "how long left until the next photo".
+   Implemented as a keyframe animation rather than a transition so
+   the React `key` change on slide flip reliably restarts it from
+   zero — transitions don't always fire on freshly-mounted
+   elements that already match the final-state selector. */
 .value {
   position: absolute;
   top: 0;
@@ -131,6 +135,21 @@
 }
 
 .dot.dotActive .value {
-  transform: translateX(0);
-  transition: transform 7s linear;
+  animation: progressFill 7s linear forwards;
+}
+
+@keyframes progressFill {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dot.dotActive .value {
+    animation: none;
+    transform: translateX(0);
+  }
 }
