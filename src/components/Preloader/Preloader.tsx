@@ -111,14 +111,19 @@ export default function Preloader() {
       timers.push(
         window.setTimeout(() => {
           setPhase("hiding");
+          // Fire as we START fading out, not at the end. The home
+          // reveal animation is timed to overlap with this fade so
+          // the loader bar visually "morphs" into the photo: while
+          // the white preloader ramps to 0 opacity, the photo
+          // emerges from a clip-path matching the bar's rect and
+          // expands outward. Firing at the end of the fade would
+          // leave a beat where neither the preloader nor the photo
+          // is present.
+          window.sessionStorage.setItem(HOME_INTRO_KEY, "1");
+          window.dispatchEvent(new CustomEvent(PRELOADER_DONE_EVENT));
           timers.push(
             window.setTimeout(() => {
               setPhase("gone");
-              window.sessionStorage.setItem(HOME_INTRO_KEY, "1");
-              // Let the home slider know it's safe to start its
-              // TV-reveal animation. Fired only when the loader
-              // actually ran (skipped sessions don't reach here).
-              window.dispatchEvent(new CustomEvent(PRELOADER_DONE_EVENT));
             }, FADE_MS)
           );
         }, HOLD_AT_FULL_MS)

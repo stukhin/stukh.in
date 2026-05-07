@@ -347,26 +347,41 @@
   background-color: hsla(0, 0%, 100%, 0.15);
 }
 
+/* The thumb element is the FULL height of the slider (22px) and 22px
+   wide — that's the hit area for hover detection and click/drag. The
+   visible bar (22 × 3px) is rendered via ::before, centred inside.
+   Making the hit area 22 × 3 like the visible bar — as it was on
+   first pass — left almost no surface for the cursor to land on,
+   so neither the grab cursor change nor the drag would trigger. */
 .sliderThumb {
   position: absolute;
-  top: 50%;
+  top: 0;
+  bottom: 0;
   width: 22px;
+  margin-left: -11px; /* centre the 22-wide hit area on the computed `left` */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  cursor: none;
+}
+
+.sliderThumb::before {
+  content: "";
+  width: 100%;
   height: 3px;
-  margin-left: -11px; /* centre the 22px thumb on the computed `left` */
   background-color: #fff;
   border-radius: 3px;
-  transform: translateY(-50%);
-  cursor: none;
   transition: height 0.15s ease;
 }
 
-.slider_city .sliderThumb {
+.slider_city .sliderThumb::before {
   background-color: #000;
 }
 
 /* While the user is actively dragging, the bar thickens slightly so
    the grabbed state is felt on the bar itself, not just on the
    cursor. */
-.sliderThumbDragging {
+.sliderThumbDragging::before {
   height: 4px;
 }
