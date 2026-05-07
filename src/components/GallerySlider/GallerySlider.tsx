@@ -1,6 +1,13 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type MouseEvent as ReactMouseEvent,
+  type TouchEvent as ReactTouchEvent,
+} from "react";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Keyboard, Mousewheel } from "swiper/modules";
 import type { Swiper as SwiperType } from "swiper";
@@ -34,6 +41,13 @@ export default function GallerySlider({ category, items }: Props) {
   const [modalFromRect, setModalFromRect] = useState<DOMRect | null>(null);
 
   const swiperRef = useRef<SwiperType | null>(null);
+  /** Drag state for the custom slider thumb (the small bar that
+   *  shows where in the gallery the user currently is). Hover paints
+   *  a filled disc cursor; pressing shrinks it to a smaller disc with
+   *  a soft halo so the click reads. Mouse + touch are both wired
+   *  through here. */
+  const sliderTrackRef = useRef<HTMLDivElement>(null);
+  const [dragging, setDragging] = useState(false);
   /** Returns the active slide's <img> rect — used by the modal so the
    * FLIP animation can morph back to whatever slide is currently
    * active when the user closes (in case they navigate while the
@@ -86,6 +100,75 @@ export default function GallerySlider({ category, items }: Props) {
 
   const total = items.length;
   const activeItem = items[activeIndex];
+
+  /** Map an absolute clientX into a gallery index by reading the
+   *  current track rect, clamping to [0, total - 1], and rounding to
+   *  the nearest slide. Called from mouse + touch drag handlers and
+   *  also from a plain track click (so clicking anywhere along the
+   *  track jumps there immediately). */
+  const setIndexFromClientX = useCallback(
+    (clientX: number) => {
+      const track = sliderTrackRef.current;
+      if (!track || total <= 1) return;
+      const rect = track.getBoundingClientRect();
+      if (rect.width === 0) return;
+      const fraction = Math.max(
+        0,
+        Math.min(1, (clientX - rect.left) / rect.width)
+      );
+      const newIdx = Math.round(fraction * (total - 1));
+      const sw = swiperRef.current;
+      if (!sw) return;
+      sw.slideToLoop ? sw.slideToLoop(newIdx) : sw.slideTo(newIdx);
+    },
+    [total]
+  );
+
+  /** Mouse drag: capture window listeners on mousedown, release on
+   *  mouseup. We track the cursor position 1:1 — every mousemove
+   *  re-maps the clientX to a slide index, so the photo list scrubs
+   *  smoothly under the thumb as it moves. */
+  const onThumbMouseDown = (e: ReactMouseEvent) => {
+    if (e.button !== 0) return;
+    e.preventDefault();
+    setDragging(true);
+    const onMove = (ev: MouseEvent) => setIndexFromClientX(ev.clientX);
+    const onUp = () => {
+      setDragging(false);
+      window.removeEventListener("mousemove", onMove);
+      window.removeEventListener("mouseup", onUp);
+    };
+    window.addEventListener("mousemove", onMove);
+    window.addEventListener("mouseup", onUp);
+  };
+
+  /** Touch drag: same shape as the mouse path but with passive=false
+   *  on touchmove so we can preventDefault and stop the page from
+   *  scrolling under the finger while the user is scrubbing. */
+  const onThumbTouchStart = (e: ReactTouchEvent) => {
+    if (e.touches.length !== 1) return;
+    setDragging(true);
+    const onMove = (ev: TouchEvent) => {
+      ev.preventDefault();
+      setIndexFromClientX(ev.touches[0].clientX);
+    };
+    const onEnd = () => {
+      setDragging(false);
+      window.removeEventListener("touchmove", onMove);
+      window.removeEventListener("touchend", onEnd);
+      window.removeEventListener("touchcancel", onEnd);
+    };
+    window.addEventListener("touchmove", onMove, { passive: false });
+    window.addEventListener("touchend", onEnd);
+    window.addEventListener("touchcancel", onEnd);
+  };
+
+  /** Click on the track itself (not the thumb) — jump to that
+   *  position. Mousedown on the thumb stops propagation, so this
+   *  only fires for clicks on the bare track. */
+  const onTrackClick = (e: ReactMouseEvent) => {
+    setIndexFromClientX(e.clientX);
+  };
 
   const picIndex = (i: number) => String(i + 1).padStart(2, "0");
   const verticalSrc = (i: number) =>
@@ -223,20 +306,38 @@ export default function GallerySlider({ category, items }: Props) {
         data-cursor="arrow-right"
       />
 
-      <input
-        className={`${styles.input} ${styles[category]} ${
+      {/* Custom slider: a thin track with a short bar thumb on top.
+          Replaced the native <input type="range"> so we can paint a
+          grab / grabbing custom cursor on hover / drag (the native
+          input has the thumb scoped to a pseudo-element and the
+          custom Cursor component can't read hovers on those). */}
+      <div
+        ref={sliderTrackRef}
+        className={`${styles.slider} ${styles[`slider_${category}`]} ${
           modalOpen ? styles.hidden : ""
         }`}
-        type="range"
-        min={0}
-        max={total - 1}
-        value={activeIndex}
-        onChange={(e) => {
-          const v = Number(e.target.value);
-          swiperRef.current?.slideToLoop?.(v) ?? swiperRef.current?.slideTo(v);
-        }}
+        onClick={onTrackClick}
+        role="slider"
         aria-label="Gallery position"
-      />
+        aria-valuemin={0}
+        aria-valuemax={Math.max(0, total - 1)}
+        aria-valuenow={activeIndex}
+      >
+        <div className={styles.sliderTrack} />
+        <div
+          className={`${styles.sliderThumb} ${
+            dragging ? styles.sliderThumbDragging : ""
+          }`}
+          style={{
+            left:
+              total > 1 ? `${(activeIndex / (total - 1)) * 100}%` : `0%`,
+          }}
+          data-cursor={dragging ? "grabbing" : "grab"}
+          onMouseDown={onThumbMouseDown}
+          onTouchStart={onThumbTouchStart}
+          onClick={(e) => e.stopPropagation()}
+        />
+      </div>
 
       <GalleryModal
         open={modalOpen}

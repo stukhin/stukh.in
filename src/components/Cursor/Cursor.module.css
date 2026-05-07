@@ -112,6 +112,36 @@
   background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 24 24' fill='none' stroke='%23424242' stroke-width='1.6'><circle cx='11' cy='11' r='7'/><path d='m20 20-3.5-3.5' stroke-linecap='round'/></svg>");
 }
 
+/* "Grab" / "grabbing": shown over the gallery slider thumb on /nature
+   and /city. The filled disc reads as "you can take hold of this";
+   pressing it shrinks to a smaller disc with a soft halo so the user
+   feels the click registered. */
+.grab {
+  width: 18px;
+  height: 18px;
+  border: none;
+  background-color: #fefefe;
+  border-radius: 50%;
+}
+
+.dark.grab {
+  background-color: #424242;
+}
+
+.grabbing {
+  width: 11px;
+  height: 11px;
+  border: none;
+  background-color: #fefefe;
+  border-radius: 50%;
+  box-shadow: 0 0 0 5px hsla(0, 0%, 100%, 0.16);
+}
+
+.dark.grabbing {
+  background-color: #424242;
+  box-shadow: 0 0 0 5px hsla(0, 0%, 0%, 0.16);
+}
+
 @media (hover: none), (max-width: 597px) {
   .cursor {
     display: none;

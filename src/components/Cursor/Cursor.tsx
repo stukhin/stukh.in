@@ -11,7 +11,9 @@ type CursorShape =
   | "arrow-up"
   | "arrow-down"
   | "picture"
-  | "magnifier";
+  | "magnifier"
+  | "grab"
+  | "grabbing";
 
 type Props = {
   variant?: "light" | "dark";
@@ -45,7 +47,9 @@ export default function Cursor({ variant = "light" }: Props) {
           v === "arrow-up" ||
           v === "arrow-down" ||
           v === "picture" ||
-          v === "magnifier"
+          v === "magnifier" ||
+          v === "grab" ||
+          v === "grabbing"
         )
           return v;
         if (v === "hover") return "hover";
@@ -83,6 +87,8 @@ export default function Cursor({ variant = "light" }: Props) {
     shape === "arrow-down" ? styles.arrowDown : "",
     shape === "picture" ? styles.picture : "",
     shape === "magnifier" ? styles.magnifier : "",
+    shape === "grab" ? styles.grab : "",
+    shape === "grabbing" ? styles.grabbing : "",
   ]
     .filter(Boolean)
     .join(" ");

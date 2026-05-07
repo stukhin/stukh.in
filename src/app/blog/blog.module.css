@@ -1,0 +1,81 @@
+.page {
+  position: relative;
+  /* Visible-viewport height on mobile too — same logic as /nature
+     and /city: 100vh measures the largest possible viewport, which
+     overflows the visible area while the address bar is on screen.
+     dvh tracks the live viewport so the map stays centred on first
+     paint regardless of browser chrome. */
+  height: 100vh;
+  height: 100dvh;
+  background-color: #f5f4f1;
+  overflow: hidden;
+  color: #1a1a1a;
+}
+
+/* Subtle paper texture: a faint grain washed over the page so the
+   light background doesn't read as a flat dead surface. Reuses the
+   tile already shipped with the site. */
+.page::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: url(/images/misc/tile.webp);
+  background-repeat: repeat;
+  opacity: 0.05;
+  pointer-events: none;
+}
+
+.inner {
+  position: relative;
+  z-index: 1;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 120px 24px 60px;
+  text-align: center;
+  gap: 24px;
+}
+
+@media (max-width: 597px) {
+  .inner {
+    padding: 100px 16px 40px;
+    gap: 18px;
+  }
+}
+
+.head {
+  max-width: 640px;
+  letter-spacing: -0.02em;
+}
+
+.title {
+  margin: 0;
+  font-size: 44px;
+  font-weight: 300;
+  text-transform: lowercase;
+  line-height: 1;
+}
+
+@media (min-width: 1025px) {
+  .title {
+    font-size: 64px;
+  }
+}
+
+.subtitle {
+  margin: 12px 0 0;
+  font-size: 14px;
+  font-weight: 300;
+  opacity: 0.6;
+  letter-spacing: 0;
+  line-height: 1.5;
+}
+
+@media (min-width: 1025px) {
+  .subtitle {
+    font-size: 15px;
+    margin-top: 16px;
+  }
+}

@@ -45,7 +45,12 @@
   padding: 0;
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  /* Tight column gap on desktop — at 18px the list looked airy to the
+     point of feeling unintentional. Half-spacing reads as a deliberate
+     compact list. The horizontal layouts at narrower breakpoints
+     (overrides below) keep their roomier gaps so the items don't
+     mash into each other when wrapping. */
+  gap: 9px;
 }
 
 /* Inline horizontal sidebar: categories scroll horizontally on phones,
@@ -117,10 +122,12 @@
 }
 
 /* Tone list inherits .catList styling (font/spacing) but sits below
-   a hairline divider so the two filter groups read as separate. */
+   a hairline divider so the two filter groups read as separate.
+   Same half-spacing logic as .catList — looks more deliberate at the
+   tight desktop scale. */
 .toneList {
-  margin-top: 22px;
-  padding-top: 22px;
+  margin-top: 11px;
+  padding-top: 11px;
   border-top: 1px solid hsla(0, 0%, 100%, 0.12);
 }
 

@@ -1,0 +1,100 @@
+.mapWrap {
+  position: relative;
+  width: min(1100px, 92vw);
+  margin: 0 auto;
+  /* Slight inner padding so the continent edges never get clipped by
+     a tight container bound. */
+  padding: 16px;
+}
+
+.map {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* Faint graticule lines — they suggest "this is a map" without
+   competing with the continents. */
+.grid line {
+  stroke: rgba(0, 0, 0, 0.08);
+  stroke-width: 0.18;
+  stroke-dasharray: 0.6 1.2;
+}
+
+.continents path {
+  fill: rgba(0, 0, 0, 0.78);
+  stroke: rgba(0, 0, 0, 0.92);
+  stroke-width: 0.35;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+
+.visits g {
+  cursor: none;
+  transition: transform 0.15s ease;
+}
+
+.visits g:hover {
+  transform: translate(var(--vx, 0), var(--vy, 0)) scale(1.2);
+}
+
+.visitDot {
+  fill: #c14a3a;
+}
+
+.visitHalo {
+  fill: rgba(193, 74, 58, 0.18);
+}
+
+.label {
+  position: absolute;
+  bottom: 24px;
+  left: 24px;
+  font-family: "Inter", "Rubik", sans-serif;
+  font-size: 13px;
+  letter-spacing: 0.04em;
+  color: #1a1a1a;
+  text-transform: lowercase;
+  opacity: 0;
+  transform: translateY(2px);
+  transition: opacity 0.18s ease, transform 0.18s ease;
+  pointer-events: none;
+}
+
+.labelVisible {
+  opacity: 0.75;
+  transform: translateY(0);
+}
+
+/* "Under construction" stamp — quiet, in the bottom-right of the
+   map, with enough opacity to read but not so much it competes with
+   the dots. */
+.stamp {
+  position: absolute;
+  right: 24px;
+  bottom: 24px;
+  font-family: "Inter", "Rubik", sans-serif;
+  font-size: 11px;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  color: #1a1a1a;
+  opacity: 0.4;
+  border: 1px solid rgba(0, 0, 0, 0.35);
+  padding: 6px 12px;
+  pointer-events: none;
+}
+
+@media (max-width: 597px) {
+  .stamp {
+    right: 12px;
+    bottom: 12px;
+    font-size: 9px;
+    letter-spacing: 0.24em;
+    padding: 5px 9px;
+  }
+
+  .label {
+    left: 12px;
+    bottom: 12px;
+  }
+}

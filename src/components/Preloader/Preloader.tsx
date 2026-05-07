@@ -12,6 +12,11 @@ const HOLD_AT_FULL_MS = 250;
 // Same key is read+set by HomeSlider so the develop reveal also only
 // plays once per session.
 export const HOME_INTRO_KEY = "stukhin.home.intro";
+/** Fired on `window` when the preloader has finished its hide
+ *  animation and is about to unmount. HomeSlider listens for this to
+ *  start its TV-style reveal animation, so the photo "opens" out of
+ *  a thin line right as the loader fades out. */
+export const PRELOADER_DONE_EVENT = "stukhin:preloader-done";
 
 /**
  * Critical preload: things the very first painted screen needs (the
@@ -110,6 +115,10 @@ export default function Preloader() {
             window.setTimeout(() => {
               setPhase("gone");
               window.sessionStorage.setItem(HOME_INTRO_KEY, "1");
+              // Let the home slider know it's safe to start its
+              // TV-reveal animation. Fired only when the loader
+              // actually ran (skipped sessions don't reach here).
+              window.dispatchEvent(new CustomEvent(PRELOADER_DONE_EVENT));
             }, FADE_MS)
           );
         }, HOLD_AT_FULL_MS)

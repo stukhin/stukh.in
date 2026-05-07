@@ -296,88 +296,77 @@
   right: 0;
 }
 
-.input {
-  appearance: none;
-  -webkit-appearance: none;
-  padding: 19px 0;
-  display: block;
-  margin: 0 auto;
-  background-color: transparent;
+/* Custom slider control: thin track with a small bar thumb on top.
+   The whole .slider is the hit area (via onClick). The thumb's
+   data-cursor switches between "grab" (hover) and "grabbing" (during
+   drag) so the Cursor overlay paints the right shape — the native
+   <input type="range"> hid that detail behind ::-webkit-slider-thumb,
+   which the custom cursor couldn't see. */
+.slider {
   position: absolute;
   bottom: 40px;
   left: 50%;
   transform: translateX(-50%);
   z-index: 6;
+  height: 22px;
+  display: flex;
+  align-items: center;
   cursor: none;
   transition: opacity 0.2s ease;
 }
 
 /* Used when the modal is open so the slider/text stop peeking through. */
-.input.hidden,
+.slider.hidden,
 .activeText.hidden {
   opacity: 0;
   pointer-events: none;
 }
 
 @media (min-width: 1025px) {
-  .input {
+  .slider {
     width: 292px;
   }
 }
 
 @media (max-width: 1024px) {
-  .input {
+  .slider {
     width: 211px;
     bottom: 20px;
   }
 }
 
-.input::-webkit-slider-runnable-track {
+.sliderTrack {
   width: 100%;
   height: 1px;
   background-color: #3a3a3a;
   border-radius: 3px;
+  pointer-events: none;
 }
 
-.input::-moz-range-track {
-  width: 100%;
-  height: 1px;
-  background-color: #3a3a3a;
-  border-radius: 3px;
+.slider_city .sliderTrack {
+  background-color: hsla(0, 0%, 100%, 0.15);
 }
 
-.input::-webkit-slider-thumb {
-  position: relative;
-  appearance: none;
-  -webkit-appearance: none;
+.sliderThumb {
+  position: absolute;
+  top: 50%;
   width: 22px;
   height: 3px;
+  margin-left: -11px; /* centre the 22px thumb on the computed `left` */
   background-color: #fff;
-  margin-top: -1.5px;
   border-radius: 3px;
+  transform: translateY(-50%);
   cursor: none;
+  transition: height 0.15s ease;
 }
 
-.input::-moz-range-thumb {
-  width: 22px;
-  height: 3px;
-  background-color: #fff;
-  border-radius: 3px;
-  border: none;
-}
-
-.input.city::-webkit-slider-thumb {
+.slider_city .sliderThumb {
   background-color: #000;
 }
 
-.input.city::-moz-range-thumb {
-  background-color: #000;
-}
-
-.input.city::-webkit-slider-runnable-track {
-  background-color: hsla(0, 0%, 100%, 0.15);
-}
-
-.input.city::-moz-range-track {
-  background-color: hsla(0, 0%, 100%, 0.15);
+/* While the user is actively dragging, the bar thickens slightly so
+   the grabbed state is felt on the bar itself, not just on the
+   cursor. */
+.sliderThumbDragging {
+  height: 4px;
 }
