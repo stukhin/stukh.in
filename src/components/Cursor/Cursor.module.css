@@ -113,33 +113,22 @@
 }
 
 /* "Grab" / "grabbing": shown over the gallery slider thumb on /nature
-   and /city. The filled disc reads as "you can take hold of this";
-   pressing it shrinks to a smaller disc with a soft halo so the user
-   feels the click registered. */
+   and /city. Hover paints the same outlined ring we use as the
+   default page cursor (so the affordance reads as "this is something
+   you can interact with" rather than "something special"); pressing
+   fills the ring in to confirm the click landed. Same diameter for
+   both states so the transition feels like the ring "filling in"
+   rather than resizing. */
 .grab {
-  width: 18px;
-  height: 18px;
-  border: none;
-  background-color: #fefefe;
-  border-radius: 50%;
-}
-
-.dark.grab {
-  background-color: #424242;
+  /* Ring outline — matches .cursor's default look */
 }
 
 .grabbing {
-  width: 11px;
-  height: 11px;
-  border: none;
   background-color: #fefefe;
-  border-radius: 50%;
-  box-shadow: 0 0 0 5px hsla(0, 0%, 100%, 0.16);
 }
 
 .dark.grabbing {
   background-color: #424242;
-  box-shadow: 0 0 0 5px hsla(0, 0%, 0%, 0.16);
 }
 
 @media (hover: none), (max-width: 597px) {

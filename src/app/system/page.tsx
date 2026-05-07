@@ -33,7 +33,7 @@ const TYPOGRAPHY = [
   { name: "Walls card title", family: "Rubik", size: "18px", weight: "300", note: ".cardTitle" },
   { name: "Walls card meta / story", family: "Rubik", size: "12px", weight: "300", note: ".meta · .story" },
   { name: "Walls card specs", family: "Rubik", size: "10px / 0.08em uppercase", weight: "300", note: ".specs" },
-  { name: "Walls filter label", family: "Inter / Rubik", size: "16px / 0.02em", weight: "200", note: ".catBtn (lowercase)" },
+  { name: "Walls filter dropdown", family: "Inter / Rubik", size: "14px / 0.02em", weight: "200", note: ".dropdownTrigger (lowercase)" },
   { name: "Modal placeholder copy", family: "Rubik", size: "12px", weight: "300", note: "Placeholder, popup footer" },
 ];
 
@@ -62,10 +62,10 @@ const SPACING = [
 ];
 
 const BREAKPOINTS = [
-  { name: "Mobile", range: "≤ 597px", note: "2 walls cols, sidebar inline horizontal scroll" },
-  { name: "Tablet", range: "598 – 999px", note: "3 walls cols, sidebar inline" },
-  { name: "Small desktop", range: "1000 – 1499px", note: "4 walls cols, sidebar inline" },
-  { name: "Large desktop", range: "≥ 1500px", note: "auto-fill cols, sidebar fixed-left" },
+  { name: "Mobile", range: "≤ 597px", note: "2 walls cols, dropdown filters edge-padded" },
+  { name: "Tablet", range: "598 – 999px", note: "3 walls cols, dropdowns above grid" },
+  { name: "Small desktop", range: "1000 – 1499px", note: "4 walls cols, dropdowns above grid" },
+  { name: "Large desktop", range: "≥ 1500px", note: "auto-fill cols, dropdowns above grid (centred)" },
 ];
 
 const MOTION = [

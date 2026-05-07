@@ -1,6 +1,14 @@
 .main {
   position: relative;
+  /* Track the live viewport on mobile too — 100vh measures the
+     largest possible viewport (with the address bar retracted), so
+     when the bar is on screen the page overflows and the dot
+     indicators at the bottom of the slider sit below the visible
+     area until the user scrolls. dvh keeps everything inside the
+     visible band, same trick already in use on /nature, /city,
+     and /blog. */
   height: 100vh;
+  height: 100dvh;
   background-color: #0d1117;
 }
 

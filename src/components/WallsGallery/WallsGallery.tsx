@@ -15,7 +15,6 @@ import {
   useMotionValue,
   useSpring,
 } from "motion/react";
-import { useMobileScrollFocus } from "@/lib/useMobileScrollFocus";
 import WallpaperHoverPlate, {
   type HoverState,
 } from "./WallpaperHoverPlate";
@@ -81,7 +80,6 @@ export default function WallsGallery({ items }: Props) {
   const [hover, setHover] = useState<HoverState | null>(null);
 
   const cardImgRefs = useRef<Record<string, HTMLImageElement | null>>({});
-  const cardElRefs = useRef<(HTMLLIElement | null)[]>([]);
   const modalImgRef = useRef<HTMLImageElement>(null);
   const fromRectRef = useRef<DOMRect | null>(null);
 
@@ -108,12 +106,6 @@ export default function WallsGallery({ items }: Props) {
       ),
     [items, activeCategory, activeTone]
   );
-
-  // Mobile-only: row currently centred in the viewport renders at
-  // full 9:16 height; rows above/below taper smoothly to a quarter,
-  // and the magnet snap pulls the nearest row to centre on each
-  // scroll-end. No-ops on wider viewports.
-  useMobileScrollFocus(cardElRefs, 2, visibleItems.length);
 
   // Desktop hover-plate plumbing. Cards fire enter/leave; the
   // download button fires its own pair on top so the plate can
@@ -272,57 +264,33 @@ export default function WallsGallery({ items }: Props) {
   return (
     <>
       <div className={styles.layout}>
-        <aside className={styles.sidebar}>
-          <ul className={styles.catList}>
-            {categories.map((cat) => {
-              const isActive = cat === activeCategory;
-              return (
-                <li key={cat}>
-                  <button
-                    type="button"
-                    className={`${styles.catBtn} ${
-                      isActive ? styles.catActive : ""
-                    }`}
-                    onClick={() => setActiveCategory(cat)}
-                  >
-                    {cat.toLowerCase()}
-                    <span className={styles.catUnderline} />
-                  </button>
-                </li>
-              );
-            })}
-          </ul>
+        <div className={styles.filters}>
+          <FilterDropdown
+            label="type"
+            value={activeCategory}
+            onChange={setActiveCategory}
+            options={categories.map((cat) => ({
+              value: cat,
+              label: cat.toLowerCase(),
+            }))}
+          />
           {tones.length > 1 && (
-            <ul className={`${styles.catList} ${styles.toneList}`}>
-              {tones.map((t) => {
-                const isActive = t === activeTone;
-                return (
-                  <li key={t}>
-                    <button
-                      type="button"
-                      className={`${styles.catBtn} ${styles.toneBtn} ${
-                        isActive ? styles.toneActive : ""
-                      }`}
-                      style={
-                        {
-                          "--tone-color": TONE_HOVER_COLORS[t],
-                        } as CSSProperties
-                      }
-                      onClick={() => setActiveTone(t)}
-                    >
-                      {TONE_LABELS[t] || t.toLowerCase()}
-                      <span className={styles.catUnderline} />
-                    </button>
-                  </li>
-                );
-              })}
-            </ul>
+            <FilterDropdown
+              label="color"
+              value={activeTone}
+              onChange={setActiveTone}
+              options={tones.map((t) => ({
+                value: t,
+                label: TONE_LABELS[t] || t.toLowerCase(),
+                color: TONE_HOVER_COLORS[t],
+              }))}
+            />
           )}
-        </aside>
+        </div>
 
         <ul className={styles.grid}>
           <AnimatePresence mode="popLayout" initial={false}>
-            {visibleItems.map((w, i) => {
+            {visibleItems.map((w) => {
               const state = downloads[w.id] || "idle";
               return (
                 <WallpaperCard
@@ -338,9 +306,6 @@ export default function WallsGallery({ items }: Props) {
                   onDownloadLeave={onDownloadLeave}
                   registerImg={(el) => {
                     cardImgRefs.current[w.id] = el;
-                  }}
-                  registerCard={(el) => {
-                    cardElRefs.current[i] = el;
                   }}
                 />
               );
@@ -415,12 +380,6 @@ type CardProps = {
   onDownload: (w: Wallpaper) => void;
   registerImg: (el: HTMLImageElement | null) => void;
   /**
-   * Optional callback the parent uses to collect a ref to each
-   * card's <li>. The mobile scroll-focus hook needs these refs to
-   * compute per-row heights based on viewport-centre distance.
-   */
-  registerCard?: (el: HTMLLIElement | null) => void;
-  /**
    * Desktop hover-plate hooks. The card forwards mouseenter /
    * mouseleave so the parent can render a frosted plate next to the
    * cursor; the download button has its own enter/leave so the plate
@@ -439,7 +398,6 @@ function WallpaperCard({
   onZoom,
   onDownload,
   registerImg,
-  registerCard,
   onCardEnter,
   onCardLeave,
   onDownloadEnter,
@@ -476,7 +434,6 @@ function WallpaperCard({
     <motion.li
       ref={(el) => {
         ref.current = el;
-        registerCard?.(el);
       }}
       layout
       initial={{ opacity: 0, scale: 0.85 }}
@@ -554,5 +511,120 @@ function WallpaperCard({
         </button>
       </motion.div>
     </motion.li>
+  );
+}
+
+type FilterOption = {
+  value: string;
+  label: string;
+  /**
+   * Optional accent colour for the option — used by the tone list so
+   * "warm", "cool", etc. read in their tuned hue. Categories pass
+   * undefined and fall back to plain white.
+   */
+  color?: string;
+};
+
+type FilterDropdownProps = {
+  /** Tiny label rendered before the current value, e.g. "type:". */
+  label: string;
+  options: FilterOption[];
+  value: string;
+  onChange: (next: string) => void;
+};
+
+/**
+ * Compact custom dropdown that replaces the old vertical sidebar
+ * filter lists. Two of these (type + color) sit at the top of the
+ * walls grid. Clicking the trigger opens a frosted menu below;
+ * clicking outside the dropdown or pressing Escape closes it.
+ *
+ * Custom rather than native <select> because the page-wide custom
+ * cursor doesn't reach into native control internals (the OS owns
+ * the open/closed UI), and because we want the option text in the
+ * same lowercase Inter weight 200 the rest of the filter chrome
+ * uses, with per-option accent colours for the tone list.
+ */
+function FilterDropdown({
+  label,
+  options,
+  value,
+  onChange,
+}: FilterDropdownProps) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const onMouseDown = (e: globalThis.MouseEvent) => {
+      if (!ref.current?.contains(e.target as Node)) setOpen(false);
+    };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setOpen(false);
+    };
+    document.addEventListener("mousedown", onMouseDown);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("mousedown", onMouseDown);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [open]);
+
+  const current = options.find((o) => o.value === value);
+
+  return (
+    <div className={styles.dropdown} ref={ref}>
+      <button
+        type="button"
+        className={`${styles.dropdownTrigger} ${
+          open ? styles.dropdownTriggerOpen : ""
+        }`}
+        onClick={() => setOpen((v) => !v)}
+        aria-expanded={open}
+        aria-haspopup="listbox"
+        data-cursor="hover"
+        style={
+          current?.color
+            ? ({ "--opt-color": current.color } as CSSProperties)
+            : undefined
+        }
+      >
+        <span className={styles.dropdownLabel}>{label}:</span>
+        <span className={styles.dropdownValue}>
+          {current?.label ?? options[0]?.label ?? ""}
+        </span>
+        <span className={styles.dropdownChevron} aria-hidden="true">
+          ▾
+        </span>
+      </button>
+      {open && (
+        <ul className={styles.dropdownMenu} role="listbox">
+          {options.map((opt) => (
+            <li key={opt.value}>
+              <button
+                type="button"
+                className={`${styles.dropdownOption} ${
+                  opt.value === value ? styles.dropdownOptionActive : ""
+                }`}
+                role="option"
+                aria-selected={opt.value === value}
+                onClick={() => {
+                  onChange(opt.value);
+                  setOpen(false);
+                }}
+                data-cursor="hover"
+                style={
+                  opt.color
+                    ? ({ "--opt-color": opt.color } as CSSProperties)
+                    : undefined
+                }
+              >
+                {opt.label}
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
   );
 }

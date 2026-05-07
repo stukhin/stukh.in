@@ -19,145 +19,139 @@
   }
 }
 
-/* Sidebar floats at the far left, aligned horizontally with the logo.
-   Fixed only when the viewport is wide enough that a centred 1100px
-   grid won't overlap it. Below that it folds into an inline strip
-   above the grid. */
-.sidebar {
-  position: fixed;
-  top: 200px;
-  left: 66px;
-  width: 120px;
-  z-index: 5;
+/* Two-dropdown filter row above the grid. Replaces the old vertical
+   sidebar — same two filter axes (type, colour), but compact enough
+   to share its layout with the photos. Centred above a 1100px grid
+   on desktop, full-width inline on smaller viewports. */
+.filters {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  max-width: 1100px;
+  width: 100%;
+  margin: 0 auto 32px;
+  padding: 0;
 }
 
 @media (max-width: 1499px) {
-  .sidebar {
-    position: static;
-    width: 100%;
+  .filters {
+    padding: 0;
     margin-bottom: 24px;
   }
 }
 
-.catList {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  /* Tight column gap on desktop — at 18px the list looked airy to the
-     point of feeling unintentional. Half-spacing reads as a deliberate
-     compact list. The horizontal layouts at narrower breakpoints
-     (overrides below) keep their roomier gaps so the items don't
-     mash into each other when wrapping. */
-  gap: 9px;
-}
-
-/* Inline horizontal sidebar: categories scroll horizontally on phones,
-   wrap onto multiple lines on tablets/small desktops. */
-@media (min-width: 598px) and (max-width: 1499px) {
-  .catList {
-    flex-direction: row;
-    gap: 22px;
-    flex-wrap: wrap;
-  }
-}
-
 @media (max-width: 597px) {
-  .catList {
-    flex-direction: row;
-    flex-wrap: nowrap;
-    gap: 18px;
-    overflow-x: auto;
-    scrollbar-width: none;
-    padding: 0 16px 4px;
-    -webkit-overflow-scrolling: touch;
-  }
-  .catList::-webkit-scrollbar {
-    display: none;
+  .filters {
+    padding: 0 16px;
+    margin-bottom: 16px;
+    gap: 8px;
   }
 }
 
-/* Inter weight 200 gives the airy thin stroke Rubik 300 doesn't reach. */
-.catBtn {
+.dropdown {
   position: relative;
-  background: transparent;
-  border: 0;
-  padding: 0;
-  color: hsla(0, 0%, 100%, 0.55);
-  text-transform: lowercase;
-  font-family: "Inter", "Rubik", sans-serif;
-  font-size: 16px;
-  letter-spacing: 0.02em;
-  font-weight: 200;
-  cursor: none;
-  text-align: left;
-  transition: color 0.2s ease;
+}
+
+.dropdownTrigger {
   display: inline-flex;
   align-items: center;
+  gap: 8px;
+  padding: 9px 14px;
+  background: transparent;
+  border: 1px solid hsla(0, 0%, 100%, 0.18);
+  color: var(--opt-color, #fff);
+  font-family: "Inter", "Rubik", sans-serif;
+  font-size: 14px;
+  font-weight: 200;
+  letter-spacing: 0.02em;
+  text-transform: lowercase;
+  cursor: none;
+  white-space: nowrap;
+  transition: border-color 0.2s ease, background 0.2s ease;
+}
+
+.dropdownTrigger:hover,
+.dropdownTriggerOpen {
+  border-color: hsla(0, 0%, 100%, 0.45);
+  background: hsla(0, 0%, 100%, 0.04);
+}
+
+.dropdownLabel {
+  opacity: 0.5;
+}
+
+.dropdownValue {
+  /* Inherits the trigger's --opt-color so the active tone's accent
+     reads in the trigger itself. */
+  color: inherit;
+}
+
+.dropdownChevron {
+  font-size: 9px;
+  margin-left: 2px;
+  opacity: 0.55;
+  transition: transform 0.2s ease;
+  /* The ▾ glyph is centred horizontally but not vertically — nudge
+     up a touch so it visually aligns with the lowercase x-height. */
+  transform: translateY(-1px);
+}
+
+.dropdownTriggerOpen .dropdownChevron {
+  transform: translateY(-1px) rotate(180deg);
+}
+
+.dropdownMenu {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  min-width: 100%;
+  list-style: none;
+  margin: 0;
+  padding: 6px 0;
+  background: rgba(15, 15, 18, 0.92);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid hsla(0, 0%, 100%, 0.10);
+  z-index: 30;
+  animation: dropdownIn 0.16s ease-out;
   white-space: nowrap;
 }
 
-.catBtn:hover {
-  color: #fff;
-}
-
-.catActive {
-  color: #fff;
-}
-
-.catUnderline {
-  display: inline-block;
-  width: 0;
-  height: 1px;
-  background: #fff;
-  margin-left: 10px;
-  transition: width 0.25s ease;
-}
-
-.catActive .catUnderline,
-.toneActive .catUnderline,
-.catBtn:hover .catUnderline {
-  width: 18px;
-}
-
-/* Tone list inherits .catList styling (font/spacing) but sits below
-   a hairline divider so the two filter groups read as separate.
-   Same half-spacing logic as .catList — looks more deliberate at the
-   tight desktop scale. */
-.toneList {
-  margin-top: 11px;
-  padding-top: 11px;
-  border-top: 1px solid hsla(0, 0%, 100%, 0.12);
-}
-
-@media (max-width: 1499px) {
-  .toneList {
-    margin-top: 16px;
-    padding-top: 16px;
+@keyframes dropdownIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 
-@media (max-width: 597px) {
-  .toneList {
-    margin-top: 12px;
-    padding-top: 12px;
-    padding-left: 16px;
-    padding-right: 16px;
-  }
+.dropdownOption {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 8px 18px;
+  background: transparent;
+  border: none;
+  color: hsla(0, 0%, 100%, 0.65);
+  font-family: "Inter", "Rubik", sans-serif;
+  font-size: 14px;
+  font-weight: 200;
+  letter-spacing: 0.02em;
+  text-transform: lowercase;
+  cursor: none;
+  transition: color 0.15s ease, background 0.15s ease;
 }
 
-/* Tone buttons reuse .catBtn typography. The accent on hover/active
-   comes from --tone-color, set inline per tone. BW and `all` keep the
-   default white so they read like the categories above. */
-.toneBtn:hover,
-.toneActive {
-  color: var(--tone-color, #fff);
+.dropdownOption:hover {
+  color: var(--opt-color, #fff);
+  background: hsla(0, 0%, 100%, 0.06);
 }
 
-.toneBtn:hover .catUnderline,
-.toneActive .catUnderline {
-  background: var(--tone-color, #fff);
+.dropdownOptionActive {
+  color: var(--opt-color, #fff);
 }
 
 /* Grid: centred in the viewport. */
@@ -192,18 +186,9 @@
     gap: 4px;
     grid-template-columns: repeat(2, 1fr);
   }
-  /* Mobile cards have an explicit height — JS (useMobileScrollFocus)
-     overrides this inline based on the row's distance from the
-     viewport centre, giving the focus / taper effect. The CSS value
-     here is the fallback used until JS runs and is also the "full"
-     state: card width × 16/9 = (50vw - half-gap) × 16/9. */
-  .card {
-    height: calc((100vw - 4px) * 8 / 9);
-  }
-  .tilt {
-    aspect-ratio: auto;
-    height: 100%;
-  }
+  /* Plain scroll on mobile — no per-row height taper, no magnetic
+     snap. Cards keep their natural 9:16 aspect-ratio (driven by
+     .tilt) and the page just scrolls normally. */
 }
 
 /* The card itself sets up the 3D perspective; the inner .tilt wrapper
