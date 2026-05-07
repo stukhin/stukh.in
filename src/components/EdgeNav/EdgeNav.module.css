@@ -8,8 +8,10 @@
   border: none;
   padding: 0;
   cursor: none;
-  /* Above the gallery range slider (z 6) but below the logo (45),
-     burger (60), and modal (40). */
+  /* Above the gallery's left/right edge nav-zones (z 5) but below
+     the gallery position slider (z 9 — punches through this band so
+     its thumb is grabbable), the modal (40), the logo (45), and the
+     burger (60). */
   z-index: 7;
 }
 

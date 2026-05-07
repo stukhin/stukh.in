@@ -9,8 +9,9 @@
      under a flat dark layer. */
   background: transparent;
   backdrop-filter: blur(22px) saturate(140%);
-  /* Above gallery edge-click zones (z-index 5) and range slider (z-index 6),
-     below the burger (z-index 60) and MenuPopup (50). */
+  /* Above the gallery's left/right edge zones (z 5), EdgeNav (z 7),
+     and the position slider (z 9); below the logo (z 45), the
+     MenuPopup (z 50), and the burger (z 60). */
   z-index: 40;
   visibility: hidden;
   opacity: 0;

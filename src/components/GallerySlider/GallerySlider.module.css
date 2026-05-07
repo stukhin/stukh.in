@@ -307,7 +307,14 @@
   bottom: 40px;
   left: 50%;
   transform: translateX(-50%);
-  z-index: 6;
+  /* Sits above EdgeNav (z 7), whose bottom click-zone covers the
+     bottom 15vh of the viewport and would otherwise eat every
+     mouseover and mousedown on the slider. The slider's bounding
+     box is small (≤ 292×22px), so only that little rectangle
+     "punches through" EdgeNav — the rest of the bottom band keeps
+     working as the arrow-down → next-page hint. Stays well below
+     the modal (40) and the rest of the shell. */
+  z-index: 9;
   height: 22px;
   display: flex;
   align-items: center;
