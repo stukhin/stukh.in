@@ -1,9 +1,7 @@
 .mapWrap {
   position: relative;
-  width: min(1100px, 92vw);
+  width: min(1200px, 96vw);
   margin: 0 auto;
-  /* Slight inner padding so the continent edges never get clipped by
-     a tight container bound. */
   padding: 16px;
 }
 
@@ -13,62 +11,31 @@
   display: block;
 }
 
-/* Faint graticule lines — they suggest "this is a map" without
-   competing with the continents. */
-.grid line {
-  stroke: rgba(0, 0, 0, 0.08);
-  stroke-width: 0.18;
-  stroke-dasharray: 0.6 1.2;
+/* Default country: very pale fill that reads as "land vs. ocean"
+   without competing with the title or the highlighted countries.
+   Borders sit just darker than the fill so the silhouettes still
+   register. */
+.country {
+  fill: #e2dfd7;
+  stroke: #d4d0c8;
+  stroke-width: 0.5;
+  transition: fill 0.18s ease;
 }
 
-.continents path {
-  fill: rgba(0, 0, 0, 0.78);
-  stroke: rgba(0, 0, 0, 0.92);
-  stroke-width: 0.35;
-  stroke-linejoin: round;
-  stroke-linecap: round;
-}
-
-.visits g {
+/* Visited: solid dark on the cream background — strong contrast,
+   draws the eye immediately to the three highlighted spots. */
+.visited {
+  fill: #1a1a1a;
   cursor: none;
-  transition: transform 0.15s ease;
 }
 
-.visits g:hover {
-  transform: translate(var(--vx, 0), var(--vy, 0)) scale(1.2);
-}
-
-.visitDot {
+.visited:hover {
   fill: #c14a3a;
 }
 
-.visitHalo {
-  fill: rgba(193, 74, 58, 0.18);
-}
-
-.label {
-  position: absolute;
-  bottom: 24px;
-  left: 24px;
-  font-family: "Inter", "Rubik", sans-serif;
-  font-size: 13px;
-  letter-spacing: 0.04em;
-  color: #1a1a1a;
-  text-transform: lowercase;
-  opacity: 0;
-  transform: translateY(2px);
-  transition: opacity 0.18s ease, transform 0.18s ease;
-  pointer-events: none;
-}
-
-.labelVisible {
-  opacity: 0.75;
-  transform: translateY(0);
-}
-
 /* "Under construction" stamp — quiet, in the bottom-right of the
-   map, with enough opacity to read but not so much it competes with
-   the dots. */
+   map. Discreet rectangular outline so the page status is explicit
+   without dominating the visual. */
 .stamp {
   position: absolute;
   right: 24px;
@@ -91,10 +58,5 @@
     font-size: 9px;
     letter-spacing: 0.24em;
     padding: 5px 9px;
-  }
-
-  .label {
-    left: 12px;
-    bottom: 12px;
   }
 }

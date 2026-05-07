@@ -27,8 +27,8 @@ export default function BlogPage() {
           <header className={styles.head}>
             <h1 className={styles.title}>where i&apos;ve been</h1>
             <p className={styles.subtitle}>
-              dots mark places i&apos;ve photographed. hover to see the
-              country — interactive previews are coming.
+              countries i&apos;ve photographed in. interactive previews
+              and per-country stories are coming.
             </p>
           </header>
 
