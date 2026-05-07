@@ -1,20 +1,49 @@
+/* The root absolutely fills its containing /blog .page wrapper.
+   Children: the map (parallax-translated) and the under-construction
+   stamp (kept put). */
+.root {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+
+/* The wrap is what gets translated for parallax + scaled for zoom.
+   Stays a sibling of the stamp so the stamp doesn't ride along with
+   the cursor. The translate uses --mx / --my (each in [-1, 1],
+   updated each rAF tick from a mousemove listener) multiplied by
+   --parallax (the maximum px shift). The leading negative gives the
+   classic "background is deeper" feel — moving the cursor right
+   shifts the map left. */
 .mapWrap {
-  position: relative;
-  width: min(1200px, 96vw);
-  margin: 0 auto;
-  padding: 16px;
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transform: translate3d(
+      calc(var(--mx, 0) * var(--parallax, 24px) * -1),
+      calc(var(--my, 0) * var(--parallax, 24px) * -1),
+      0
+    )
+    scale(var(--zoom, 1.08));
+  transform-origin: center center;
+  /* Trailing transition so the map doesn't snap to every mousemove
+     pixel — feels like a heavy panel on a delayed spring. Tuned long
+     enough to smooth jitter, short enough that the connection to the
+     cursor still reads. */
+  transition: transform 0.18s cubic-bezier(0.2, 0.6, 0.2, 1);
+  will-change: transform;
 }
 
 .map {
   width: 100%;
-  height: auto;
+  height: 100%;
   display: block;
 }
 
-/* Default country: very pale fill that reads as "land vs. ocean"
-   without competing with the title or the highlighted countries.
-   Borders sit just darker than the fill so the silhouettes still
-   register. */
+/* Default country: pale fill that reads as "land vs. ocean" without
+   competing with the title or the highlighted countries. Borders
+   sit just darker than the fill so the silhouettes still register. */
 .country {
   fill: #e2dfd7;
   stroke: #d4d0c8;
@@ -22,8 +51,6 @@
   transition: fill 0.18s ease;
 }
 
-/* Visited: solid dark on the cream background — strong contrast,
-   draws the eye immediately to the three highlighted spots. */
 .visited {
   fill: #1a1a1a;
   cursor: none;
@@ -33,13 +60,10 @@
   fill: #c14a3a;
 }
 
-/* "Under construction" stamp — quiet, in the bottom-right of the
-   map. Discreet rectangular outline so the page status is explicit
-   without dominating the visual. */
 .stamp {
   position: absolute;
-  right: 24px;
-  bottom: 24px;
+  right: 32px;
+  bottom: 32px;
   font-family: "Inter", "Rubik", sans-serif;
   font-size: 11px;
   letter-spacing: 0.32em;
@@ -49,14 +73,25 @@
   border: 1px solid rgba(0, 0, 0, 0.35);
   padding: 6px 12px;
   pointer-events: none;
+  /* Above the map but below the page header / shell. */
+  z-index: 1;
 }
 
 @media (max-width: 597px) {
   .stamp {
-    right: 12px;
-    bottom: 12px;
+    right: 16px;
+    bottom: 16px;
     font-size: 9px;
     letter-spacing: 0.24em;
     padding: 5px 9px;
+  }
+}
+
+/* Reduced motion / touch fallback: skip the transition so the map
+   renders cleanly at its initial zoom without animating in. */
+@media (hover: none), (prefers-reduced-motion: reduce) {
+  .mapWrap {
+    transition: none;
+    transform: scale(var(--zoom, 1.08));
   }
 }
