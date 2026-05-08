@@ -1,12 +1,16 @@
 .layout {
   position: relative;
   width: 100%;
-  padding: 200px 0 96px;
+  /* Top padding pushes the filter row clear of the logo's bottom
+     line on first paint. The filters are position:sticky inside this
+     container, so as the user scrolls down they detach and stick to
+     a fixed offset (see .filters below). */
+  padding: 260px 0 96px;
 }
 
 @media (max-width: 1499px) {
   .layout {
-    padding: 130px 32px 80px;
+    padding: 200px 32px 80px;
   }
 }
 
@@ -15,15 +19,23 @@
     /* Edge-to-edge cards on mobile so the focused row reads as
        "full stature" 9:16. Top padding still accounts for the logo
        + filters above the grid. */
-    padding: 170px 0 80px;
+    padding: 200px 0 80px;
   }
 }
 
-/* Two-dropdown filter row above the grid. Replaces the old vertical
-   sidebar — same two filter axes (type, colour), but compact enough
-   to share its layout with the photos. Centred above a 1100px grid
-   on desktop, full-width inline on smaller viewports. */
+/* Two-dropdown filter row above the grid. Stays put while the user
+   scrolls the wallpapers below — position:sticky pins the row to a
+   small offset from the top of the viewport once it gets there.
+   The dropdown triggers themselves carry the frosted-glass look so
+   the row reads cleanly against any photo scrolling behind. */
 .filters {
+  position: sticky;
+  /* Sticks just below the logo's bottom line. The logo lives at
+     top: 66px and is ~3 lines tall, so 200px clears it cleanly on
+     desktop. On narrower viewports we tighten this with media
+     queries below. */
+  top: 200px;
+  z-index: 10;
   display: flex;
   gap: 12px;
   align-items: flex-start;
@@ -31,10 +43,14 @@
   width: 100%;
   margin: 0 auto 32px;
   padding: 0;
+  /* The sticky row needs its own background to mask grid items
+     that scroll under it. Transparent here — each .dropdownTrigger
+     paints its own frosted-glass pill. */
 }
 
 @media (max-width: 1499px) {
   .filters {
+    top: 160px;
     padding: 0;
     margin-bottom: 24px;
   }
@@ -42,6 +58,7 @@
 
 @media (max-width: 597px) {
   .filters {
+    top: 140px;
     padding: 0 16px;
     margin-bottom: 16px;
     gap: 8px;
@@ -57,7 +74,12 @@
   align-items: center;
   gap: 8px;
   padding: 9px 14px;
-  background: transparent;
+  /* Frosted-glass pill: dim dark fill + heavy backdrop blur so the
+     wallpapers scrolling behind read as "behind glass", letting the
+     trigger stay legible against any photo. */
+  background: rgba(15, 15, 18, 0.55);
+  backdrop-filter: blur(18px) saturate(170%);
+  -webkit-backdrop-filter: blur(18px) saturate(170%);
   border: 1px solid hsla(0, 0%, 100%, 0.18);
   color: var(--opt-color, #fff);
   font-family: "Inter", "Rubik", sans-serif;
@@ -73,7 +95,7 @@
 .dropdownTrigger:hover,
 .dropdownTriggerOpen {
   border-color: hsla(0, 0%, 100%, 0.45);
-  background: hsla(0, 0%, 100%, 0.04);
+  background: rgba(20, 20, 24, 0.7);
 }
 
 .dropdownLabel {

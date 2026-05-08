@@ -8,22 +8,21 @@
   cursor: none;
 }
 
-/* Wrap composes pan + parallax + zoom into a single transform so
-   they stay on one compositor layer. translate is OUTSIDE scale in
-   the transform list, which means the translate is in viewport
-   pixels regardless of zoom level — drag-to-pan feels like 1:1
-   cursor follow even when zoomed in. */
+/* Wrap composes pan + zoom into a single transform so they stay on
+   one compositor layer. translate is OUTSIDE scale in the transform
+   list, which means the translate is in viewport pixels regardless
+   of zoom level — drag-to-pan feels like 1:1 cursor follow even
+   when zoomed in. Parallax was dropped here on purpose: it
+   conflicts with the strict "Antarctica must touch the bottom of
+   the viewport" requirement, since any small parallax y-shift
+   would expose cream below. */
 .mapWrap {
   position: absolute;
   inset: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  transform: translate3d(
-      calc(var(--pan-x, 0px) + var(--mx, 0) * var(--parallax, 24px) * -1),
-      calc(var(--pan-y, 0px) + var(--my, 0) * var(--parallax, 24px) * -1),
-      0
-    )
+  transform: translate3d(var(--pan-x, 0px), var(--pan-y, 0px), 0)
     scale(var(--zoom, 1));
   transform-origin: center center;
   transition: transform 0.18s cubic-bezier(0.2, 0.6, 0.2, 1);

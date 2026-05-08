@@ -28,7 +28,13 @@ export const PAGE_VISUALS: Record<string, PageVisual> = {
     color: "#0a0a0c",
   },
   "/blog": {
-    color: "#0a0a0c",
+    /* /blog is the light page in the strip (cream paper-like bg).
+       The slide-bridge previously painted blog as #0a0a0c which
+       caused a visible flash from dark → cream as the slide
+       handed off to the live page; matching the slide colour to
+       blog's actual background makes the transition read as one
+       continuous slide instead of slide-then-fade. */
+    color: "#f5f4f1",
   },
 };
 

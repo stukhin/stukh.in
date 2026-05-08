@@ -20,16 +20,13 @@ import BlogCountryModal from "./BlogCountryModal";
 import { VISIT_BY_ISO } from "./visits";
 import styles from "./BlogMap.module.css";
 
-// SVG viewBox dimensions. Equal Earth's intrinsic aspect ratio is
-// roughly 2.05 : 1 — picking 1000 × 488 keeps the math clean and
-// the projection fills its viewBox edge-to-edge after fitExtent.
-const WIDTH = 1000;
-const HEIGHT = 488;
-
-// Parallax: cursor at viewport edge translates the map this many
-// pixels in the opposite direction (negative correlation gives the
-// classic "background is deeper than I am" feel).
-const PARALLAX_PX = 24;
+// SVG viewBox dimensions used to fit the projection. Equal Earth
+// has an intrinsic ratio of ~2.05; we pick 1000 × 488 so fitSize
+// produces clean numbers. The viewBox we actually render with is
+// recomputed from the projected feature bounds after fitting, so the
+// map fills the SVG edge-to-edge with no internal margin.
+const FIT_W = 1000;
+const FIT_H = 488;
 
 // Zoom. Baseline (1.0) = the map sized to fill the viewport
 // vertically (top of map → top of viewport, bottom → bottom).
@@ -94,31 +91,40 @@ export default function BlogMap() {
   const [hover, setHover] = useState<CountryHoverState | null>(null);
   const [openIso, setOpenIso] = useState<string | null>(null);
 
-  // Project all country paths once on mount. viewBox is fixed,
-  // preserveAspectRatio="meet" keeps every continent in frame at any
-  // viewport aspect (Australia included).
-  const paths = useMemo(() => {
+  // Project all country paths once on mount. The viewBox is then
+  // tightened to the projected feature bounds — no internal padding,
+  // so the northernmost / southernmost lands actually touch the SVG
+  // top + bottom edges. Combined with CSS height: 100% on the SVG,
+  // this is what lets Antarctica's coastline sit flush with the
+  // viewport bottom.
+  const { paths, viewBoxStr, mapAspect, vb } = useMemo(() => {
     const topology = worldRaw as unknown as Topology;
     const featureCollection = feature(
       topology,
       topology.objects.countries as GeometryCollection
     ) as FeatureCollection<Geometry, { name?: string }>;
 
-    const projection = geoEqualEarth().fitExtent(
-      [
-        [10, 10],
-        [WIDTH - 10, HEIGHT - 10],
-      ],
+    const projection = geoEqualEarth().fitSize(
+      [FIT_W, FIT_H],
       featureCollection
     );
     const pathGen = geoPath(projection);
 
-    return featureCollection.features.map((f: CountryFeature) => {
+    // True bounds of the projected world — fitSize gives us the
+    // requested rect, but rounded edges of Equal Earth at extreme
+    // latitudes leave a sliver of unused space inside that rect, so
+    // we crop the viewBox down to the actual feature footprint.
+    const wb = pathGen.bounds(featureCollection);
+    const vbX = wb[0][0];
+    const vbY = wb[0][1];
+    const vbW = wb[1][0] - wb[0][0];
+    const vbH = wb[1][1] - wb[0][1];
+
+    const list = featureCollection.features.map((f: CountryFeature) => {
       const d = pathGen(f) ?? "";
-      // Bbox centre in projected SVG coords. Used as the transform
-      // origin when we pre-scale the country's <clipPath> to match
-      // the visual's hover scale, so the liquid renders inside the
-      // enlarged silhouette rather than the original-size one.
+      // Bbox centre per country (in projected SVG coords). Used as
+      // the transform origin when the visited <clipPath> pre-scales
+      // to match the visual's hover scale.
       const bounds = pathGen.bounds(f);
       const cx = (bounds[0][0] + bounds[1][0]) / 2;
       const cy = (bounds[0][1] + bounds[1][1]) / 2;
@@ -130,11 +136,22 @@ export default function BlogMap() {
         cy,
       };
     });
+
+    return {
+      paths: list,
+      viewBoxStr: `${vbX} ${vbY} ${vbW} ${vbH}`,
+      mapAspect: vbW / vbH,
+      vb: { x: vbX, y: vbY, w: vbW, h: vbH },
+    };
   }, []);
 
-  // Parallax + wheel-zoom + drag-to-pan — entirely imperative so
-  // high-frequency events don't trigger React re-renders. CSS
-  // variables drive a single transform on the wrap.
+  // Wheel-zoom + drag-to-pan, imperative so high-frequency events
+  // don't trigger React re-renders. Pan is clamped so the map's
+  // bounding box always covers the viewport — at the baseline zoom
+  // (1.0) the map already fills vertically and only the horizontal
+  // overflow is pannable; zooming in opens up vertical pan room as
+  // well. Parallax was dropped on /blog because it conflicted with
+  // the strict "Antarctica touches the bottom edge" requirement.
   useEffect(() => {
     const wrap = wrapRef.current;
     if (!wrap) return;
@@ -144,16 +161,36 @@ export default function BlogMap() {
     wrap.style.setProperty("--pan-x", "0px");
     wrap.style.setProperty("--pan-y", "0px");
 
-    const noHover = window.matchMedia("(hover: none)").matches;
-    const reducedMotion = window.matchMedia(
-      "(prefers-reduced-motion: reduce)"
-    ).matches;
+    /**
+     * Compute current pan limits in viewport pixels. The map's
+     * baseline height equals the wrap height (CSS height: 100%
+     * on the SVG); width is height * mapAspect. Multiplying both
+     * by zoom gives the visible map dims; the half of (visible -
+     * viewport) is how far each axis can pan before the map's
+     * edge would expose cream behind.
+     */
+    const computeLimits = () => {
+      const wrapH = wrap.clientHeight;
+      const wrapW = wrap.clientWidth;
+      const baselineH = wrapH;
+      const baselineW = baselineH * mapAspect;
+      const z = zoomRef.current;
+      const visW = baselineW * z;
+      const visH = baselineH * z;
+      return {
+        h: Math.max(0, (visW - wrapW) / 2),
+        v: Math.max(0, (visH - wrapH) / 2),
+      };
+    };
 
-    let raf: number | null = null;
-    let pendingMx = 0;
-    let pendingMy = 0;
-    /** Active drag, if any. Holds the cursor + pan values at
-     *  mousedown so onMouseMove can compute the delta. */
+    const clampPan = () => {
+      const { h, v } = computeLimits();
+      panRef.current.x = Math.max(-h, Math.min(h, panRef.current.x));
+      panRef.current.y = Math.max(-v, Math.min(v, panRef.current.y));
+      wrap.style.setProperty("--pan-x", `${panRef.current.x}px`);
+      wrap.style.setProperty("--pan-y", `${panRef.current.y}px`);
+    };
+
     let drag: {
       startX: number;
       startY: number;
@@ -161,53 +198,26 @@ export default function BlogMap() {
       startPanY: number;
     } | null = null;
 
-    const flushParallax = () => {
-      raf = null;
-      wrap.style.setProperty("--mx", String(pendingMx));
-      wrap.style.setProperty("--my", String(pendingMy));
-    };
-
     const onMove = (e: MouseEvent) => {
-      if (drag) {
-        // Active drag — pan the map by the cursor delta. Parallax
-        // is also held at zero so the two don't compound.
-        const dx = e.clientX - drag.startX;
-        const dy = e.clientY - drag.startY;
-        if (
-          !dragMovedRef.current &&
-          (Math.abs(dx) > DRAG_THRESHOLD_PX ||
-            Math.abs(dy) > DRAG_THRESHOLD_PX)
-        ) {
-          dragMovedRef.current = true;
-          // Once we cross the threshold, snap parallax to zero so
-          // the drag motion is read 1:1 from the cursor.
-          wrap.style.setProperty("--mx", "0");
-          wrap.style.setProperty("--my", "0");
-        }
-        if (dragMovedRef.current) {
-          panRef.current.x = drag.startPanX + dx;
-          panRef.current.y = drag.startPanY + dy;
-          wrap.style.setProperty(
-            "--pan-x",
-            `${panRef.current.x}px`
-          );
-          wrap.style.setProperty(
-            "--pan-y",
-            `${panRef.current.y}px`
-          );
-        }
-        return;
+      if (!drag) return;
+      const dx = e.clientX - drag.startX;
+      const dy = e.clientY - drag.startY;
+      if (
+        !dragMovedRef.current &&
+        (Math.abs(dx) > DRAG_THRESHOLD_PX ||
+          Math.abs(dy) > DRAG_THRESHOLD_PX)
+      ) {
+        dragMovedRef.current = true;
       }
-      pendingMx = (e.clientX / window.innerWidth - 0.5) * 2;
-      pendingMy = (e.clientY / window.innerHeight - 0.5) * 2;
-      if (raf === null) raf = requestAnimationFrame(flushParallax);
+      if (dragMovedRef.current) {
+        panRef.current.x = drag.startPanX + dx;
+        panRef.current.y = drag.startPanY + dy;
+        clampPan();
+      }
     };
 
     const onMouseDown = (e: MouseEvent) => {
       if (e.button !== 0) return;
-      // Don't intercept clicks on the zoom buttons or the modal
-      // backdrop, which live outside the wrap; only start a drag
-      // for events inside the map area.
       if (!wrap.contains(e.target as Node)) return;
       drag = {
         startX: e.clientX,
@@ -216,22 +226,10 @@ export default function BlogMap() {
         startPanY: panRef.current.y,
       };
       dragMovedRef.current = false;
-      // Disable the smoothing transition for the duration of the
-      // drag so the pan tracks the cursor 1:1 instead of lagging.
       wrap.classList.add(styles.mapWrapDragging);
     };
 
     const onMouseUp = () => {
-      if (drag && dragMovedRef.current) {
-        // Suppress the trailing click event that fires on mouseup
-        // — otherwise dragging across a country would also open
-        // its modal. The flag is read by the country click
-        // handler and resets on the next interaction.
-      } else {
-        // Click without drag — clear the flag so subsequent clicks
-        // open the modal as usual.
-        dragMovedRef.current = false;
-      }
       drag = null;
       wrap.classList.remove(styles.mapWrapDragging);
     };
@@ -244,27 +242,25 @@ export default function BlogMap() {
         Math.min(ZOOM_MAX, zoomRef.current - e.deltaY * ZOOM_STEP)
       );
       wrap.style.setProperty("--zoom", String(zoomRef.current));
+      clampPan();
     };
 
-    if (!noHover && !reducedMotion) {
-      window.addEventListener("mousemove", onMove);
-    } else {
-      // Even without parallax, drag should still work on tablets
-      // / reduced-motion machines.
-      window.addEventListener("mousemove", onMove);
-    }
+    const onResize = () => clampPan();
+
+    window.addEventListener("mousemove", onMove);
     window.addEventListener("mousedown", onMouseDown);
     window.addEventListener("mouseup", onMouseUp);
+    window.addEventListener("resize", onResize);
     wrap.addEventListener("wheel", onWheel, { passive: false });
 
     return () => {
       window.removeEventListener("mousemove", onMove);
       window.removeEventListener("mousedown", onMouseDown);
       window.removeEventListener("mouseup", onMouseUp);
+      window.removeEventListener("resize", onResize);
       wrap.removeEventListener("wheel", onWheel);
-      if (raf !== null) cancelAnimationFrame(raf);
     };
-  }, []);
+  }, [mapAspect]);
 
   const adjustZoom = (delta: number) => {
     const wrap = wrapRef.current;
@@ -274,6 +270,21 @@ export default function BlogMap() {
       Math.min(ZOOM_MAX, zoomRef.current + delta)
     );
     wrap.style.setProperty("--zoom", String(zoomRef.current));
+    // Re-clamp pan because zooming out can shrink the pan range,
+    // leaving the map shifted past its new edge.
+    const wrapH = wrap.clientHeight;
+    const wrapW = wrap.clientWidth;
+    const baselineH = wrapH;
+    const baselineW = baselineH * mapAspect;
+    const z = zoomRef.current;
+    const visW = baselineW * z;
+    const visH = baselineH * z;
+    const hLimit = Math.max(0, (visW - wrapW) / 2);
+    const vLimit = Math.max(0, (visH - wrapH) / 2);
+    panRef.current.x = Math.max(-hLimit, Math.min(hLimit, panRef.current.x));
+    panRef.current.y = Math.max(-vLimit, Math.min(vLimit, panRef.current.y));
+    wrap.style.setProperty("--pan-x", `${panRef.current.x}px`);
+    wrap.style.setProperty("--pan-y", `${panRef.current.y}px`);
   };
 
   const onCountryEnter = (iso: string) => {
@@ -320,15 +331,15 @@ export default function BlogMap() {
         className={styles.mapWrap}
         style={
           {
-            "--parallax": `${PARALLAX_PX}px`,
             "--hover-scale": String(HOVER_SCALE),
           } as CSSProperties
         }
       >
         <svg
-          viewBox={`0 0 ${WIDTH} ${HEIGHT}`}
+          viewBox={viewBoxStr}
           className={styles.map}
           preserveAspectRatio="xMidYMid meet"
+          style={{ aspectRatio: String(mapAspect) }}
           aria-label="World map of visited places"
         >
           <defs>
@@ -383,10 +394,10 @@ export default function BlogMap() {
           {hover && (
             <foreignObject
               key="liquid"
-              x="0"
-              y="0"
-              width={WIDTH}
-              height={HEIGHT}
+              x={vb.x}
+              y={vb.y}
+              width={vb.w}
+              height={vb.h}
               clipPath={`url(#country-clip-${hover.visit.iso})`}
               style={{ pointerEvents: "none" }}
             >
