@@ -31,14 +31,21 @@ const HEIGHT = 488;
 // classic "background is deeper than I am" feel).
 const PARALLAX_PX = 24;
 
-// Zoom — wheel makes large jumps now (was 0.0015, took the user
-// dozens of scroll units to see anything). Bumped ZOOM_MAX so the
-// user can actually zoom in meaningfully when they want to.
-const ZOOM_MIN = 0.7;
+// Zoom. Baseline (1.0) = the map sized to fill the viewport
+// vertically (top of map → top of viewport, bottom → bottom).
+// Zooming out below baseline isn't allowed — that's why the floor
+// is 1.0; zooming in is the only direction the user can move.
+const ZOOM_MIN = 1.0;
 const ZOOM_MAX = 3.2;
 const ZOOM_INITIAL = 1.0;
 const ZOOM_STEP = 0.005;
 const ZOOM_BUTTON_STEP = 0.22;
+
+/** Click-vs-drag threshold (px). The user has to move the mouse
+ *  this far during a mousedown for the action to count as a pan
+ *  rather than a click on whatever was under the cursor. Stops
+ *  drags from accidentally opening the country modal. */
+const DRAG_THRESHOLD_PX = 5;
 
 // Scale factor applied to the visual on hover. Same factor is baked
 // into the hit-area path's permanent scale so the hover region is
@@ -78,6 +85,11 @@ type CountryFeature = Feature<Geometry, { name?: string }>;
 export default function BlogMap() {
   const wrapRef = useRef<HTMLDivElement>(null);
   const zoomRef = useRef(ZOOM_INITIAL);
+  const panRef = useRef({ x: 0, y: 0 });
+  /** True when a drag pushed past DRAG_THRESHOLD. Read by the
+   *  click handler so dragging doesn't accidentally open the
+   *  country modal at mouseup. */
+  const dragMovedRef = useRef(false);
   const leaveTimerRef = useRef<number | null>(null);
   const [hover, setHover] = useState<CountryHoverState | null>(null);
   const [openIso, setOpenIso] = useState<string | null>(null);
@@ -120,14 +132,17 @@ export default function BlogMap() {
     });
   }, []);
 
-  // Parallax + wheel-zoom — entirely imperative so 60fps mouse moves
-  // don't trigger React re-renders. CSS variables drive the transform.
+  // Parallax + wheel-zoom + drag-to-pan — entirely imperative so
+  // high-frequency events don't trigger React re-renders. CSS
+  // variables drive a single transform on the wrap.
   useEffect(() => {
     const wrap = wrapRef.current;
     if (!wrap) return;
     if (typeof window === "undefined") return;
 
     wrap.style.setProperty("--zoom", String(ZOOM_INITIAL));
+    wrap.style.setProperty("--pan-x", "0px");
+    wrap.style.setProperty("--pan-y", "0px");
 
     const noHover = window.matchMedia("(hover: none)").matches;
     const reducedMotion = window.matchMedia(
@@ -137,17 +152,88 @@ export default function BlogMap() {
     let raf: number | null = null;
     let pendingMx = 0;
     let pendingMy = 0;
+    /** Active drag, if any. Holds the cursor + pan values at
+     *  mousedown so onMouseMove can compute the delta. */
+    let drag: {
+      startX: number;
+      startY: number;
+      startPanX: number;
+      startPanY: number;
+    } | null = null;
 
-    const flush = () => {
+    const flushParallax = () => {
       raf = null;
       wrap.style.setProperty("--mx", String(pendingMx));
       wrap.style.setProperty("--my", String(pendingMy));
     };
 
     const onMove = (e: MouseEvent) => {
+      if (drag) {
+        // Active drag — pan the map by the cursor delta. Parallax
+        // is also held at zero so the two don't compound.
+        const dx = e.clientX - drag.startX;
+        const dy = e.clientY - drag.startY;
+        if (
+          !dragMovedRef.current &&
+          (Math.abs(dx) > DRAG_THRESHOLD_PX ||
+            Math.abs(dy) > DRAG_THRESHOLD_PX)
+        ) {
+          dragMovedRef.current = true;
+          // Once we cross the threshold, snap parallax to zero so
+          // the drag motion is read 1:1 from the cursor.
+          wrap.style.setProperty("--mx", "0");
+          wrap.style.setProperty("--my", "0");
+        }
+        if (dragMovedRef.current) {
+          panRef.current.x = drag.startPanX + dx;
+          panRef.current.y = drag.startPanY + dy;
+          wrap.style.setProperty(
+            "--pan-x",
+            `${panRef.current.x}px`
+          );
+          wrap.style.setProperty(
+            "--pan-y",
+            `${panRef.current.y}px`
+          );
+        }
+        return;
+      }
       pendingMx = (e.clientX / window.innerWidth - 0.5) * 2;
       pendingMy = (e.clientY / window.innerHeight - 0.5) * 2;
-      if (raf === null) raf = requestAnimationFrame(flush);
+      if (raf === null) raf = requestAnimationFrame(flushParallax);
+    };
+
+    const onMouseDown = (e: MouseEvent) => {
+      if (e.button !== 0) return;
+      // Don't intercept clicks on the zoom buttons or the modal
+      // backdrop, which live outside the wrap; only start a drag
+      // for events inside the map area.
+      if (!wrap.contains(e.target as Node)) return;
+      drag = {
+        startX: e.clientX,
+        startY: e.clientY,
+        startPanX: panRef.current.x,
+        startPanY: panRef.current.y,
+      };
+      dragMovedRef.current = false;
+      // Disable the smoothing transition for the duration of the
+      // drag so the pan tracks the cursor 1:1 instead of lagging.
+      wrap.classList.add(styles.mapWrapDragging);
+    };
+
+    const onMouseUp = () => {
+      if (drag && dragMovedRef.current) {
+        // Suppress the trailing click event that fires on mouseup
+        // — otherwise dragging across a country would also open
+        // its modal. The flag is read by the country click
+        // handler and resets on the next interaction.
+      } else {
+        // Click without drag — clear the flag so subsequent clicks
+        // open the modal as usual.
+        dragMovedRef.current = false;
+      }
+      drag = null;
+      wrap.classList.remove(styles.mapWrapDragging);
     };
 
     const onWheel = (e: WheelEvent) => {
@@ -162,11 +248,19 @@ export default function BlogMap() {
 
     if (!noHover && !reducedMotion) {
       window.addEventListener("mousemove", onMove);
+    } else {
+      // Even without parallax, drag should still work on tablets
+      // / reduced-motion machines.
+      window.addEventListener("mousemove", onMove);
     }
+    window.addEventListener("mousedown", onMouseDown);
+    window.addEventListener("mouseup", onMouseUp);
     wrap.addEventListener("wheel", onWheel, { passive: false });
 
     return () => {
       window.removeEventListener("mousemove", onMove);
+      window.removeEventListener("mousedown", onMouseDown);
+      window.removeEventListener("mouseup", onMouseUp);
       wrap.removeEventListener("wheel", onWheel);
       if (raf !== null) cancelAnimationFrame(raf);
     };
@@ -200,6 +294,12 @@ export default function BlogMap() {
     }, LEAVE_DEBOUNCE_MS);
   };
   const onCountryClick = (iso: string) => {
+    if (dragMovedRef.current) {
+      // The user just finished a drag across this country — don't
+      // treat the click as "open the country modal".
+      dragMovedRef.current = false;
+      return;
+    }
     if (VISIT_BY_ISO.has(iso)) {
       setOpenIso(iso);
       setHover(null);
@@ -291,19 +391,14 @@ export default function BlogMap() {
               style={{ pointerEvents: "none" }}
             >
               <div
-                /* xmlns is set via dangerouslySetInnerHTML-style
-                   spread because React's HTMLDivElement type
-                   doesn't list xmlns; without it, browsers default
-                   to HTML namespace inside foreignObject which is
-                   what we want anyway. */
+                /* xmlns set via spread because React's
+                   HTMLDivElement type doesn't list it; browsers
+                   default to HTML namespace inside foreignObject
+                   regardless. */
                 {...({
                   xmlns: "http://www.w3.org/1999/xhtml",
                 } as Record<string, string>)}
-                style={{
-                  width: "100%",
-                  height: "100%",
-                  pointerEvents: "none",
-                }}
+                className={styles.liquidWrap}
               >
                 <LiquidEther
                   colors={LIQUID_COLORS}
@@ -337,7 +432,7 @@ export default function BlogMap() {
               onMouseEnter={() => onCountryEnter(p.id)}
               onMouseLeave={onCountryLeave}
               onClick={() => onCountryClick(p.id)}
-              data-cursor="hover"
+              data-cursor="magnifier"
               aria-label={p.name}
             />
           ))}

@@ -16,12 +16,15 @@ export type Visit = {
    *  TopoJSON's English label so we can keep the casing consistent
    *  with the rest of the site). */
   name: string;
+  /** Country flag emoji. Hand-coded so it doesn't depend on
+   *  alpha-2 lookup at render time. */
+  flag: string;
   /** Free-form date / period of the trip. */
   dates: string;
   /** Cities visited, in the order they're worth listing. */
   cities: string[];
-  /** Photo thumbs for the hover plate. Empty array → plate shows a
-   *  "previews coming" placeholder instead. */
+  /** Photo thumbs for the hover plate (3 are shown — empty slots
+   *  render as quiet placeholders until real photos are wired up). */
   thumbs: string[];
   /** Long-form paragraph for the modal. */
   description?: string;
@@ -33,6 +36,7 @@ export const VISITS: Visit[] = [
   {
     iso: "724",
     name: "spain",
+    flag: "🇪🇸",
     dates: "september 2023",
     cities: ["barcelona", "girona", "valencia"],
     thumbs: [],
@@ -47,6 +51,7 @@ export const VISITS: Visit[] = [
   {
     iso: "410",
     name: "south korea",
+    flag: "🇰🇷",
     dates: "april 2024",
     cities: ["seoul", "busan", "jeju"],
     thumbs: [],
@@ -61,6 +66,7 @@ export const VISITS: Visit[] = [
   {
     iso: "152",
     name: "chile",
+    flag: "🇨🇱",
     dates: "december 2022",
     cities: ["santiago", "san pedro de atacama", "puerto natales"],
     thumbs: [],

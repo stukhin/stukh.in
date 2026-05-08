@@ -5,10 +5,8 @@
   z-index: 90;
   pointer-events: none;
   transform: translate3d(-9999px, -9999px, 0);
-  /* Dark frosted plate to match the wallpaper hover plate's recipe,
-     adjusted for the cream /blog background — strong contrast against
-     the page so white-on-dark text wins. No border, no rounded
-     corners (matches the rest of the site's right-angle aesthetic). */
+  /* Dark frosted plate. No border, no rounded corners — matches the
+     rest of the site's right-angle aesthetic. */
   background: rgba(20, 20, 22, 0.78);
   backdrop-filter: blur(28px) saturate(200%) brightness(1.08) contrast(1.05);
   -webkit-backdrop-filter: blur(28px) saturate(200%) brightness(1.08)
@@ -22,17 +20,31 @@
   opacity: 0;
   transition: opacity 0.16s ease-out;
   will-change: transform, opacity;
-  min-width: 200px;
+  /* Width tuned to fit three 3:4 thumbs side by side comfortably. */
+  width: 264px;
 }
 
 .plate.opaque {
   opacity: 1;
 }
 
+.head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 6px;
+}
+
 .name {
   font-size: 18px;
   text-transform: lowercase;
-  margin-bottom: 6px;
+}
+
+.flag {
+  font-size: 18px;
+  /* Native colour glyph emoji rendering — no font weight applies. */
+  line-height: 1;
 }
 
 .dates {
@@ -48,40 +60,26 @@
   opacity: 0.75;
   text-transform: lowercase;
   margin-bottom: 12px;
+  /* Allow city lists to wrap if a future country has many. */
+  white-space: normal;
+  line-height: 1.4;
 }
 
+/* Three thumbs in a row, 3:4 aspect, equal width. Empty slots show
+   the placeholder fill so the row holds its shape. */
 .thumbs {
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
   gap: 4px;
-  margin-bottom: 10px;
 }
 
 .thumb {
   display: block;
-  width: 56px;
-  height: 56px;
+  width: 100%;
+  aspect-ratio: 3 / 4;
   background-size: cover;
   background-position: center;
-  background-color: rgba(255, 255, 255, 0.08);
-}
-
-.thumbsPlaceholder {
-  font-size: 10px;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  opacity: 0.4;
-  padding: 14px 0;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-  margin-bottom: 10px;
-  text-align: center;
-}
-
-.hint {
-  font-size: 10px;
-  opacity: 0.45;
-  text-transform: uppercase;
-  letter-spacing: 0.16em;
+  background-color: rgba(255, 255, 255, 0.07);
 }
 
 /* Touch / no-cursor devices: skip the plate. The card opens its

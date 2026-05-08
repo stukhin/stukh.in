@@ -61,27 +61,30 @@ export default function BlogCountryPlate({ hover }: Props) {
       className={`${styles.plate} ${opaque ? styles.opaque : ""}`}
       aria-hidden="true"
     >
-      <div className={styles.name}>{visit.name}</div>
+      <div className={styles.head}>
+        <span className={styles.name}>{visit.name}</span>
+        <span className={styles.flag}>{visit.flag}</span>
+      </div>
       <div className={styles.dates}>{visit.dates}</div>
       {visit.cities.length > 0 && (
         <div className={styles.cities}>{visit.cities.join(" · ")}</div>
       )}
 
-      {visit.thumbs.length > 0 ? (
-        <div className={styles.thumbs}>
-          {visit.thumbs.slice(0, 3).map((src, i) => (
+      {/* Three 3:4 thumb slots — placeholders until real photo paths
+          land in visits.ts. Even when slots are empty the row keeps
+          its shape so the plate doesn't reflow when photos arrive. */}
+      <div className={styles.thumbs}>
+        {[0, 1, 2].map((i) => {
+          const src = visit.thumbs[i];
+          return (
             <span
               key={i}
               className={styles.thumb}
-              style={{ backgroundImage: `url(${src})` }}
+              style={src ? { backgroundImage: `url(${src})` } : undefined}
             />
-          ))}
-        </div>
-      ) : (
-        <div className={styles.thumbsPlaceholder}>previews coming</div>
-      )}
-
-      <div className={styles.hint}>click to open</div>
+          );
+        })}
+      </div>
     </div>
   );
 }
