@@ -101,11 +101,23 @@ export default function BlogMap() {
     );
     const pathGen = geoPath(projection);
 
-    return featureCollection.features.map((f: CountryFeature) => ({
-      id: String(f.id ?? ""),
-      name: f.properties?.name ?? "",
-      d: pathGen(f) ?? "",
-    }));
+    return featureCollection.features.map((f: CountryFeature) => {
+      const d = pathGen(f) ?? "";
+      // Bbox centre in projected SVG coords. Used as the transform
+      // origin when we pre-scale the country's <clipPath> to match
+      // the visual's hover scale, so the liquid renders inside the
+      // enlarged silhouette rather than the original-size one.
+      const bounds = pathGen.bounds(f);
+      const cx = (bounds[0][0] + bounds[1][0]) / 2;
+      const cy = (bounds[0][1] + bounds[1][1]) / 2;
+      return {
+        id: String(f.id ?? ""),
+        name: f.properties?.name ?? "",
+        d,
+        cx,
+        cy,
+      };
+    });
   }, []);
 
   // Parallax + wheel-zoom — entirely imperative so 60fps mouse moves
@@ -222,10 +234,16 @@ export default function BlogMap() {
           <defs>
             {/* One <clipPath> per visited country — used by the
                 LiquidEther <foreignObject> to mask its canvas to the
-                exact country silhouette. */}
+                exact country silhouette. The path inside is
+                pre-scaled HOVER_SCALE× around the country's bbox
+                centre so the clip lines up with the visual's
+                hover-scale state (not the original-size country). */}
             {visited.map((p) => (
               <clipPath key={`clip-${p.id}`} id={`country-clip-${p.id}`}>
-                <path d={p.d} />
+                <path
+                  d={p.d}
+                  transform={`translate(${p.cx} ${p.cy}) scale(${HOVER_SCALE}) translate(${-p.cx} ${-p.cy})`}
+                />
               </clipPath>
             ))}
           </defs>
@@ -307,7 +325,10 @@ export default function BlogMap() {
 
           {/* Permanent 2× hit area on top — captures all mouse
               events for the country. Transparent fill so it stays
-              invisible. */}
+              invisible. aria-label (not <title>) gives the country
+              a name for screen readers without firing the native
+              browser tooltip we don't want — the cursor-following
+              plate already carries the visible label. */}
           {visited.map((p) => (
             <path
               key={`hit-${p.id}`}
@@ -317,9 +338,8 @@ export default function BlogMap() {
               onMouseLeave={onCountryLeave}
               onClick={() => onCountryClick(p.id)}
               data-cursor="hover"
-            >
-              <title>{p.name}</title>
-            </path>
+              aria-label={p.name}
+            />
           ))}
         </svg>
       </div>
