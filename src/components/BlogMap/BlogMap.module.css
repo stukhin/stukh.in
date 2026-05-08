@@ -5,11 +5,12 @@
   position: absolute;
   inset: 0;
   overflow: hidden;
+  cursor: none;
 }
 
 /* Wrap is what gets translated for parallax + scaled for zoom. The
    transform composes both in one declaration so they stay on a single
-   compositor layer (no extra paints per frame). */
+   compositor layer. */
 .mapWrap {
   position: absolute;
   inset: 0;
@@ -31,40 +32,53 @@
   width: 100%;
   height: 100%;
   display: block;
+  cursor: none;
 }
 
-/* Default country: solid pale fill, NO stroke. With every country
-   sharing the same fill and no internal borders, neighbours visually
-   merge into one continent silhouette — exactly what we want for a
-   "rest of the world is the backdrop" feel. */
+/* Default country: solid pale fill, NO stroke. Continents read as
+   one mass — neighbours' borders disappear into the shared fill. */
 .country {
   fill: #d6d2c8;
   stroke: none;
-  transition: fill 0.18s ease, transform 0.28s cubic-bezier(0.2, 0.7, 0.4, 1);
+  cursor: none;
 }
 
-/* Visited country: dark fill that pops against the pale rest of the
-   world, plus a thin matching stroke that becomes the country
-   outline once the country scales up on hover (same colour as the
-   fill at idle so it's invisible until the scale actually happens). */
-.visited {
+/* Visited country: visual layer. Renders underneath the LiquidEther
+   foreignObject and the hit-area path. Scales to var(--hover-scale)
+   when its sibling hit area registers a hover (the "active" class
+   is applied from React state, not :hover, so transitions don't
+   feed back into hit-area changes). */
+.visitedVisual {
   fill: #1a1a1a;
-  stroke: #1a1a1a;
-  stroke-width: 0.4;
-  cursor: none;
-  /* fill-box transform-origin scales the country around its own
-     bounding-box centre rather than around the SVG origin. */
+  pointer-events: none;
   transform-box: fill-box;
   transform-origin: center center;
+  transition: fill 0.22s ease,
+    transform 0.32s cubic-bezier(0.2, 0.7, 0.4, 1);
 }
 
-.visited:hover {
+.visitedVisualActive {
   fill: #c14a3a;
-  stroke: #c14a3a;
-  /* User asked for ~2× scale on hover. The visited paths render
-     after the rest, so the scaled shape sits on top of any
-     neighbouring countries. */
-  transform: scale(2);
+  transform: scale(var(--hover-scale, 2));
+}
+
+/* Hit area: same path as the visual, transparent, but PERMANENTLY
+   scaled to the hover scale. This is the trick that kills the
+   flicker — the cursor sits inside a stable region the size of the
+   would-be enlarged country, so the scale animation on the visual
+   doesn't change anything about hit detection. */
+.visitedHit {
+  fill: transparent;
+  stroke: transparent;
+  /* Slight stroke buffer for the very edge — extends the hit
+     region by a few px past the path outline. */
+  stroke-width: 4;
+  vector-effect: non-scaling-stroke;
+  pointer-events: all;
+  cursor: none;
+  transform-box: fill-box;
+  transform-origin: center center;
+  transform: scale(var(--hover-scale, 2));
 }
 
 /* Bottom-left zoom controls. Two stacked square buttons in the same
@@ -112,9 +126,7 @@
   }
 }
 
-/* "Under construction" stamp — pinned to the centre of the page,
-   above the map. Discreet rectangular outline so the page status is
-   explicit without competing with the highlighted countries. */
+/* "Under construction" stamp — pinned to the centre of the page. */
 .stamp {
   position: absolute;
   top: 50%;
@@ -141,10 +153,16 @@
   }
 }
 
-/* Reduced motion / touch fallback: skip the parallax transition. */
+/* Reduced motion / touch fallback. */
 @media (hover: none), (prefers-reduced-motion: reduce) {
   .mapWrap {
     transition: none;
     transform: scale(var(--zoom, 1));
+  }
+  .visitedVisual {
+    transition: fill 0.22s ease;
+  }
+  .visitedVisualActive {
+    transform: none;
   }
 }
