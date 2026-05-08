@@ -1,19 +1,15 @@
-/* The root absolutely fills its containing /blog .page wrapper.
-   Children: the map (parallax-translated) and the under-construction
-   stamp (kept put). */
+/* Root absolutely fills the /blog .page wrapper. Children: the
+   parallax-translated map, two zoom buttons, the centred "under
+   construction" stamp. */
 .root {
   position: absolute;
   inset: 0;
   overflow: hidden;
 }
 
-/* The wrap is what gets translated for parallax + scaled for zoom.
-   Stays a sibling of the stamp so the stamp doesn't ride along with
-   the cursor. The translate uses --mx / --my (each in [-1, 1],
-   updated each rAF tick from a mousemove listener) multiplied by
-   --parallax (the maximum px shift). The leading negative gives the
-   classic "background is deeper" feel — moving the cursor right
-   shifts the map left. */
+/* Wrap is what gets translated for parallax + scaled for zoom. The
+   transform composes both in one declaration so they stay on a single
+   compositor layer (no extra paints per frame). */
 .mapWrap {
   position: absolute;
   inset: 0;
@@ -25,12 +21,8 @@
       calc(var(--my, 0) * var(--parallax, 24px) * -1),
       0
     )
-    scale(var(--zoom, 1.08));
+    scale(var(--zoom, 1));
   transform-origin: center center;
-  /* Trailing transition so the map doesn't snap to every mousemove
-     pixel — feels like a heavy panel on a delayed spring. Tuned long
-     enough to smooth jitter, short enough that the connection to the
-     cursor still reads. */
   transition: transform 0.18s cubic-bezier(0.2, 0.6, 0.2, 1);
   will-change: transform;
 }
@@ -41,29 +33,93 @@
   display: block;
 }
 
-/* Default country: pale fill that reads as "land vs. ocean" without
-   competing with the title or the highlighted countries. Borders
-   sit just darker than the fill so the silhouettes still register. */
+/* Default country: solid pale fill, NO stroke. With every country
+   sharing the same fill and no internal borders, neighbours visually
+   merge into one continent silhouette — exactly what we want for a
+   "rest of the world is the backdrop" feel. */
 .country {
-  fill: #e2dfd7;
-  stroke: #d4d0c8;
-  stroke-width: 0.5;
-  transition: fill 0.18s ease;
+  fill: #d6d2c8;
+  stroke: none;
+  transition: fill 0.18s ease, transform 0.28s cubic-bezier(0.2, 0.7, 0.4, 1);
 }
 
+/* Visited country: dark fill that pops against the pale rest of the
+   world, plus a thin matching stroke that becomes the country
+   outline once the country scales up on hover (same colour as the
+   fill at idle so it's invisible until the scale actually happens). */
 .visited {
   fill: #1a1a1a;
+  stroke: #1a1a1a;
+  stroke-width: 0.4;
   cursor: none;
+  /* fill-box transform-origin scales the country around its own
+     bounding-box centre rather than around the SVG origin. */
+  transform-box: fill-box;
+  transform-origin: center center;
 }
 
 .visited:hover {
   fill: #c14a3a;
+  stroke: #c14a3a;
+  /* User asked for ~2× scale on hover. The visited paths render
+     after the rest, so the scaled shape sits on top of any
+     neighbouring countries. */
+  transform: scale(2);
 }
 
+/* Bottom-left zoom controls. Two stacked square buttons in the same
+   minimal-outlined style as the under-construction stamp. */
+.zoomControls {
+  position: absolute;
+  bottom: 32px;
+  left: 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  z-index: 5;
+}
+
+.zoomBtn {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(245, 244, 241, 0.85);
+  border: 1px solid rgba(0, 0, 0, 0.4);
+  color: #1a1a1a;
+  font-size: 18px;
+  font-weight: 200;
+  line-height: 1;
+  cursor: none;
+  font-family: "Inter", "Rubik", sans-serif;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.zoomBtn:hover {
+  background: #1a1a1a;
+  color: #f5f4f1;
+}
+
+@media (max-width: 597px) {
+  .zoomControls {
+    bottom: 20px;
+    left: 20px;
+  }
+  .zoomBtn {
+    width: 32px;
+    height: 32px;
+  }
+}
+
+/* "Under construction" stamp — pinned to the centre of the page,
+   above the map. Discreet rectangular outline so the page status is
+   explicit without competing with the highlighted countries. */
 .stamp {
   position: absolute;
-  right: 32px;
-  bottom: 32px;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
   font-family: "Inter", "Rubik", sans-serif;
   font-size: 11px;
   letter-spacing: 0.32em;
@@ -73,25 +129,22 @@
   border: 1px solid rgba(0, 0, 0, 0.35);
   padding: 6px 12px;
   pointer-events: none;
-  /* Above the map but below the page header / shell. */
-  z-index: 1;
+  z-index: 4;
+  background: rgba(245, 244, 241, 0.7);
 }
 
 @media (max-width: 597px) {
   .stamp {
-    right: 16px;
-    bottom: 16px;
     font-size: 9px;
     letter-spacing: 0.24em;
     padding: 5px 9px;
   }
 }
 
-/* Reduced motion / touch fallback: skip the transition so the map
-   renders cleanly at its initial zoom without animating in. */
+/* Reduced motion / touch fallback: skip the parallax transition. */
 @media (hover: none), (prefers-reduced-motion: reduce) {
   .mapWrap {
     transition: none;
-    transform: scale(var(--zoom, 1.08));
+    transform: scale(var(--zoom, 1));
   }
 }

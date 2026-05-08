@@ -8,17 +8,17 @@ export const metadata = {
 
 /**
  * /blog — the light page in the chain (home dark → nature dark →
- * city light → walls dark → blog light, alternating). The world
- * map fills the page as a parallax background; the small header at
- * the top of the viewport states what it is. Future iterations will
- * wire each visited country to a hover preview and an optional click
- * through to /walls filtered by location.
+ * city light → walls dark → blog light, alternating). The whole
+ * page is the world map: hover a visited country for a quick
+ * preview plate, click for the full story modal.
+ *
+ * Title and subtitle are gone on purpose — until the map has real
+ * stories to tell, the only header is the centred "under
+ * construction" stamp inside BlogMap.
  */
 export default function BlogPage() {
   return (
     <div className={styles.page}>
-      {/* Map sits underneath everything — it owns the whole viewport
-          and animates with the cursor. */}
       <BlogMap />
       <AppShell
         theme="light"
@@ -26,13 +26,7 @@ export default function BlogPage() {
         burgerBg="rgba(20, 20, 20, 0.08)"
         burgerLine="#1a1a1a"
       >
-        <header className={styles.head}>
-          <h1 className={styles.title}>where i&apos;ve been</h1>
-          <p className={styles.subtitle}>
-            countries i&apos;ve photographed in. interactive previews
-            and per-country stories are coming.
-          </p>
-        </header>
+        <></>
       </AppShell>
     </div>
   );

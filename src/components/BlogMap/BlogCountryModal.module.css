@@ -1,0 +1,182 @@
+/* Frosted full-viewport backdrop. Sits above the map but below the
+   logo (z 45) and the burger (z 60) — wait, that's not right for a
+   modal. Lift it above everything by raising z to 70+. The shell
+   elements get hidden via :global(html.zoom-open) rules they each
+   already carry, which the modal sets on mount. */
+.backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 70;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(245, 244, 241, 0.55);
+  backdrop-filter: blur(22px) saturate(160%);
+  -webkit-backdrop-filter: blur(22px) saturate(160%);
+  cursor: none;
+  animation: backdropIn 0.28s ease-out both;
+}
+
+@keyframes backdropIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* The box itself — rectangular, no rounded corners, slim 1px outline
+   on the page bg color so it reads as paper on the frosted glass. */
+.box {
+  position: relative;
+  width: min(640px, 92vw);
+  max-height: min(86vh, 720px);
+  background: #f5f4f1;
+  color: #1a1a1a;
+  padding: 48px 56px 56px;
+  cursor: none;
+  overflow-y: auto;
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.18);
+  animation: boxIn 0.32s cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+
+@media (max-width: 597px) {
+  .box {
+    width: 92vw;
+    padding: 36px 24px 36px;
+  }
+}
+
+@keyframes boxIn {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.close {
+  position: absolute;
+  top: 14px;
+  right: 18px;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  font-size: 28px;
+  font-weight: 200;
+  line-height: 1;
+  color: #1a1a1a;
+  cursor: none;
+  transition: opacity 0.15s ease;
+  opacity: 0.55;
+}
+
+.close:hover {
+  opacity: 1;
+}
+
+.head {
+  margin-bottom: 24px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.name {
+  margin: 0;
+  font-size: 38px;
+  font-weight: 300;
+  letter-spacing: -0.02em;
+  text-transform: lowercase;
+  line-height: 1;
+}
+
+@media (max-width: 597px) {
+  .name {
+    font-size: 30px;
+  }
+}
+
+.dates {
+  margin: 10px 0 0;
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: lowercase;
+  opacity: 0.55;
+}
+
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+.description {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.55;
+  font-weight: 300;
+  letter-spacing: -0.01em;
+}
+
+@media (max-width: 597px) {
+  .description {
+    font-size: 14px;
+  }
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.sectionTitle {
+  margin: 0;
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  opacity: 0.55;
+  font-weight: 300;
+}
+
+.sectionBody {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.5;
+  font-weight: 300;
+  text-transform: lowercase;
+}
+
+.list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.listItem {
+  font-size: 14px;
+  line-height: 1.5;
+  font-weight: 300;
+}
+
+.placeholder {
+  margin: 8px 0 0;
+  padding-top: 16px;
+  border-top: 1px solid rgba(0, 0, 0, 0.1);
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  opacity: 0.4;
+  text-align: center;
+}

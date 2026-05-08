@@ -1,0 +1,93 @@
+.plate {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 90;
+  pointer-events: none;
+  transform: translate3d(-9999px, -9999px, 0);
+  /* Dark frosted plate to match the wallpaper hover plate's recipe,
+     adjusted for the cream /blog background — strong contrast against
+     the page so white-on-dark text wins. No border, no rounded
+     corners (matches the rest of the site's right-angle aesthetic). */
+  background: rgba(20, 20, 22, 0.78);
+  backdrop-filter: blur(28px) saturate(200%) brightness(1.08) contrast(1.05);
+  -webkit-backdrop-filter: blur(28px) saturate(200%) brightness(1.08)
+    contrast(1.05);
+  padding: 14px 18px;
+  color: #f5f4f1;
+  font-family: "Rubik", "Inter", sans-serif;
+  font-weight: 300;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+  opacity: 0;
+  transition: opacity 0.16s ease-out;
+  will-change: transform, opacity;
+  min-width: 200px;
+}
+
+.plate.opaque {
+  opacity: 1;
+}
+
+.name {
+  font-size: 18px;
+  text-transform: lowercase;
+  margin-bottom: 6px;
+}
+
+.dates {
+  font-size: 11px;
+  opacity: 0.55;
+  text-transform: lowercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 4px;
+}
+
+.cities {
+  font-size: 12px;
+  opacity: 0.75;
+  text-transform: lowercase;
+  margin-bottom: 12px;
+}
+
+.thumbs {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 10px;
+}
+
+.thumb {
+  display: block;
+  width: 56px;
+  height: 56px;
+  background-size: cover;
+  background-position: center;
+  background-color: rgba(255, 255, 255, 0.08);
+}
+
+.thumbsPlaceholder {
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  opacity: 0.4;
+  padding: 14px 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  margin-bottom: 10px;
+  text-align: center;
+}
+
+.hint {
+  font-size: 10px;
+  opacity: 0.45;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+}
+
+/* Touch / no-cursor devices: skip the plate. The card opens its
+   modal directly on tap on mobile. */
+@media (hover: none), (max-width: 1024px) {
+  .plate {
+    display: none;
+  }
+}
