@@ -332,6 +332,7 @@ export default function BlogMap() {
         style={
           {
             "--hover-scale": String(HOVER_SCALE),
+            "--map-aspect": String(mapAspect),
           } as CSSProperties
         }
       >
@@ -339,7 +340,6 @@ export default function BlogMap() {
           viewBox={viewBoxStr}
           className={styles.map}
           preserveAspectRatio="xMidYMid meet"
-          style={{ aspectRatio: String(mapAspect) }}
           aria-label="World map of visited places"
         >
           <defs>

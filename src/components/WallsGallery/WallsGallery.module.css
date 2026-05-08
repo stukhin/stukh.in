@@ -23,44 +23,35 @@
   }
 }
 
-/* Two-dropdown filter row above the grid. Stays put while the user
-   scrolls the wallpapers below — position:sticky pins the row to a
-   small offset from the top of the viewport once it gets there.
-   The dropdown triggers themselves carry the frosted-glass look so
-   the row reads cleanly against any photo scrolling behind. */
+/* Two-dropdown filter row pinned below the logo. position: fixed
+   instead of sticky because the page wrapper carries
+   overflow-x: hidden — that sets the wrapper as the sticky scroll
+   container, and since it doesn't scroll vertically itself the
+   sticky never activates. Fixed sidesteps the issue entirely.
+   The dropdown triggers carry their own frosted-glass background
+   so they read cleanly against wallpapers scrolling behind. */
 .filters {
-  position: sticky;
-  /* Sticks just below the logo's bottom line. The logo lives at
-     top: 66px and is ~3 lines tall, so 200px clears it cleanly on
-     desktop. On narrower viewports we tighten this with media
-     queries below. */
+  position: fixed;
+  /* Below the logo's last line. Logo top: 66px, ~3 lines tall, so
+     200px clears it cleanly on desktop. */
   top: 200px;
+  left: 50%;
+  transform: translateX(-50%);
   z-index: 10;
   display: flex;
   gap: 12px;
   align-items: flex-start;
-  max-width: 1100px;
-  width: 100%;
-  margin: 0 auto 32px;
-  padding: 0;
-  /* The sticky row needs its own background to mask grid items
-     that scroll under it. Transparent here — each .dropdownTrigger
-     paints its own frosted-glass pill. */
 }
 
 @media (max-width: 1499px) {
   .filters {
     top: 160px;
-    padding: 0;
-    margin-bottom: 24px;
   }
 }
 
 @media (max-width: 597px) {
   .filters {
     top: 140px;
-    padding: 0 16px;
-    margin-bottom: 16px;
     gap: 8px;
   }
 }

@@ -36,15 +36,20 @@
   transition: none;
 }
 
-/* Map: height fills the viewport so the top + bottom edges of the
-   map always touch the top + bottom edges of the page, regardless
-   of viewport aspect. Width is derived from the SVG's viewBox
-   ratio (~2.05) — on a typical 16:9 viewport the map is wider
-   than the viewport, the excess is clipped by .root's overflow:
-   hidden, and the user can drag to pan into the hidden area. */
+/* Map: height fills the viewport, width is derived explicitly from
+   the dynamic-viewport-height × the projected feature bbox aspect
+   ratio (passed in as --map-aspect on .mapWrap). We can't rely on
+   `width: auto` here because in a flex container that resolves to
+   `max-content`, which for SVG = viewBox.width — which would
+   collapse the map to a fixed pixel width regardless of the
+   parent's actual size. Explicit calc ensures the SVG element box
+   matches the viewport vertically with the natural map proportion
+   horizontally; flex-shrink: 0 keeps it that size even if the wrap
+   is narrower (excess overflows and gets clipped by .root). */
 .map {
-  width: auto;
   height: 100%;
+  width: calc(100dvh * var(--map-aspect, 2));
+  flex-shrink: 0;
   display: block;
   cursor: none;
 }
