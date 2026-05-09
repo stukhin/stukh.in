@@ -58,6 +58,19 @@ export default function GalleryModal({
   const [imgLoaded, setImgLoaded] = useState(false);
   const [closing, setClosing] = useState(false);
   /**
+   * `tracking` toggles the picture between two transition recipes:
+   * - off (default): scale + translate share a 0.6s easing so the
+   *   hover ENTRANCE / LEAVE animates in lockstep — image edges hug
+   *   the wrap throughout the morph, no "bounce away from the
+   *   border" while scale catches up to translate.
+   * - on (after the entrance settles): translate gets a snappy
+   *   0.18s easing so the image follows the cursor crisply at full
+   *   zoom; scale stays at 1.25 and isn't transitioning anyway.
+   */
+  const [tracking, setTracking] = useState(false);
+  const hoverActiveRef = useRef(false);
+  const hoverPhaseTimerRef = useRef<number | null>(null);
+  /**
    * Aspect ratio of the loaded photo (width/height). Used as inline
    * style on .zoomWrap so the wrapper sizes to the photo's natural
    * fit-rect inside the modal instead of expanding to the image's
@@ -211,38 +224,82 @@ export default function GalleryModal({
   // so cursor=0 pins photo's left edge to wrap's left, cursor=1
   // pins its right edge to wrap's right, mid keeps it centred.
   const HOVER_SCALE = 1.25;
+  // Entrance + leave run at this duration; tracking switches translate
+  // to a short transition (see CSS .pictureTracking).
+  const PHASE_MS = 600;
   /**
-   * Hover-zoom uses the individual `scale` + `translate` CSS
-   * properties (instead of a combined `transform`) so each axis
-   * can carry its own transition. `scale` gets a long 0.9s
-   * transition so entering / leaving the photo eases smoothly
-   * from 1× to 1.25× and back; `translate` gets a short 0.2s
-   * transition so cursor-tracking inside the photo follows with
-   * minimal lag once the zoom-in finishes.
+   * Picture transitions live in two phases:
+   *   1. ENTRANCE / LEAVE — scale and translate share the SAME 0.6s
+   *      easing so they reach each frame at the same rate. Without
+   *      this, translate (formerly 0.2s) reached its target while
+   *      scale was still at ~1.1, leaving image edges short of the
+   *      wrap — the "bounce away from the border" the user reported.
+   *   2. TRACKING — once entrance settles, translate gets a 0.18s
+   *      easing for snappy cursor-following. Scale isn't moving so
+   *      the long scale transition is dormant.
    */
-  const flushZoom = () => {
-    zoomRafRef.current = null;
+  const writeZoom = (tx: number, ty: number, scale: number) => {
     const img = imgRef.current;
     if (!img) return;
-    const { tx, ty } = pendingZoomRef.current;
-    img.style.scale = String(HOVER_SCALE);
+    img.style.scale = String(scale);
     img.style.translate = `${tx}px ${ty}px`;
   };
-  const onPictureMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+  const computeOffset = (
+    rect: DOMRect,
+    clientX: number,
+    clientY: number
+  ): { tx: number; ty: number } => {
+    const cx = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
+    const cy = Math.max(0, Math.min(1, (clientY - rect.top) / rect.height));
+    return {
+      tx: -rect.width * (HOVER_SCALE - 1) * cx,
+      ty: -rect.height * (HOVER_SCALE - 1) * cy,
+    };
+  };
+  const flushZoom = () => {
+    zoomRafRef.current = null;
+    const { tx, ty } = pendingZoomRef.current;
+    writeZoom(tx, ty, HOVER_SCALE);
+  };
+  const beginHover = (clientX: number, clientY: number) => {
     const wrap = zoomWrapRef.current;
     if (!wrap) return;
     const rect = wrap.getBoundingClientRect();
     if (rect.width === 0 || rect.height === 0) return;
-    const cx = Math.max(
-      0,
-      Math.min(1, (e.clientX - rect.left) / rect.width)
-    );
-    const cy = Math.max(
-      0,
-      Math.min(1, (e.clientY - rect.top) / rect.height)
-    );
-    pendingZoomRef.current.tx = -rect.width * (HOVER_SCALE - 1) * cx;
-    pendingZoomRef.current.ty = -rect.height * (HOVER_SCALE - 1) * cy;
+    const { tx, ty } = computeOffset(rect, clientX, clientY);
+    pendingZoomRef.current = { tx, ty };
+    hoverActiveRef.current = true;
+    if (hoverPhaseTimerRef.current !== null) {
+      window.clearTimeout(hoverPhaseTimerRef.current);
+    }
+    setTracking(false);
+    // Apply scale + translate together while .pictureTracking is OFF
+    // so both axes ride the matched 0.6s entrance.
+    writeZoom(tx, ty, HOVER_SCALE);
+    hoverPhaseTimerRef.current = window.setTimeout(() => {
+      hoverPhaseTimerRef.current = null;
+      // Only flip to tracking if the user is still hovering — leave
+      // could have fired during the entrance window.
+      if (hoverActiveRef.current) setTracking(true);
+    }, PHASE_MS);
+  };
+  const onPictureMouseEnter = (e: React.MouseEvent<HTMLDivElement>) => {
+    beginHover(e.clientX, e.clientY);
+  };
+  const onPictureMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!hoverActiveRef.current) {
+      // Edge case: mouse appeared inside the picture without an
+      // mouseenter (rare but happens with WAAPI flips re-mounting
+      // the wrap mid-cursor). Bootstrap the hover state.
+      beginHover(e.clientX, e.clientY);
+      return;
+    }
+    const wrap = zoomWrapRef.current;
+    if (!wrap) return;
+    const rect = wrap.getBoundingClientRect();
+    if (rect.width === 0 || rect.height === 0) return;
+    const { tx, ty } = computeOffset(rect, e.clientX, e.clientY);
+    pendingZoomRef.current = { tx, ty };
     if (zoomRafRef.current === null) {
       zoomRafRef.current = requestAnimationFrame(flushZoom);
     }
@@ -254,9 +311,14 @@ export default function GalleryModal({
       cancelAnimationFrame(zoomRafRef.current);
       zoomRafRef.current = null;
     }
-    // Reset both — scale animates back over 0.9s, translate over
-    // 0.2s, so the photo softly returns to its natural fit-rect
-    // while the pan unwinds quickly.
+    if (hoverPhaseTimerRef.current !== null) {
+      window.clearTimeout(hoverPhaseTimerRef.current);
+      hoverPhaseTimerRef.current = null;
+    }
+    hoverActiveRef.current = false;
+    // Drop tracking so scale + translate transition together on the
+    // way back to (1, 0, 0) — same matched 0.6s as the entrance.
+    setTracking(false);
     img.style.scale = "1";
     img.style.translate = "0px 0px";
   };
@@ -274,7 +336,9 @@ export default function GalleryModal({
 
   return (
     <div
-      className={`${styles.modal} ${open && !closing ? styles.open : ""}`}
+      className={`${styles.modal} ${open && !closing ? styles.open : ""} ${
+        closing ? styles.closing : ""
+      }`}
       role="dialog"
       aria-modal="true"
       onClick={onClose}
@@ -300,6 +364,7 @@ export default function GalleryModal({
           ref={zoomWrapRef}
           className={styles.zoomWrap}
           style={{ aspectRatio: String(pictureAspect) }}
+          onMouseEnter={onPictureMouseEnter}
           onMouseMove={onPictureMouseMove}
           onMouseLeave={onPictureMouseLeave}
           onClick={(e) => e.stopPropagation()}
@@ -310,7 +375,7 @@ export default function GalleryModal({
             decoding="sync"
             className={`${styles.picture} ${
               imgLoaded ? styles.pictureLoaded : ""
-            }`}
+            } ${tracking ? styles.pictureTracking : ""}`}
             src={src}
             onLoad={(e) => {
               const el = e.currentTarget as HTMLImageElement;

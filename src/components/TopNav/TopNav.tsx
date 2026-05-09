@@ -92,6 +92,51 @@ export default function TopNav({ className = "" }: Props) {
   // effect after mount, before the first paint.
   const [typing, setTyping] = useState(false);
   const scheduleRef = useRef<Schedule | null>(null);
+  /**
+   * AppShell (and therefore TopNav) is mounted per-page, so the nav
+   * remounts on every chained navigation. If we marked the new
+   * active link via pathname directly, the underline would render
+   * already at translateY(-44px) on first paint and the CSS
+   * transition wouldn't fire (no value change between renders) —
+   * the user reads that as "no animation, just snaps."
+   *
+   * Workaround: when we mount mid-chain (html.chain-active class
+   * is set), start with no active link, then promote pathname →
+   * activeLink on the second paint frame. The underline's value
+   * transitions from idle (translate -50% 0) to active
+   * (translate -50% -44px) over its CSS easing, riding through
+   * the chain-bridge slide.
+   *
+   * On a hard load (no chain) we initialise with pathname so the
+   * server-rendered markup already has the active link and the
+   * client hydrates without a flicker.
+   */
+  const [activePath, setActivePath] = useState<string | null>(() => {
+    if (typeof document === "undefined") return pathname;
+    return document.documentElement.classList.contains("chain-active")
+      ? null
+      : pathname;
+  });
+
+  useLayoutEffect(() => {
+    if (activePath === null) {
+      let r1 = 0;
+      let r2 = 0;
+      r1 = requestAnimationFrame(() => {
+        r2 = requestAnimationFrame(() => {
+          setActivePath(pathname);
+        });
+      });
+      return () => {
+        cancelAnimationFrame(r1);
+        cancelAnimationFrame(r2);
+      };
+    }
+    if (activePath !== pathname) setActivePath(pathname);
+    // Intentionally only depend on pathname — activePath changes
+    // shouldn't retrigger this effect.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pathname]);
 
   useLayoutEffect(() => {
     let alreadyTyped = false;
@@ -138,7 +183,7 @@ export default function TopNav({ className = "" }: Props) {
     >
       <ul className={styles.list}>
         {links.map((link, linkIdx) => {
-          const isActive = pathname === link.href;
+          const isActive = activePath === link.href;
           const letterDelays = showLetters ? schedule!.letterDelays[linkIdx] : null;
           const underlineDelay = showLetters
             ? schedule!.underlineDelays[linkIdx]

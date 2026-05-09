@@ -53,6 +53,25 @@
   transition: opacity 0.75s cubic-bezier(0.65, 0, 0.25, 1);
 }
 
+/* During close, hold the buttons fully visible while the X-collapse
+   plays, then fade them with the frosted glass. Done as a keyframe
+   so the wrapper can hold opacity=1 for the rotation window before
+   easing to 0, all in a single class. */
+.modal.closing .buttons {
+  visibility: visible;
+  animation: modalButtonsClose 0.55s cubic-bezier(0.65, 0, 0.25, 1) forwards;
+}
+
+@keyframes modalButtonsClose {
+  0%,
+  62% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
 @media (max-width: 1024px) {
   .modal {
     padding: 0;
@@ -114,21 +133,34 @@
   object-fit: contain;
   /* Hover-zoom uses the individual `scale` + `translate` CSS
      properties (CSS Transforms Level 2) so each axis can have its
-     own transition: scale eases over 0.9s for a soft enter/leave,
-     translate transitions over 0.2s for snappy-but-smooth cursor
-     follow once the photo is at its hover scale. */
+     own transition. By default scale + translate share the SAME
+     0.6s easing — keeps both axes in lockstep during the entrance
+     and leave so the picture's edges always hug the wrap (no
+     "bounce away from the border" while scale is still catching up
+     to translate). Once the entrance settles, .pictureTracking
+     swaps translate to a snappy 0.18s for cursor follow. */
   scale: 1;
   translate: 0 0;
   transform-origin: 0 0;
   opacity: 0;
   transition: opacity 0.3s ease-in,
-    scale 0.9s cubic-bezier(0.2, 0.7, 0.4, 1),
-    translate 0.2s cubic-bezier(0.2, 0.7, 0.4, 1);
+    scale 0.6s cubic-bezier(0.2, 0.7, 0.4, 1),
+    translate 0.6s cubic-bezier(0.2, 0.7, 0.4, 1);
   will-change: scale, translate, opacity;
 }
 
 .pictureLoaded {
   opacity: 1;
+}
+
+.pictureTracking {
+  /* At full hover the scale is stable and translate needs to track
+     the cursor crisply. Scale's transition stays long (it never
+     fires while tracking) so the leave animation can still pick
+     it up. */
+  transition: opacity 0.3s ease-in,
+    scale 0.6s cubic-bezier(0.2, 0.7, 0.4, 1),
+    translate 0.18s cubic-bezier(0.2, 0.7, 0.4, 1);
 }
 
 /* Loading placeholder shown while the full-size image downloads. */
@@ -363,4 +395,18 @@
 .close .bar:nth-child(2) {
   top: 28px;
   transform: translateY(-3px) rotate(-45deg);
+}
+
+/* Close-collapse animation: both diagonals rotate back to 0° and
+   meet at the same Y, becoming a single horizontal stripe. The
+   stripe then fades together with the frosted glass overlay. */
+.modal.closing .close .bar {
+  transition: transform 0.42s cubic-bezier(0.65, 0, 0.25, 1),
+    top 0.42s cubic-bezier(0.65, 0, 0.25, 1);
+}
+
+.modal.closing .close .bar:first-child,
+.modal.closing .close .bar:nth-child(2) {
+  top: 23px;
+  transform: translateY(0) rotate(0deg);
 }

@@ -222,11 +222,18 @@ export default function BlogMap() {
 
     const onWheel = (e: WheelEvent) => {
       if (!wrap.contains(e.target as Node)) return;
-      e.preventDefault();
-      zoomRef.current = Math.max(
+      const next = Math.max(
         ZOOM_MIN,
         Math.min(ZOOM_MAX, zoomRef.current - e.deltaY * ZOOM_STEP)
       );
+      // At a zoom limit and wheeling further in the same direction
+      // — no zoom change to make. Let the event through so the
+      // global page-wheel handler can decide what to do with it.
+      // (Combined with its gesture gate, the user has to pause and
+      // start a new wheel gesture before it fires a page nav.)
+      if (next === zoomRef.current) return;
+      e.preventDefault();
+      zoomRef.current = next;
       wrap.style.setProperty("--zoom", String(zoomRef.current));
       recomputePan();
     };

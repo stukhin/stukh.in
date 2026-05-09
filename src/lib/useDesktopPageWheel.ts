@@ -18,21 +18,35 @@ import { PAGE_ORDER, navigateChained } from "./pageOrder";
  * tail of the user's gesture could fire a second nav before they
  * meant to — that's the "two pages skipped at once" bug.
  *
- *  - On non-scrollable pages (/, /nature, /city, /blog) every wheel
- *    event accumulates immediately.
- *  - On scrollable pages (/walls) the accumulator only kicks in once
- *    the user has reached the top or bottom of the document AND
- *    keeps scrolling in that direction.
- *  - 600px threshold (was 320) so the gesture has to feel deliberate.
- *  - 2.5s cooldown (was 1.2s) covers the chain animation + a beat
- *    of idle, so trackpad coast can't sneak through.
- *  - Defers to in-page wheel handlers (e.g. /blog map zoom) by
- *    skipping events that were already preventDefault'd.
+ * Gesture gate: a single trackpad / wheel gesture cannot both scroll
+ * page content (or zoom the blog map) AND fire a page-nav. If any
+ * wheel event in the current gesture either scrolled the document or
+ * was preventDefault'd by an in-page handler (e.g. BlogMap's zoom),
+ * the rest of that gesture is ignored for nav purposes. A new gesture
+ * begins after GESTURE_GAP_MS of wheel silence; only then can the
+ * accumulator start and a deliberate second swipe trigger nav. This
+ * gives /walls (scroll to bottom → stop, then a fresh swipe pages
+ * down) and /blog (zoom map → stop, then a fresh swipe pages) the
+ * "two-step" feel the user asked for.
+ *
+ *  - On non-scrollable pages (/, /nature, /city) a fresh gesture
+ *    accumulates immediately.
+ *  - On scrollable pages (/walls) the gesture must START at the top
+ *    or bottom of the document — if it begins anywhere mid-page it's
+ *    considered a content-scroll gesture and never fires nav.
+ *  - On /blog the map's wheel handler preventDefaults zoom events;
+ *    those mark the gesture consumed. Once at zoom limit BlogMap
+ *    stops preventDefault'ing (see its onWheel) so a fresh gesture
+ *    after the user lifts their fingers can navigate.
+ *  - 600px threshold so the gesture has to feel deliberate.
+ *  - 2.5s cooldown covers the chain animation + a beat of idle, so
+ *    trackpad coast can't sneak through.
  */
 
 const THRESHOLD = 600;
 const COOLDOWN_MS = 2500;
 const RESET_MS = 240;
+const GESTURE_GAP_MS = 220;
 
 export function useDesktopPageWheel() {
   const router = useRouter();
@@ -41,6 +55,15 @@ export function useDesktopPageWheel() {
   pathnameRef.current = pathname;
   const cooldownUntilRef = useRef(0);
   const accumRef = useRef(0);
+  const lastWheelTsRef = useRef(0);
+  /**
+   * `true` when the current gesture has either scrolled page content
+   * or been consumed by an in-page wheel handler (BlogMap zoom).
+   * Stays true for the rest of the gesture so its inertial tail
+   * can't sneak a nav through. Reset to false at the next gesture
+   * boundary (>GESTURE_GAP_MS of silence).
+   */
+  const gestureConsumedRef = useRef(false);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -61,11 +84,33 @@ export function useDesktopPageWheel() {
     };
 
     const onWheel = (e: WheelEvent) => {
-      if (Date.now() < cooldownUntilRef.current) return;
-      if (e.defaultPrevented) return;
+      const now = Date.now();
+      // Trackpad inertia keeps firing for a while after the cooldown
+      // started — we still need to update lastWheelTsRef so the gap
+      // detection below sees the true silence-window after inertia
+      // decays.
+      if (now < cooldownUntilRef.current) {
+        lastWheelTsRef.current = now;
+        return;
+      }
       if (document.documentElement.classList.contains("zoom-open")) return;
       const path = pathnameRef.current;
       if (PAGE_ORDER.indexOf(path) === -1) return;
+
+      const isNewGesture = now - lastWheelTsRef.current > GESTURE_GAP_MS;
+      lastWheelTsRef.current = now;
+      if (isNewGesture) {
+        gestureConsumedRef.current = false;
+        accumRef.current = 0;
+      }
+
+      // In-page handler took the event (e.g. BlogMap zoom). Mark the
+      // gesture consumed so its inertial tail can't fire a page nav,
+      // and bail without accumulating.
+      if (e.defaultPrevented) {
+        gestureConsumedRef.current = true;
+        return;
+      }
 
       const html = document.documentElement;
       const canScroll = html.scrollHeight > html.clientHeight + 1;
@@ -75,15 +120,22 @@ export function useDesktopPageWheel() {
         const atBottom =
           Math.ceil(window.scrollY + html.clientHeight) >=
           html.scrollHeight - 1;
-        if (goingDown && !atBottom) {
-          accumRef.current = 0;
-          return;
-        }
-        if (!goingDown && !atTop) {
+        const atEdgeInDir =
+          (goingDown && atBottom) || (!goingDown && atTop);
+        if (!atEdgeInDir) {
+          // Page is scrolling its own content. Mark the gesture
+          // consumed so the same gesture's tail (which may continue
+          // hitting the edge) doesn't accumulate into a nav.
+          gestureConsumedRef.current = true;
           accumRef.current = 0;
           return;
         }
       }
+
+      // Gesture is either fresh-at-edge or non-scrollable: accumulate
+      // — unless this gesture has already consumed scroll / zoom, in
+      // which case the user needs a fresh gesture to nav.
+      if (gestureConsumedRef.current) return;
 
       accumRef.current += e.deltaY;
       if (resetTimer !== null) window.clearTimeout(resetTimer);
