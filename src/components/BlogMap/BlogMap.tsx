@@ -28,27 +28,26 @@ import styles from "./BlogMap.module.css";
 const FIT_W = 1000;
 const FIT_H = 488;
 
-// Zoom. Baseline (1.0) = the map sized to fill the viewport
-// vertically (top of map → top of viewport, bottom → bottom).
-// Zooming out below baseline isn't allowed — that's why the floor
-// is 1.0; zooming in is the only direction the user can move.
+// Zoom. Floor at 1.0 = the map sized to fill the viewport
+// vertically with no parallax slack. Default ZOOM_INITIAL is 1.2
+// so the page lands on a slightly cropped map and the cursor can
+// pan around it from frame zero — same idea as a hover-zoomed
+// modal photo. Wheel + buttons can zoom out to 1.0 (full world
+// in frame, no parallax) or in to 3.2.
 const ZOOM_MIN = 1.0;
 const ZOOM_MAX = 3.2;
-const ZOOM_INITIAL = 1.0;
+const ZOOM_INITIAL = 1.2;
 const ZOOM_STEP = 0.005;
 const ZOOM_BUTTON_STEP = 0.22;
 
-/** Click-vs-drag threshold (px). The user has to move the mouse
- *  this far during a mousedown for the action to count as a pan
- *  rather than a click on whatever was under the cursor. Stops
- *  drags from accidentally opening the country modal. */
-const DRAG_THRESHOLD_PX = 5;
-
-// Scale factor applied to the visual on hover. Same factor is baked
-// into the hit-area path's permanent scale so the hover region is
-// always the size of the would-be enlarged country — no flicker
-// when the cursor sits near an edge during the scale animation.
-const HOVER_SCALE = 2;
+// Scale factor applied to the visual on hover. Smaller than before
+// (2× felt aggressive and made tightly-clustered countries — UK /
+// France / Spain / Portugal — hard to navigate, since one
+// country's hit area would smother its neighbours). 1.15 still
+// reads as "this country popped" while keeping each neighbour
+// reachable. The hovered country is also rendered LAST so it
+// always paints on top of its siblings.
+const HOVER_SCALE = 1.15;
 
 // How long after a mouseleave we wait before clearing the hover
 // state. Smooths cursor-near-edge wobble that would otherwise rapid-
@@ -88,11 +87,15 @@ export default function BlogMap() {
   const projectionRef = useRef<ReturnType<typeof geoEqualEarth> | null>(null);
   const coordsRef = useRef<HTMLDivElement>(null);
   const zoomRef = useRef(ZOOM_INITIAL);
-  const panRef = useRef({ x: 0, y: 0 });
-  /** True when a drag pushed past DRAG_THRESHOLD. Read by the
-   *  click handler so dragging doesn't accidentally open the
-   *  country modal at mouseup. */
-  const dragMovedRef = useRef(false);
+  /** Latest cursor position relative to the viewport, [0..1] on
+   *  each axis. Pan is recomputed from this on every rAF / zoom
+   *  change rather than tracking pan as its own piece of state. */
+  const cursorRef = useRef({ mx: 0.5, my: 0.5 });
+  /** Reference to the latest closure that recomputes pan from
+   *  cursor + zoom. Set by the cursor/wheel effect; called by
+   *  the +/- zoom buttons so they can reapply pan after a zoom
+   *  change without duplicating the math. */
+  const recomputePanRef = useRef<(() => void) | null>(null);
   const leaveTimerRef = useRef<number | null>(null);
   const [hover, setHover] = useState<CountryHoverState | null>(null);
   const [openIso, setOpenIso] = useState<string | null>(null);
@@ -169,76 +172,52 @@ export default function BlogMap() {
     wrap.style.setProperty("--pan-y", "0px");
 
     /**
-     * Compute current pan limits in viewport pixels. The map's
-     * baseline height equals the wrap height (CSS height: 100%
-     * on the SVG); width is height * mapAspect. Multiplying both
-     * by zoom gives the visible map dims; the half of (visible -
-     * viewport) is how far each axis can pan before the map's
-     * edge would expose cream behind.
+     * Recompute pan from cursor position + current zoom. The map's
+     * baseline height = wrap height (CSS height: 100% on the SVG);
+     * width = height × mapAspect. Multiplying both by zoom gives
+     * the visible map dims, and the half of (visible − viewport)
+     * is the maximum slack on each axis.
+     *
+     *   pan_x = (1 − 2·cx) · maxPan_X
+     *
+     * cx = 0   → pan_x = +maxPan_X (map shifted right → see LEFT)
+     * cx = 1   → pan_x = −maxPan_X (map shifted left  → see RIGHT)
+     * cx = 0.5 → pan_x = 0          (map centred)
+     *
+     * At zoom 1 there's no slack on either axis (baseline = wrap),
+     * so cursor movement leaves the map perfectly centred.
      */
-    const computeLimits = () => {
+    const recomputePan = () => {
       const wrapH = wrap.clientHeight;
       const wrapW = wrap.clientWidth;
       const baselineH = wrapH;
       const baselineW = baselineH * mapAspect;
       const z = zoomRef.current;
-      const visW = baselineW * z;
-      const visH = baselineH * z;
-      return {
-        h: Math.max(0, (visW - wrapW) / 2),
-        v: Math.max(0, (visH - wrapH) / 2),
-      };
+      const maxPanX = Math.max(0, (baselineW * z - wrapW) / 2);
+      const maxPanY = Math.max(0, (baselineH * z - wrapH) / 2);
+      const panX = (1 - 2 * cursorRef.current.mx) * maxPanX;
+      const panY = (1 - 2 * cursorRef.current.my) * maxPanY;
+      wrap.style.setProperty("--pan-x", `${panX}px`);
+      wrap.style.setProperty("--pan-y", `${panY}px`);
     };
+    recomputePanRef.current = recomputePan;
 
-    const clampPan = () => {
-      const { h, v } = computeLimits();
-      panRef.current.x = Math.max(-h, Math.min(h, panRef.current.x));
-      panRef.current.y = Math.max(-v, Math.min(v, panRef.current.y));
-      wrap.style.setProperty("--pan-x", `${panRef.current.x}px`);
-      wrap.style.setProperty("--pan-y", `${panRef.current.y}px`);
+    let raf: number | null = null;
+    const flush = () => {
+      raf = null;
+      recomputePan();
     };
-
-    let drag: {
-      startX: number;
-      startY: number;
-      startPanX: number;
-      startPanY: number;
-    } | null = null;
 
     const onMove = (e: MouseEvent) => {
-      if (!drag) return;
-      const dx = e.clientX - drag.startX;
-      const dy = e.clientY - drag.startY;
-      if (
-        !dragMovedRef.current &&
-        (Math.abs(dx) > DRAG_THRESHOLD_PX ||
-          Math.abs(dy) > DRAG_THRESHOLD_PX)
-      ) {
-        dragMovedRef.current = true;
-      }
-      if (dragMovedRef.current) {
-        panRef.current.x = drag.startPanX + dx;
-        panRef.current.y = drag.startPanY + dy;
-        clampPan();
-      }
-    };
-
-    const onMouseDown = (e: MouseEvent) => {
-      if (e.button !== 0) return;
-      if (!wrap.contains(e.target as Node)) return;
-      drag = {
-        startX: e.clientX,
-        startY: e.clientY,
-        startPanX: panRef.current.x,
-        startPanY: panRef.current.y,
-      };
-      dragMovedRef.current = false;
-      wrap.classList.add(styles.mapWrapDragging);
-    };
-
-    const onMouseUp = () => {
-      drag = null;
-      wrap.classList.remove(styles.mapWrapDragging);
+      cursorRef.current.mx = Math.max(
+        0,
+        Math.min(1, e.clientX / window.innerWidth)
+      );
+      cursorRef.current.my = Math.max(
+        0,
+        Math.min(1, e.clientY / window.innerHeight)
+      );
+      if (raf === null) raf = requestAnimationFrame(flush);
     };
 
     const onWheel = (e: WheelEvent) => {
@@ -249,23 +228,24 @@ export default function BlogMap() {
         Math.min(ZOOM_MAX, zoomRef.current - e.deltaY * ZOOM_STEP)
       );
       wrap.style.setProperty("--zoom", String(zoomRef.current));
-      clampPan();
+      recomputePan();
     };
 
-    const onResize = () => clampPan();
+    const onResize = () => recomputePan();
+
+    // Initial pan computed from default cursor (centred) + initial
+    // zoom — gets the pan vars set before first paint.
+    recomputePan();
 
     window.addEventListener("mousemove", onMove);
-    window.addEventListener("mousedown", onMouseDown);
-    window.addEventListener("mouseup", onMouseUp);
     window.addEventListener("resize", onResize);
     wrap.addEventListener("wheel", onWheel, { passive: false });
 
     return () => {
       window.removeEventListener("mousemove", onMove);
-      window.removeEventListener("mousedown", onMouseDown);
-      window.removeEventListener("mouseup", onMouseUp);
       window.removeEventListener("resize", onResize);
       wrap.removeEventListener("wheel", onWheel);
+      if (raf !== null) cancelAnimationFrame(raf);
     };
   }, [mapAspect]);
 
@@ -340,21 +320,9 @@ export default function BlogMap() {
       Math.min(ZOOM_MAX, zoomRef.current + delta)
     );
     wrap.style.setProperty("--zoom", String(zoomRef.current));
-    // Re-clamp pan because zooming out can shrink the pan range,
-    // leaving the map shifted past its new edge.
-    const wrapH = wrap.clientHeight;
-    const wrapW = wrap.clientWidth;
-    const baselineH = wrapH;
-    const baselineW = baselineH * mapAspect;
-    const z = zoomRef.current;
-    const visW = baselineW * z;
-    const visH = baselineH * z;
-    const hLimit = Math.max(0, (visW - wrapW) / 2);
-    const vLimit = Math.max(0, (visH - wrapH) / 2);
-    panRef.current.x = Math.max(-hLimit, Math.min(hLimit, panRef.current.x));
-    panRef.current.y = Math.max(-vLimit, Math.min(vLimit, panRef.current.y));
-    wrap.style.setProperty("--pan-x", `${panRef.current.x}px`);
-    wrap.style.setProperty("--pan-y", `${panRef.current.y}px`);
+    // Reapply cursor-driven pan to the new zoom level (the slack
+    // grows / shrinks as zoom changes).
+    recomputePanRef.current?.();
   };
 
   const onCountryEnter = (iso: string) => {
@@ -375,12 +343,6 @@ export default function BlogMap() {
     }, LEAVE_DEBOUNCE_MS);
   };
   const onCountryClick = (iso: string) => {
-    if (dragMovedRef.current) {
-      // The user just finished a drag across this country — don't
-      // treat the click as "open the country modal".
-      dragMovedRef.current = false;
-      return;
-    }
     if (VISIT_BY_ISO.has(iso)) {
       setOpenIso(iso);
       setHover(null);
@@ -393,6 +355,20 @@ export default function BlogMap() {
   // stay on top of their neighbours when they scale up on hover.
   const unvisited = paths.filter((p) => !VISIT_BY_ISO.has(p.id));
   const visited = paths.filter((p) => VISIT_BY_ISO.has(p.id));
+  /**
+   * Render order with the hovered country pushed to the end of the
+   * array. SVG has no z-index — paint order = render order — so a
+   * hovered country needs to be the LAST visited path drawn,
+   * otherwise its 1.15× scale-up sits behind a neighbour painted
+   * after it. The list keeps the original order otherwise so all
+   * non-hovered countries paint in a stable sequence.
+   */
+  const visitedSorted = hover
+    ? [
+        ...visited.filter((p) => p.id !== hover.visit.iso),
+        ...visited.filter((p) => p.id === hover.visit.iso),
+      ]
+    : visited;
 
   /**
    * Visits whose country is too small to be in the 110m TopoJSON
@@ -478,7 +454,7 @@ export default function BlogMap() {
               permanently scaled to HOVER_SCALE so the cursor zone
               never moves out from under the cursor mid-animation —
               that was the source of the country flicker. */}
-          {visited.map((p) => {
+          {visitedSorted.map((p) => {
             const isActive = hover?.visit.iso === p.id;
             return (
               <path

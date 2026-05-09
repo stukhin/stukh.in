@@ -211,13 +211,22 @@ export default function GalleryModal({
   // so cursor=0 pins photo's left edge to wrap's left, cursor=1
   // pins its right edge to wrap's right, mid keeps it centred.
   const HOVER_SCALE = 1.25;
+  /**
+   * Hover-zoom uses the individual `scale` + `translate` CSS
+   * properties (instead of a combined `transform`) so each axis
+   * can carry its own transition. `scale` gets a long 0.9s
+   * transition so entering / leaving the photo eases smoothly
+   * from 1× to 1.25× and back; `translate` gets a short 0.2s
+   * transition so cursor-tracking inside the photo follows with
+   * minimal lag once the zoom-in finishes.
+   */
   const flushZoom = () => {
     zoomRafRef.current = null;
     const img = imgRef.current;
     if (!img) return;
     const { tx, ty } = pendingZoomRef.current;
-    img.style.transformOrigin = "0 0";
-    img.style.transform = `translate3d(${tx}px, ${ty}px, 0) scale(${HOVER_SCALE})`;
+    img.style.scale = String(HOVER_SCALE);
+    img.style.translate = `${tx}px ${ty}px`;
   };
   const onPictureMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     const wrap = zoomWrapRef.current;
@@ -245,8 +254,11 @@ export default function GalleryModal({
       cancelAnimationFrame(zoomRafRef.current);
       zoomRafRef.current = null;
     }
-    img.style.transform = "";
-    img.style.transformOrigin = "";
+    // Reset both — scale animates back over 0.9s, translate over
+    // 0.2s, so the photo softly returns to its natural fit-rect
+    // while the pan unwinds quickly.
+    img.style.scale = "1";
+    img.style.translate = "0px 0px";
   };
 
   if (!mounted || !item) return null;

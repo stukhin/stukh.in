@@ -112,17 +112,19 @@
   width: 100%;
   height: 100%;
   object-fit: contain;
-  /* Hover-zoom transform is set inline via rAF in JS — no CSS
-     transition on transform, since with high-frequency mousemove
-     the smoothing layer chased a moving target and produced
-     visible jitter / sub-pixel blur. With one transform write per
-     repaint and instant application, the canvas tracks the cursor
-     cleanly. opacity transition is kept for the FLIP-in fade. */
-  transform: translate3d(0, 0, 0) scale(1);
+  /* Hover-zoom uses the individual `scale` + `translate` CSS
+     properties (CSS Transforms Level 2) so each axis can have its
+     own transition: scale eases over 0.9s for a soft enter/leave,
+     translate transitions over 0.2s for snappy-but-smooth cursor
+     follow once the photo is at its hover scale. */
+  scale: 1;
+  translate: 0 0;
   transform-origin: 0 0;
   opacity: 0;
-  transition: opacity 0.3s ease-in;
-  will-change: transform, opacity;
+  transition: opacity 0.3s ease-in,
+    scale 0.9s cubic-bezier(0.2, 0.7, 0.4, 1),
+    translate 0.2s cubic-bezier(0.2, 0.7, 0.4, 1);
+  will-change: scale, translate, opacity;
 }
 
 .pictureLoaded {

@@ -29,12 +29,6 @@
   will-change: transform;
 }
 
-/* While the user is actively dragging, cut the transition so the
-   pan tracks the cursor 1:1 instead of lagging behind the
-   smoothing curve. */
-.mapWrapDragging {
-  transition: none;
-}
 
 /* Map: height fills the viewport, width is derived explicitly from
    the dynamic-viewport-height × the projected feature bbox aspect
