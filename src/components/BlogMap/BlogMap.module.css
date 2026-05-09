@@ -1,19 +1,22 @@
 /* Root absolutely fills the /blog .page wrapper. Children: the
    parallax-translated map, two zoom buttons, the centred "under
    construction" stamp.
-   z-index 8 lifts the whole map above EdgeNav (z 7) so country
-   hit-area paths intercept hover/click before EdgeNav's top
-   click-zone does — countries in the top 15 vh band (e.g. UK,
-   north of France/Spain) used to be blocked by EdgeNav's
-   transparent button. The .map SVG below sets pointer-events:
-   none so events on the cream paper still reach EdgeNav, while
-   the .visitedHit / .visitedDotHit paths override with all. */
+   z-index 8 lifts country hit-area paths above EdgeNav (z 7) so a
+   country in the top 15 vh band (UK, north of France/Spain)
+   intercepts hover/click before EdgeNav's transparent button does.
+   pointer-events: none on .root + .mapWrap + .map + .country lets
+   events on the cream paper pass through to EdgeNav, while
+   .visitedHit / .visitedDotHit / .zoomBtn opt back in via their
+   own pointer-events / native button defaults. Net result: visited
+   countries take priority everywhere; bare paper still navs via
+   EdgeNav's arrow-up zone. */
 .root {
   position: absolute;
   inset: 0;
   overflow: hidden;
   cursor: none;
   z-index: 8;
+  pointer-events: none;
 }
 
 /* Wrap composes pan + zoom into a single transform so they stay on
@@ -35,6 +38,9 @@
   transform-origin: center center;
   transition: transform 0.18s cubic-bezier(0.2, 0.6, 0.2, 1);
   will-change: transform;
+  /* Pass events through to EdgeNav unless a child opts in (the
+     country hit paths do). */
+  pointer-events: none;
 }
 
 
@@ -64,11 +70,14 @@
 }
 
 /* Default country: solid pale fill, NO stroke. Continents read as
-   one mass — neighbours' borders disappear into the shared fill. */
+   one mass — neighbours' borders disappear into the shared fill.
+   pointer-events: none so events fall through to EdgeNav (visited
+   countries opt back in via .visitedHit). */
 .country {
   fill: #d6d2c8;
   stroke: none;
   cursor: none;
+  pointer-events: none;
 }
 
 /* Visited country: visual layer. Renders underneath the LiquidEther
@@ -153,6 +162,10 @@
   cursor: none;
   font-family: "Inter", "Rubik", sans-serif;
   transition: background 0.15s ease, color 0.15s ease;
+  /* Re-enable pointer events: the .root above sets none for the
+     "events fall through to EdgeNav on cream paper" trick, but
+     the buttons themselves still need to catch clicks. */
+  pointer-events: auto;
 }
 
 .zoomBtn:hover {

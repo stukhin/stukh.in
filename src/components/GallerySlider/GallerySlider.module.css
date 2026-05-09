@@ -219,15 +219,15 @@
   inset: calc(var(--frame-pad) * -1);
   pointer-events: none;
   z-index: 2;
-  background: rgba(255, 255, 255, 0.10);
+  /* Tint and border colour are set per-category below so the frame
+     blends with the page background instead of contrasting with it
+     — the previous version was inverted. Border kept at 2 px in
+     pre-scale space so it reads at ~1 px on screen after the
+     parent's 0.53 scale-down. No inset top highlight. */
   backdrop-filter: blur(14px) saturate(140%);
   -webkit-backdrop-filter: blur(14px) saturate(140%);
-  /* Border scaled up 2× so it reads at ~1 px on screen after the
-     parent's 0.53 scale. The earlier inset top-edge highlight
-     (box-shadow inset 0 2px 0) was painting an extra bright stripe
-     under the top border — visible as the "second 1 px line" the
-     user flagged. Drop it so all four edges read identically. */
-  border: 2px solid rgba(255, 255, 255, 0.18);
+  border-style: solid;
+  border-width: 2px;
   padding: var(--frame-pad);
   -webkit-mask: linear-gradient(#fff 0 0) content-box,
     linear-gradient(#fff 0 0);
@@ -236,11 +236,20 @@
   mask-composite: exclude;
 }
 
-/* On the cream /city bg the white-translucent recipe disappears;
-   tint the ring darker so it still reads as a frame. */
+/* /nature: dark page bg → dark frame. Subtle dark fill + lightly
+   lit hairline border so the frame reads as a recess into the
+   wall, not a bright sticker on top of it. */
+.nature .slide:not(:global(.swiper-slide-active)) .wrapper::after {
+  background: rgba(0, 0, 0, 0.30);
+  border-color: rgba(255, 255, 255, 0.10);
+}
+
+/* /city: cream page bg → light frame. Light fill + dim hairline
+   border so the frame matches the gallery wall rather than punching
+   through it. */
 .city .slide:not(:global(.swiper-slide-active)) .wrapper::after {
-  background: rgba(0, 0, 0, 0.12);
-  border-color: rgba(0, 0, 0, 0.20);
+  background: rgba(255, 255, 255, 0.36);
+  border-color: rgba(0, 0, 0, 0.14);
 }
 
 /* Loading placeholder shown while the image is downloading. */

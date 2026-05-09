@@ -74,16 +74,19 @@ export default function HomeSlider() {
     setActive((i) => (i - 1 + slides.length) % slides.length);
   };
 
-  // Autoplay starts right away — the preloader gates first-visit
-  // display, so by the time HomeSlider is visible the photos are
-  // already cached and ready to cycle.
+  // Autoplay timer. Restarted on every `active` change so a manual
+  // prev/next/dot click doesn't leave the previous interval still
+  // counting from the LAST autoplay tick — that was producing the
+  // "I just clicked but the photo flipped half a second later" glitch.
+  // setTimeout (single shot, scheduled fresh each render) cleanly
+  // reflects "7 s after THIS slide became active".
   useEffect(() => {
-    const id = setInterval(() => {
+    const id = window.setTimeout(() => {
       setDirection("forward");
       setActive((i) => (i + 1) % slides.length);
     }, AUTOPLAY_MS);
-    return () => clearInterval(id);
-  }, []);
+    return () => window.clearTimeout(id);
+  }, [active]);
 
   // Keyboard arrows
   useEffect(() => {

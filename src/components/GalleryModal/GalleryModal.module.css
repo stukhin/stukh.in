@@ -15,11 +15,14 @@
   z-index: 40;
   visibility: hidden;
   opacity: 0;
-  /* Closing fade matches the JS ZOOM_OUT_MS (550ms). Opening fade
-     overrides this on .modal.open below to match ZOOM_IN_MS (750ms),
-     so the frosted glass blooms in along with the photo zoom and
-     leaves with it on close. */
-  transition: opacity 0.55s cubic-bezier(0.65, 0, 0.25, 1);
+  /* Frosted-glass fade-out runs longer than the X-collapse + buttons
+     fade so the controls visibly disappear FIRST, then the glass
+     washes out by itself. User explicitly asked for that ordering —
+     the buttons "hanging in the air" while the bg is already gone
+     was reading as a glitch. Duration matches ZOOM_OUT_MS in the
+     React component so the modal unmount lands exactly when the
+     fade ends. */
+  transition: opacity 0.7s cubic-bezier(0.65, 0, 0.25, 1);
   padding: 40px 180px;
 }
 
@@ -53,18 +56,19 @@
   transition: opacity 0.75s cubic-bezier(0.65, 0, 0.25, 1);
 }
 
-/* During close, hold the buttons fully visible while the X-collapse
-   plays, then fade them with the frosted glass. Done as a keyframe
-   so the wrapper can hold opacity=1 for the rotation window before
-   easing to 0, all in a single class. */
+/* On close, the buttons (X + orientation toggle) finish their
+   collapse animation and fade out FAST, ahead of the frosted-glass
+   wash-out — so the bg lingers for a moment after the controls
+   are gone, instead of the controls hanging mid-air over a blank
+   space. */
 .modal.closing .buttons {
   visibility: visible;
-  animation: modalButtonsClose 0.55s cubic-bezier(0.65, 0, 0.25, 1) forwards;
+  animation: modalButtonsClose 0.32s cubic-bezier(0.65, 0, 0.25, 1) forwards;
 }
 
 @keyframes modalButtonsClose {
   0%,
-  62% {
+  55% {
     opacity: 1;
   }
   100% {
@@ -398,11 +402,12 @@
 }
 
 /* Close-collapse animation: both diagonals rotate back to 0° and
-   meet at the same Y, becoming a single horizontal stripe. The
-   stripe then fades together with the frosted glass overlay. */
+   meet at the same Y, becoming a single horizontal stripe. Faster
+   now (matches the trimmed-down buttons fade) so the X is fully
+   collapsed before its container fades. */
 .modal.closing .close .bar {
-  transition: transform 0.42s cubic-bezier(0.65, 0, 0.25, 1),
-    top 0.42s cubic-bezier(0.65, 0, 0.25, 1);
+  transition: transform 0.22s cubic-bezier(0.65, 0, 0.25, 1),
+    top 0.22s cubic-bezier(0.65, 0, 0.25, 1);
 }
 
 .modal.closing .close .bar:first-child,

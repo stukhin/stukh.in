@@ -18,6 +18,7 @@ import {
 import WallpaperHoverPlate, {
   type HoverState,
 } from "./WallpaperHoverPlate";
+import { useSmoothScroll } from "@/lib/useSmoothScroll";
 import styles from "./WallsGallery.module.css";
 
 export type Wallpaper = {
@@ -70,6 +71,11 @@ const TILT_AMPLITUDE = 9;
 const SPRING = { damping: 30, stiffness: 100, mass: 1.4 };
 
 export default function WallsGallery({ items }: Props) {
+  // Lerp wheel-driven scroll on /walls so paging through the
+  // wallpaper grid eases instead of jumping with native steps.
+  // Releases events at the document edge so useDesktopPageWheel
+  // still gets clean events to nav between routes.
+  useSmoothScroll();
   const [counts, setCounts] = useState<Record<string, number>>({});
   const [downloads, setDownloads] = useState<Record<string, DownloadState>>({});
   const [zoomed, setZoomed] = useState<Wallpaper | null>(null);

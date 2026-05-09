@@ -69,6 +69,14 @@ function CountryStroke({ d, active }: { d: string; active: boolean }) {
   const lengthRef = useRef(0);
   const rafRef = useRef<number | null>(null);
 
+  // Final dashoffset overshoots zero so the dash actually wraps
+  // PAST the path's start point — guarantees the close-point is
+  // painted on multi-subpath countries where the dash sometimes
+  // ended a few units short. With a 1 px stroke the overshoot is
+  // invisible (it shifts the dash, not the visible stroke endpoint
+  // since the dash already covers >= the full path length).
+  const FINAL_OVERSHOOT = 12;
+
   useEffect(() => {
     if (!ref.current) return;
     let L = 0;
@@ -78,17 +86,17 @@ function CountryStroke({ d, active }: { d: string; active: boolean }) {
       L = 2000;
     }
     if (!Number.isFinite(L) || L <= 0) L = 2000;
-    // Pad the dash a bit past the measured length so subpath
-    // rounding never leaves a visible seam at the close-point.
-    lengthRef.current = L + 8;
-    // Initialise to invisible; the active effect below will start
-    // the animation if we mount in active state.
-    ref.current.style.strokeDasharray = `${L + 8} ${L + 8}`;
-    ref.current.style.strokeDashoffset = active ? "0" : String(L + 8);
+    // Generous padding so subpath rounding can't leave a seam.
+    const dashLen = L + 24;
+    lengthRef.current = dashLen;
+    ref.current.style.strokeDasharray = `${dashLen} ${dashLen}`;
+    ref.current.style.strokeDashoffset = active
+      ? String(-FINAL_OVERSHOOT)
+      : String(dashLen);
+    // active dependency intentionally omitted — only re-measure
+    // when the path geometry changes.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [d]);
-  // active dependency intentionally omitted from the measurement
-  // effect — only re-measure when the path geometry changes.
-  // eslint-disable-next-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     const path = ref.current;
@@ -102,26 +110,27 @@ function CountryStroke({ d, active }: { d: string; active: boolean }) {
     }
 
     if (!active) {
-      // Snap back to invisible — opacity fade (CSS) handles the
-      // visible departure, the inline offset just resets so the
-      // next entrance starts from "nothing drawn".
+      // Reset to invisible. Opacity fade (CSS) handles the visible
+      // departure; the next entrance starts from "nothing drawn".
       path.style.strokeDashoffset = String(dashLen);
       return;
     }
 
     const start = performance.now();
-    path.style.strokeDashoffset = String(dashLen);
+    const startOffset = dashLen;
+    const endOffset = -FINAL_OVERSHOOT;
+    path.style.strokeDashoffset = String(startOffset);
     const tick = (now: number) => {
       const t = Math.min(1, (now - start) / STROKE_TRACE_MS);
-      path.style.strokeDashoffset = String(dashLen * (1 - t));
+      const offset = startOffset + (endOffset - startOffset) * t;
+      path.style.strokeDashoffset = String(offset);
       if (t < 1) {
         rafRef.current = requestAnimationFrame(tick);
       } else {
         rafRef.current = null;
-        // Force the final value to exactly 0 — float math during
-        // rAF can leave ~1 e-7 of residual offset that paints as a
-        // tiny visible gap on some browsers.
-        path.style.strokeDashoffset = "0";
+        // Force the exact terminal value so float drift can't leave
+        // a residual gap at the end of the trace.
+        path.style.strokeDashoffset = String(endOffset);
       }
     };
     rafRef.current = requestAnimationFrame(tick);

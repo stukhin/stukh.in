@@ -112,8 +112,17 @@ void main() {
   vec4 t2 = texture2D(uTexture2, uvDistorted);
 
   float n = fbm(vUv * 3.0);
-  float lower = uProgress - uDispIntensity;
-  float higher = uProgress + uDispIntensity;
+  // Wave-front position. With uProgress sweeping 0 → 1 we map p
+  // across [-2*disp, 1+2*disp] so that at progress=0 the smoothstep
+  // threshold sits BELOW even the most-noise-warped axis value (=>
+  // mask=1 everywhere => fully t1, no leak), and at progress=1 it
+  // sits ABOVE every axis value (=> mask=0 everywhere => fully t2).
+  // Without this the previous range left a few right-edge pixels
+  // already flipped at frame zero — the visible "rough start" the
+  // user reported.
+  float p = mix(-2.0 * uDispIntensity, 1.0 + 2.0 * uDispIntensity, uProgress);
+  float lower = p - uDispIntensity;
+  float higher = p + uDispIntensity;
   // axisDir: forward (uAxisFlip=0) → high on LEFT, low on RIGHT, so
   // pixels with smaller axis values flip first → reveal sweeps R→L.
   // backward (uAxisFlip=1) → swap, so reveal sweeps L→R.

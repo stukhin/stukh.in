@@ -35,13 +35,18 @@
   /* Below the logo's last line. Logo top: 66px, ~3 lines tall, so
      200px clears it cleanly on desktop. */
   top: 200px;
-  /* Left edge tracks the leftmost grid card. The grid is
-     max-width: 1100px; margin: 0 auto inside .layout, so the grid's
-     left edge sits at max(0, (vw - 1100) / 2) on the wide-desktop
-     layout (where .layout has padding 0). max() floors the value
-     at 0 for narrow viewports below 1100px wide. Override below
-     for the breakpoints where .layout adds horizontal padding. */
-  left: max(0px, calc((100vw - 1100px) / 2));
+  /* Always align to the leftmost grid column. Grid is max-width:
+     1100px, centered, inside .layout which has 32 px horizontal
+     padding (0 on edge-to-edge mobile). On wide viewports the
+     grid is fully constrained at 1100 px and centered, so its
+     left edge sits at (vw - 1100) / 2. On narrower desktops /
+     tablets the grid fills the layout's content area and starts
+     at 32 px. max(32px, (vw - 1100) / 2) covers both cases —
+     resolves to 32 below ~1164 px and to the centred offset
+     above. The previous fixed `left: 32px` override at
+     max-width: 1499 px was clipping the filters way to the left
+     of the grid on 1300–1499 px viewports. */
+  left: max(32px, calc((100vw - 1100px) / 2));
   z-index: 10;
   display: flex;
   gap: 12px;
@@ -50,10 +55,7 @@
 
 @media (max-width: 1499px) {
   .filters {
-    /* .layout's horizontal padding on tablet / small desktop is
-       32px; the grid lives inside that, so its left edge = 32px. */
     top: 160px;
-    left: 32px;
   }
 }
 

@@ -25,14 +25,23 @@ export default function ChainBridge() {
   const timersRef = useRef<number[]>([]);
 
   // Warm the HTTP cache on mount so the very first cross-page slide
-  // doesn't hitch fetching the bg images. The Image() instances go
-  // out of scope after the effect runs; the browser keeps the bytes
-  // in its cache.
+  // doesn't hitch fetching the bg images. PAGE_VISUALS["/"].bg is
+  // mutated by HomeSlider as the active slide rotates, so we also
+  // pre-warm every home slide here — otherwise navigating away from
+  // / mid-rotation could land on a bridge slide whose bg image
+  // hasn't loaded yet, painting the slide's solid colour fallback
+  // (#0d1117) for a frame and reading as a black flash.
   useEffect(() => {
+    const sources = new Set<string>();
     Object.values(PAGE_VISUALS).forEach((v) => {
-      if (!v.bg) return;
+      if (v.bg) sources.add(v.bg);
+    });
+    for (let i = 1; i <= 4; i++) {
+      sources.add(`/images/gallery/main/desktop/${i}.webp`);
+    }
+    sources.forEach((src) => {
       const img = new window.Image();
-      img.src = v.bg;
+      img.src = src;
     });
   }, []);
 

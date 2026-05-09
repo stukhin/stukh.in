@@ -9,7 +9,14 @@ import styles from "./GalleryModal.module.css";
 // backdrop blur opacity in the CSS uses the same timing so the
 // frosted-glass overlay blooms in as the photo grows.
 const ZOOM_IN_MS = 750;
-const ZOOM_OUT_MS = 550;
+// Closing timeline is asymmetric on purpose: the controls (X +
+// orientation toggle) fade fast (~0.32 s, see .modal.closing
+// .buttons in CSS), the picture FLIP-morphs back to its thumbnail
+// over ZOOM_OUT_MS, and the frosted-glass wash-out matches that
+// duration via the .modal opacity transition. So the user sees
+// "controls vanish, then bg lingers" instead of all three pulling
+// off-screen together.
+const ZOOM_OUT_MS = 700;
 const ZOOM_EASING = "cubic-bezier(0.65, 0, 0.25, 1)";
 
 type Props = {
