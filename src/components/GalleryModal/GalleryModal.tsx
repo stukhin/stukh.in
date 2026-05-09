@@ -69,6 +69,17 @@ export default function GalleryModal({
   const [pictureAspect, setPictureAspect] = useState<number>(3 / 4);
   const imgRef = useRef<HTMLImageElement>(null);
   const zoomWrapRef = useRef<HTMLDivElement>(null);
+  /**
+   * Pending hover-zoom state, batched via requestAnimationFrame
+   * so we apply at most one transform update per repaint. With a
+   * raw mousemove handler the inline transform thrashed many times
+   * per frame, plus the CSS transition smoothing kept chasing a
+   * moving target — the two together produced visible jitter and
+   * occasional sub-pixel blur. rAF batching + no transform
+   * transition gives us a clean update each tick.
+   */
+  const pendingZoomRef = useRef({ tx: 0, ty: 0 });
+  const zoomRafRef = useRef<number | null>(null);
   // Tracks whether the open-FLIP has already played for the current
   // modal session. Without this we'd run the morph twice if the
   // image happens to load between mount and the imgLoaded effect.
@@ -200,10 +211,17 @@ export default function GalleryModal({
   // so cursor=0 pins photo's left edge to wrap's left, cursor=1
   // pins its right edge to wrap's right, mid keeps it centred.
   const HOVER_SCALE = 1.25;
+  const flushZoom = () => {
+    zoomRafRef.current = null;
+    const img = imgRef.current;
+    if (!img) return;
+    const { tx, ty } = pendingZoomRef.current;
+    img.style.transformOrigin = "0 0";
+    img.style.transform = `translate3d(${tx}px, ${ty}px, 0) scale(${HOVER_SCALE})`;
+  };
   const onPictureMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     const wrap = zoomWrapRef.current;
-    const img = imgRef.current;
-    if (!wrap || !img) return;
+    if (!wrap) return;
     const rect = wrap.getBoundingClientRect();
     if (rect.width === 0 || rect.height === 0) return;
     const cx = Math.max(
@@ -214,14 +232,19 @@ export default function GalleryModal({
       0,
       Math.min(1, (e.clientY - rect.top) / rect.height)
     );
-    const tx = -rect.width * (HOVER_SCALE - 1) * cx;
-    const ty = -rect.height * (HOVER_SCALE - 1) * cy;
-    img.style.transformOrigin = "0 0";
-    img.style.transform = `translate(${tx}px, ${ty}px) scale(${HOVER_SCALE})`;
+    pendingZoomRef.current.tx = -rect.width * (HOVER_SCALE - 1) * cx;
+    pendingZoomRef.current.ty = -rect.height * (HOVER_SCALE - 1) * cy;
+    if (zoomRafRef.current === null) {
+      zoomRafRef.current = requestAnimationFrame(flushZoom);
+    }
   };
   const onPictureMouseLeave = () => {
     const img = imgRef.current;
     if (!img) return;
+    if (zoomRafRef.current !== null) {
+      cancelAnimationFrame(zoomRafRef.current);
+      zoomRafRef.current = null;
+    }
     img.style.transform = "";
     img.style.transformOrigin = "";
   };

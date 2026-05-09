@@ -192,6 +192,53 @@
   }
 }
 
+/* Dot marker for visits whose country is too small for the 110m
+   topology (Seychelles, etc.). Visually a tiny filled circle that
+   scales up on hover, mirroring the visited country path's
+   visualVisualActive treatment so the interaction reads the same. */
+.visitedDot {
+  fill: #1a1a1a;
+  pointer-events: none;
+  transform-box: fill-box;
+  transform-origin: center center;
+  transition: fill 0.22s ease,
+    transform 0.32s cubic-bezier(0.2, 0.7, 0.4, 1);
+}
+
+.visitedDotActive {
+  fill: #c14a3a;
+  transform: scale(2.6);
+}
+
+.visitedDotHit {
+  fill: transparent;
+  pointer-events: all;
+  cursor: none;
+}
+
+/* Lat/long readout that follows the cursor over the map. Position
+   is set imperatively via translate3d (one rAF per mousemove); the
+   text shows degrees + minutes for both axes in a quiet
+   fixed-width Inter strip. */
+.coords {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 11;
+  pointer-events: none;
+  transform: translate3d(-9999px, -9999px, 0);
+  font-family: "Inter", "Rubik", sans-serif;
+  font-size: 11px;
+  font-weight: 300;
+  letter-spacing: 0.08em;
+  color: #1a1a1a;
+  opacity: 0;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+  text-transform: lowercase;
+  transition: opacity 0.18s ease;
+}
+
 /* Reduced motion / touch fallback. */
 @media (hover: none), (prefers-reduced-motion: reduce) {
   .mapWrap {

@@ -112,13 +112,16 @@
   width: 100%;
   height: 100%;
   object-fit: contain;
-  /* Hover sets transform / transform-origin via inline style. The
-     transition smooths cursor-driven moves into a soft follow. */
-  transform: translate(0, 0) scale(1);
+  /* Hover-zoom transform is set inline via rAF in JS — no CSS
+     transition on transform, since with high-frequency mousemove
+     the smoothing layer chased a moving target and produced
+     visible jitter / sub-pixel blur. With one transform write per
+     repaint and instant application, the canvas tracks the cursor
+     cleanly. opacity transition is kept for the FLIP-in fade. */
+  transform: translate3d(0, 0, 0) scale(1);
   transform-origin: 0 0;
   opacity: 0;
-  transition: opacity 0.3s ease-in,
-    transform 0.18s cubic-bezier(0.2, 0.7, 0.4, 1);
+  transition: opacity 0.3s ease-in;
   will-change: transform, opacity;
 }
 

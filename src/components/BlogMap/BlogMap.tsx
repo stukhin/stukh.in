@@ -81,6 +81,12 @@ type CountryFeature = Feature<Geometry, { name?: string }>;
  */
 export default function BlogMap() {
   const wrapRef = useRef<HTMLDivElement>(null);
+  const svgRef = useRef<SVGSVGElement>(null);
+  /** d3-geo projection — also kept in a ref so the cursor lat/long
+   *  overlay can call projection.invert() at the same coords used
+   *  by the path generator. */
+  const projectionRef = useRef<ReturnType<typeof geoEqualEarth> | null>(null);
+  const coordsRef = useRef<HTMLDivElement>(null);
   const zoomRef = useRef(ZOOM_INITIAL);
   const panRef = useRef({ x: 0, y: 0 });
   /** True when a drag pushed past DRAG_THRESHOLD. Read by the
@@ -108,6 +114,7 @@ export default function BlogMap() {
       [FIT_W, FIT_H],
       featureCollection
     );
+    projectionRef.current = projection;
     const pathGen = geoPath(projection);
 
     // True bounds of the projected world — fitSize gives us the
@@ -262,6 +269,69 @@ export default function BlogMap() {
     };
   }, [mapAspect]);
 
+  /**
+   * Lat / long overlay. Window mousemove + the SVG's screen CTM
+   * give us the cursor's position in SVG user coords; the d3
+   * projection's invert maps back to (longitude, latitude). The
+   * result lives in a small fixed-position div anchored just below
+   * + right of the cursor.
+   */
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (window.matchMedia("(hover: none)").matches) return;
+
+    const fmt = (val: number, posLetter: string, negLetter: string) => {
+      const dir = val >= 0 ? posLetter : negLetter;
+      const abs = Math.abs(val);
+      const deg = Math.floor(abs);
+      const min = Math.floor((abs - deg) * 60);
+      return `${deg}°${min.toString().padStart(2, "0")}′${dir}`;
+    };
+
+    let raf: number | null = null;
+    let pendingX = 0;
+    let pendingY = 0;
+    const flush = () => {
+      raf = null;
+      const svg = svgRef.current;
+      const projection = projectionRef.current;
+      const display = coordsRef.current;
+      if (!svg || !projection || !display) return;
+      const ctm = svg.getScreenCTM();
+      if (!ctm) return;
+      const inv = ctm.inverse();
+      const pt = svg.createSVGPoint();
+      pt.x = pendingX;
+      pt.y = pendingY;
+      const local = pt.matrixTransform(inv);
+      const lonLat = projection.invert?.([local.x, local.y]);
+      if (!lonLat || !Number.isFinite(lonLat[0]) || !Number.isFinite(lonLat[1])) {
+        // Cursor is over the cream background outside the
+        // projected world (Equal Earth's curved edges).
+        display.style.opacity = "0";
+        return;
+      }
+      const [lon, lat] = lonLat;
+      display.textContent = `${fmt(lat, "N", "S")}    ${fmt(lon, "E", "W")}`;
+      display.style.opacity = "1";
+      display.style.transform = `translate3d(${pendingX + 18}px, ${
+        pendingY + 22
+      }px, 0)`;
+    };
+
+    const onMove = (e: MouseEvent) => {
+      pendingX = e.clientX;
+      pendingY = e.clientY;
+      if (raf === null) raf = requestAnimationFrame(flush);
+    };
+
+    window.addEventListener("mousemove", onMove);
+    return () => {
+      window.removeEventListener("mousemove", onMove);
+      if (raf !== null) cancelAnimationFrame(raf);
+    };
+  }, []);
+
   const adjustZoom = (delta: number) => {
     const wrap = wrapRef.current;
     if (!wrap) return;
@@ -324,6 +394,39 @@ export default function BlogMap() {
   const unvisited = paths.filter((p) => !VISIT_BY_ISO.has(p.id));
   const visited = paths.filter((p) => VISIT_BY_ISO.has(p.id));
 
+  /**
+   * Visits whose country is too small to be in the 110m TopoJSON
+   * (Seychelles, etc.) — they have explicit coords on the visit
+   * record and we render them as a small filled circle at the
+   * projected location. Same hover plate / click-to-modal as a
+   * full country path.
+   */
+  const visitedCountryISOs = new Set(visited.map((p) => p.id));
+  const dotMarkers = useMemo(() => {
+    const projection = projectionRef.current;
+    if (!projection) return [];
+    const visits = Array.from(VISIT_BY_ISO.values());
+    return visits
+      .filter((v) => v.coords && !visitedCountryISOs.has(v.iso))
+      .map((v) => {
+        const projected = projection(v.coords as [number, number]);
+        if (!projected) return null;
+        return {
+          iso: v.iso,
+          name: v.name,
+          x: projected[0],
+          y: projected[1],
+        };
+      })
+      .filter((m): m is { iso: string; name: string; x: number; y: number } =>
+        m !== null
+      );
+    // visitedCountryISOs is rebuilt every render but its contents
+    // are deterministic from VISIT_BY_ISO, so we only depend on
+    // the underlying source.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [paths]);
+
   return (
     <div className={styles.root}>
       <div
@@ -337,6 +440,7 @@ export default function BlogMap() {
         }
       >
         <svg
+          ref={svgRef}
           viewBox={viewBoxStr}
           className={styles.map}
           preserveAspectRatio="xMidYMid meet"
@@ -387,20 +491,50 @@ export default function BlogMap() {
             );
           })}
 
+          {/* Dot markers for visits whose country isn't in the
+              110m TopoJSON (Seychelles + future small-island
+              entries). Same fill/scale-on-hover treatment as a
+              full country — just rendered as a small filled
+              circle at the projected lat/long. */}
+          {dotMarkers.map((m) => {
+            const isActive = hover?.visit.iso === m.iso;
+            return (
+              <circle
+                key={`dot-visual-${m.iso}`}
+                cx={m.x}
+                cy={m.y}
+                r={2.6}
+                className={`${styles.visitedDot} ${
+                  isActive ? styles.visitedDotActive : ""
+                }`}
+              />
+            );
+          })}
+
           {/* LiquidEther layer — single instance for the currently
               hovered country, clipped to its silhouette. Mounted on
               hover, unmounted on leave so we don't keep WebGL
               running idle when nothing is highlighted. */}
           {hover && (
-            <foreignObject
+            /* Wrap the foreignObject in a <g> that carries the clip.
+               Applying clip-path directly on a <foreignObject> with
+               a WebGL canvas inside is unreliable across browsers —
+               in some Chromium / WebKit builds the canvas paints
+               unclipped or the clip is offset. Clipping on the
+               parent <g> is the documented workaround: the foreign
+               content is rendered first, then the whole group is
+               clipped as a single shape. */
+            <g
               key="liquid"
-              x={vb.x}
-              y={vb.y}
-              width={vb.w}
-              height={vb.h}
               clipPath={`url(#country-clip-${hover.visit.iso})`}
-              style={{ pointerEvents: "none" }}
             >
+              <foreignObject
+                x={vb.x}
+                y={vb.y}
+                width={vb.w}
+                height={vb.h}
+                style={{ pointerEvents: "none" }}
+              >
               <div
                 /* xmlns set via spread because React's
                    HTMLDivElement type doesn't list it; browsers
@@ -426,7 +560,8 @@ export default function BlogMap() {
                   style={{ width: "100%", height: "100%" }}
                 />
               </div>
-            </foreignObject>
+              </foreignObject>
+            </g>
           )}
 
           {/* Permanent 2× hit area on top — captures all mouse
@@ -445,6 +580,25 @@ export default function BlogMap() {
               onClick={() => onCountryClick(p.id)}
               data-cursor="magnifier"
               aria-label={p.name}
+            />
+          ))}
+
+          {/* Hit areas for the dot markers — bigger transparent
+              circle around the visible 2.6r dot so the cursor can
+              actually land on it (the visual is too small to grab
+              by itself). */}
+          {dotMarkers.map((m) => (
+            <circle
+              key={`dot-hit-${m.iso}`}
+              cx={m.x}
+              cy={m.y}
+              r={14}
+              className={styles.visitedDotHit}
+              onMouseEnter={() => onCountryEnter(m.iso)}
+              onMouseLeave={onCountryLeave}
+              onClick={() => onCountryClick(m.iso)}
+              data-cursor="magnifier"
+              aria-label={m.name}
             />
           ))}
         </svg>
@@ -472,6 +626,13 @@ export default function BlogMap() {
       </div>
 
       <div className={styles.stamp}>under construction</div>
+
+      {/* Lat/long readout that follows the cursor over the map.
+          Position + content are written imperatively (no React
+          re-render per mousemove) — see the cursor effect below
+          for the writer. The element is always mounted but parked
+          off-screen until the first move. */}
+      <div ref={coordsRef} className={styles.coords} aria-hidden="true" />
 
       <BlogCountryPlate hover={hover} />
       <BlogCountryModal visit={openVisit} onClose={() => setOpenIso(null)} />
