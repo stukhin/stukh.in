@@ -105,11 +105,14 @@ export default function GridDistortion({
     uniformsRef.current = uniforms;
 
     const size = grid;
+    // Zero-init the displacement texture. The original port seeded
+    // every cell with random offsets in [-125, +125], which produced
+    // a wild "checker / scrambled tiles" frame on first load that
+    // only resolved to clean once the relaxation kicked in. Starting
+    // at zero means the photo paints clean from the very first
+    // frame — cursor movement then introduces displacement as
+    // designed; nothing visual is lost.
     const data = new Float32Array(4 * size * size);
-    for (let i = 0; i < size * size; i++) {
-      data[i * 4] = Math.random() * 255 - 125;
-      data[i * 4 + 1] = Math.random() * 255 - 125;
-    }
 
     const dataTexture = new THREE.DataTexture(
       data,

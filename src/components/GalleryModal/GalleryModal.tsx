@@ -57,6 +57,16 @@ export default function GalleryModal({
   const [mounted, setMounted] = useState(false);
   const [imgLoaded, setImgLoaded] = useState(false);
   const [closing, setClosing] = useState(false);
+  /**
+   * Aspect ratio of the loaded photo (width/height). Used as inline
+   * style on .zoomWrap so the wrapper sizes to the photo's natural
+   * fit-rect inside the modal instead of expanding to the image's
+   * raw pixel dimensions. Without this the inline-block wrap was
+   * sized to e.g. 2400×3000 and overflowed the viewport — only a
+   * sliver of the photo was visible. Default 3/4 (typical vertical
+   * photo) before load so first paint isn't catastrophically wrong.
+   */
+  const [pictureAspect, setPictureAspect] = useState<number>(3 / 4);
   const imgRef = useRef<HTMLImageElement>(null);
   const zoomWrapRef = useRef<HTMLDivElement>(null);
   // Tracks whether the open-FLIP has already played for the current
@@ -256,6 +266,7 @@ export default function GalleryModal({
         <div
           ref={zoomWrapRef}
           className={styles.zoomWrap}
+          style={{ aspectRatio: String(pictureAspect) }}
           onMouseMove={onPictureMouseMove}
           onMouseLeave={onPictureMouseLeave}
           onClick={(e) => e.stopPropagation()}
@@ -268,10 +279,17 @@ export default function GalleryModal({
               imgLoaded ? styles.pictureLoaded : ""
             }`}
             src={src}
-            onLoad={() => setImgLoaded(true)}
+            onLoad={(e) => {
+              const el = e.currentTarget as HTMLImageElement;
+              if (el.naturalWidth > 0 && el.naturalHeight > 0) {
+                setPictureAspect(el.naturalWidth / el.naturalHeight);
+              }
+              setImgLoaded(true);
+            }}
             ref={(el) => {
               imgRef.current = el;
               if (el && el.complete && el.naturalWidth > 0) {
+                setPictureAspect(el.naturalWidth / el.naturalHeight);
                 setImgLoaded(true);
               }
             }}

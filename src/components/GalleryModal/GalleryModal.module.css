@@ -84,25 +84,34 @@
    photo's frame. inline-block sizes the wrapper to the picture's
    intrinsic max-fit so the FLIP morph still grows from the
    gallery thumbnail's exact rect to the photo's exact rect. */
+/* The wrap is the photo's "frame" — fixed natural-fit size inside
+   the modal interior, regardless of the image's raw pixel
+   dimensions. aspect-ratio is set inline by the React component
+   from the picture's naturalWidth / naturalHeight on load; CSS
+   then picks the largest box of that aspect that fits inside the
+   container's max-width / max-height. The picture inside fills
+   the wrap with object-fit: contain (any aspect drift is absorbed
+   as a thin band rather than a huge gap). overflow: hidden clips
+   the hover-zoomed picture content to this fixed frame so the
+   photo's outer rect never changes. */
 .zoomWrap {
-  display: inline-block;
-  max-width: 100%;
-  max-height: 100%;
-  overflow: hidden;
-  transform-origin: center center;
-  will-change: transform;
-  cursor: none;
-  /* Strip baseline gap underneath the inline-block so the wrapper
-     hugs the image perfectly. */
-  line-height: 0;
-}
-
-.picture {
   display: block;
   max-width: 100%;
   max-height: 100%;
   width: auto;
   height: auto;
+  overflow: hidden;
+  transform-origin: center center;
+  will-change: transform;
+  cursor: none;
+  line-height: 0;
+}
+
+.picture {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
   /* Hover sets transform / transform-origin via inline style. The
      transition smooths cursor-driven moves into a soft follow. */
   transform: translate(0, 0) scale(1);
