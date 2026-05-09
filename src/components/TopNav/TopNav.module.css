@@ -74,80 +74,74 @@
 .underline::before {
   content: "";
   position: absolute;
-  left: 0;
+  /* Always-centred via translateX(-50%): bar's horizontal anchor
+     stays at .underline's middle whether width is 22 (idle / active)
+     or 100% (hover). Vertical position is then the only axis that
+     changes between states, which is what makes the click-to-active
+     animation interpolate cleanly (translateY appears alongside the
+     existing translateX in one transform list). */
+  left: 50%;
+  transform: translateX(-50%);
   height: 1px;
   bottom: -12px;
   width: 22px;
   border-radius: 3px;
   background-color: var(--shell-fg-soft);
-  transition: width 0.2s ease-in-out, bottom 0.1s linear,
+  /* Bumped from 0.2s to 0.6s on transform / width / bottom so the
+     bar visibly travels (rather than snaps) when a link goes from
+     hovered-and-clicked to active — synced with the chain-bridge
+     page slide. */
+  transition: width 0.6s cubic-bezier(0.65, 0, 0.35, 1),
+    transform 0.6s cubic-bezier(0.65, 0, 0.35, 1),
+    bottom 0.6s cubic-bezier(0.65, 0, 0.35, 1),
     background-color 0.4s ease;
 }
 
-.link:hover .underline,
-.link:active .underline {
+/* Inactive link hover: the bar swells to full text width, lifts
+   slightly toward the text. .link.active is excluded so an active
+   link doesn't visually react when the cursor passes over it. */
+.link:not(.active):hover .underline,
+.link:not(.active):active .underline {
   width: 100%;
 }
 
-.link:hover .underline::before,
-.link:active .underline::before {
+.link:not(.active):hover .underline::before,
+.link:not(.active):active .underline::before {
   width: 100%;
-  left: 50%;
-  transform: translateX(-50%);
   background-color: var(--shell-fg-strong);
 }
 
-.link:hover .underline::before {
+.link:not(.active):hover .underline::before {
   bottom: -7px;
 }
 
-.link:active .underline::before {
+.link:not(.active):active .underline::before {
   bottom: -5px;
 }
 
 /* Active item — same brightness as the rest, but the indicator
-   underline flips to ABOVE the link (a small bar sitting over the
-   word) so the user can see at a glance which page they're on. No
-   hover animation: the link is its own page already, nothing to
-   trigger. */
+   bar lives ABOVE the link instead of below. Mirror distance: the
+   idle bar sits 12px below the link's bottom, so the active bar
+   sits 12px above the link's top — same visual gap from the text.
+   The translateY value (-44px) is link-height (19) + idle gap (12)
+   below + mirror gap (12) above + bar height (1) — i.e. exactly
+   the distance from the idle bar's centre to the mirrored centre.
+   Because we only ADD a translateY component to the existing
+   translateX(-50%), the transition between hover (full-width below)
+   and active (narrow above) interpolates as one smooth motion. */
 .link.active {
   pointer-events: none;
 }
 
 .link.active .underline {
-  /* Anchor at the top of the link instead of the bottom. */
-  bottom: auto;
-  top: 0;
+  width: 22px;
 }
 
 .link.active .underline::before {
-  /* Visible bar floats just above the text. */
-  bottom: auto;
-  top: -7px;
   width: 22px;
-  left: 0;
-  transform: none;
+  transform: translateX(-50%) translateY(-44px);
+  bottom: -12px;
   background-color: var(--shell-fg-strong);
-  /* Kill the hover animation — active stays visually static. */
-  transition: none;
-}
-
-/* Belt-and-suspenders: the generic .link:hover and .link:active
-   rules earlier in the file would otherwise widen the bar on hover
-   even on the active page. Lock those overrides to inactive links
-   only. */
-.link.active:hover .underline,
-.link.active:active .underline {
-  width: 22px;
-}
-
-.link.active:hover .underline::before,
-.link.active:active .underline::before {
-  width: 22px;
-  left: 0;
-  bottom: auto;
-  top: -7px;
-  transform: none;
 }
 
 /* First-load typewriter entrance. The .typing class lives on the nav

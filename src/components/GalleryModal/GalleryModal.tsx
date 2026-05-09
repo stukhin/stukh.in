@@ -72,7 +72,7 @@ export default function GalleryModal({
     } else if (mounted) {
       // open just flipped to false → run the close animation, then
       // unmount once it's finished.
-      const target = imgRef.current;
+      const target = zoomWrapRef.current;
       const fromRectNow = getCurrentRect?.() ?? null;
       if (target && fromRectNow) {
         const tRect = target.getBoundingClientRect();
@@ -109,7 +109,7 @@ export default function GalleryModal({
   const runFlipIn = () => {
     if (!open || closing || !fromRect) return;
     if (flipRanRef.current) return;
-    const target = imgRef.current;
+    const target = zoomWrapRef.current;
     if (!target) return;
     const tRect = target.getBoundingClientRect();
     if (!tRect.width || !tRect.height) return;
@@ -179,15 +179,21 @@ export default function GalleryModal({
     return () => window.removeEventListener("keydown", onKey);
   }, [open, onClose]);
 
-  // Hover-zoom: while the cursor is over the photo we apply a 2×
-  // scale on a wrapper element AND translate it so the cursor's
-  // [0..1] position in the photo maps to which part of the photo
-  // sits at the centre of the visible viewport. The wrapper is
-  // separate from the .picture (which still owns the FLIP morph)
-  // so the two transforms compose without stomping each other.
+  // Hover-zoom: the visible picture's outer frame stays fixed at
+  // its fit-to-screen size; what zooms is the <img> INSIDE the
+  // frame, kept clipped by the wrapper's overflow: hidden. So the
+  // photo's bounding box never changes — the user just sees a
+  // closer crop of it, panned by cursor position. Scale 1.25
+  // (≈ +25%) is enough to bring detail in without making the
+  // image feel like it's escaping its frame. Cursor at (cx, cy)
+  // ∈ [0,1] maps to which point of the photo sits at the centre
+  // of the visible frame; cursor outside the frame clears the
+  // transform and we're back to the natural fit.
+  const HOVER_SCALE = 1.25;
   const onPictureMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     const wrap = zoomWrapRef.current;
-    if (!wrap) return;
+    const img = imgRef.current;
+    if (!wrap || !img) return;
     const rect = wrap.getBoundingClientRect();
     if (rect.width === 0 || rect.height === 0) return;
     const cx = Math.max(
@@ -198,21 +204,18 @@ export default function GalleryModal({
       0,
       Math.min(1, (e.clientY - rect.top) / rect.height)
     );
-    // At scale 2, the photo is 2× its own size and the visible area
-    // is half the original. Translating by -W·cx / -H·cy pulls the
-    // window across the photo so cursor at (0,0) shows the top-left
-    // quarter, (1,1) shows the bottom-right quarter, (0.5,0.5) the
-    // centre quarter — i.e. cursor position commands the pan.
-    wrap.style.transformOrigin = "0 0";
-    wrap.style.transform = `translate(${-rect.width * cx}px, ${
-      -rect.height * cy
-    }px) scale(2)`;
+    // Translate the scaled image so the (cx, cy) point of the
+    // original photo lands at the centre of the wrapper.
+    const tx = rect.width * (0.5 - HOVER_SCALE * cx);
+    const ty = rect.height * (0.5 - HOVER_SCALE * cy);
+    img.style.transformOrigin = "0 0";
+    img.style.transform = `translate(${tx}px, ${ty}px) scale(${HOVER_SCALE})`;
   };
   const onPictureMouseLeave = () => {
-    const wrap = zoomWrapRef.current;
-    if (!wrap) return;
-    wrap.style.transform = "";
-    wrap.style.transformOrigin = "";
+    const img = imgRef.current;
+    if (!img) return;
+    img.style.transform = "";
+    img.style.transformOrigin = "";
   };
 
   if (!mounted || !item) return null;

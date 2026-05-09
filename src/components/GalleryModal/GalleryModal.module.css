@@ -75,21 +75,26 @@
   justify-content: center;
 }
 
-/* Wrapper that owns the hover-zoom transform. The .picture inside
-   keeps its own transform free for the FLIP morph driven by the
-   Web Animations API — both transforms compose without stomping
-   each other. */
+/* The wrapper now owns the FLIP morph (target swapped from .picture
+   to .zoomWrap so .picture can carry the cursor-driven hover
+   transform on inline style without a WAAPI conflict).
+   overflow: hidden clips the scaled <img> inside to the wrapper's
+   bounds — i.e. to the photo's natural fit-to-viewport rect — so
+   hover-zoom enlarges the visible CONTENT without enlarging the
+   photo's frame. inline-block sizes the wrapper to the picture's
+   intrinsic max-fit so the FLIP morph still grows from the
+   gallery thumbnail's exact rect to the photo's exact rect. */
 .zoomWrap {
   display: inline-block;
   max-width: 100%;
   max-height: 100%;
-  /* The translate / scale set inline by the React component is
-     animated via this transition for a smooth follow when the
-     cursor crosses the photo, but small enough not to feel laggy. */
-  transition: transform 0.18s cubic-bezier(0.2, 0.7, 0.4, 1);
-  transform-origin: 0 0;
+  overflow: hidden;
+  transform-origin: center center;
   will-change: transform;
   cursor: none;
+  /* Strip baseline gap underneath the inline-block so the wrapper
+     hugs the image perfectly. */
+  line-height: 0;
 }
 
 .picture {
@@ -98,13 +103,13 @@
   max-height: 100%;
   width: auto;
   height: auto;
-  /* Transform is driven by the FLIP morph in GalleryModal.tsx via the
-     Web Animations API. Static fallback below keeps the photo
-     positioned correctly when JS hasn't run yet. */
+  /* Hover sets transform / transform-origin via inline style. The
+     transition smooths cursor-driven moves into a soft follow. */
   transform: translate(0, 0) scale(1);
-  transform-origin: center center;
+  transform-origin: 0 0;
   opacity: 0;
-  transition: opacity 0.3s ease-in;
+  transition: opacity 0.3s ease-in,
+    transform 0.18s cubic-bezier(0.2, 0.7, 0.4, 1);
   will-change: transform, opacity;
 }
 
