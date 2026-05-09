@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import GridDistortion from "../GridDistortion/GridDistortion";
 import { useVerticalPageSwipe } from "@/lib/useVerticalPageSwipe";
+import { PAGE_VISUALS } from "@/lib/pageVisuals";
 import styles from "./HomeSlider.module.css";
 
 const slides = [
@@ -13,6 +14,10 @@ const slides = [
 ];
 
 const AUTOPLAY_MS = 7000;
+// sessionStorage key for the active slide so navigating away from /
+// and back doesn't reset the photo to slide 1. Tab-scoped so a fresh
+// tab still starts at slide 0.
+const HOME_SLIDE_KEY = "stukhin.home.activeSlide";
 
 // Mid-grey threshold (0–1) for picking light vs dark theme. Anything
 // above is "light enough that black glyphs read better"; anything
@@ -52,6 +57,8 @@ async function sampleLuminance(src: string): Promise<number> {
 }
 
 export default function HomeSlider() {
+  // Initial state always 0 to match SSR; the saved slide is read in
+  // a useEffect after mount to avoid hydration mismatch warnings.
   const [active, setActive] = useState(0);
 
   // First-load entrance is now just the Preloader's opacity fade-out
@@ -59,6 +66,35 @@ export default function HomeSlider() {
   // animation introduced visible jumps + flicker as the WebGL
   // canvas warmed up under it; with the reveal removed the photo
   // simply emerges as the white preloader fades. Cleaner.
+
+  // Restore last-visited slide from this tab's sessionStorage. Lives
+  // in a separate effect from the autoplay so the autoplay doesn't
+  // race the restore (its setActive call would push us off the
+  // restored index immediately).
+  useEffect(() => {
+    try {
+      const saved = sessionStorage.getItem(HOME_SLIDE_KEY);
+      if (saved === null) return;
+      const idx = parseInt(saved, 10);
+      if (Number.isFinite(idx) && idx >= 0 && idx < slides.length) {
+        setActive(idx);
+      }
+    } catch {
+      // sessionStorage disabled — first-time-load behaviour is fine.
+    }
+  }, []);
+
+  // Persist active slide AND sync the chain-bridge's "/" bg to the
+  // currently-displayed photo. Without the second update, navigating
+  // away from / always plays the bridge from slide 1 even if the
+  // user was on slide 3 — produced a visible jump back to slide 1
+  // right before the chain animation started.
+  useEffect(() => {
+    try {
+      sessionStorage.setItem(HOME_SLIDE_KEY, String(active));
+    } catch {}
+    PAGE_VISUALS["/"].bg = slides[active];
+  }, [active]);
 
   const next = () => setActive((i) => (i + 1) % slides.length);
   const prev = () =>

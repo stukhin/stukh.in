@@ -40,15 +40,6 @@ const ZOOM_INITIAL = 1.2;
 const ZOOM_STEP = 0.005;
 const ZOOM_BUTTON_STEP = 0.22;
 
-// Scale factor applied to the visual on hover. Smaller than before
-// (2× felt aggressive and made tightly-clustered countries — UK /
-// France / Spain / Portugal — hard to navigate, since one
-// country's hit area would smother its neighbours). 1.15 still
-// reads as "this country popped" while keeping each neighbour
-// reachable. The hovered country is also rendered LAST so it
-// always paints on top of its siblings.
-const HOVER_SCALE = 1.15;
-
 // How long after a mouseleave we wait before clearing the hover
 // state. Smooths cursor-near-edge wobble that would otherwise rapid-
 // fire enter/leave events as the user feathers the boundary.
@@ -417,7 +408,6 @@ export default function BlogMap() {
         className={styles.mapWrap}
         style={
           {
-            "--hover-scale": String(HOVER_SCALE),
             "--map-aspect": String(mapAspect),
           } as CSSProperties
         }
@@ -432,16 +422,10 @@ export default function BlogMap() {
           <defs>
             {/* One <clipPath> per visited country — used by the
                 LiquidEther <foreignObject> to mask its canvas to the
-                exact country silhouette. The path inside is
-                pre-scaled HOVER_SCALE× around the country's bbox
-                centre so the clip lines up with the visual's
-                hover-scale state (not the original-size country). */}
+                exact country silhouette at its natural (1×) size. */}
             {visited.map((p) => (
               <clipPath key={`clip-${p.id}`} id={`country-clip-${p.id}`}>
-                <path
-                  d={p.d}
-                  transform={`translate(${p.cx} ${p.cy}) scale(${HOVER_SCALE}) translate(${-p.cx} ${-p.cy})`}
-                />
+                <path d={p.d} />
               </clipPath>
             ))}
           </defs>
@@ -454,13 +438,12 @@ export default function BlogMap() {
             </path>
           ))}
 
-          {/* Visited countries: visual layer underneath (scales on
-              hover, no pointer events), then the LiquidEther overlay
-              for the currently-hovered one (clipped to its path),
-              then the hit-area path on top. The hit area is
-              permanently scaled to HOVER_SCALE so the cursor zone
-              never moves out from under the cursor mid-animation —
-              that was the source of the country flicker. */}
+          {/* Visited countries: fill layer (only the colour swaps on
+              hover — no scale-up), the LiquidEther overlay for the
+              currently-hovered country (clipped to its path), then a
+              stroke-trace overlay that draws a 1px white outline
+              around the perimeter over 1.5s on hover, then the
+              hit-area path. */}
           {visitedSorted.map((p) => {
             const isActive = hover?.visit.iso === p.id;
             return (
@@ -547,12 +530,33 @@ export default function BlogMap() {
             </g>
           )}
 
-          {/* Permanent 2× hit area on top — captures all mouse
-              events for the country. Transparent fill so it stays
-              invisible. aria-label (not <title>) gives the country
-              a name for screen readers without firing the native
-              browser tooltip we don't want — the cursor-following
-              plate already carries the visible label. */}
+          {/* Stroke-trace overlay. One path per visited country,
+              always rendered (so the CSS transition can run between
+              states); only the active one's class flips and the
+              outline draws around the perimeter via stroke-dashoffset.
+              pathLength="1" normalises the path so the dasharray
+              recipe (1 1 + offset 1 → 0) reads as start→end
+              regardless of the country's actual perimeter length. */}
+          {visited.map((p) => {
+            const isActive = hover?.visit.iso === p.id;
+            return (
+              <path
+                key={`stroke-${p.id}`}
+                d={p.d}
+                pathLength={1}
+                className={`${styles.visitedStroke} ${
+                  isActive ? styles.visitedStrokeActive : ""
+                }`}
+              />
+            );
+          })}
+
+          {/* Hit area on top — captures all mouse events for the
+              country. Transparent fill so it stays invisible.
+              aria-label (not <title>) gives the country a name for
+              screen readers without firing the native browser
+              tooltip we don't want — the cursor-following plate
+              already carries the visible label. */}
           {visited.map((p) => (
             <path
               key={`hit-${p.id}`}

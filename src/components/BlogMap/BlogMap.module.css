@@ -57,29 +57,52 @@
 }
 
 /* Visited country: visual layer. Renders underneath the LiquidEther
-   foreignObject and the hit-area path. Scales to var(--hover-scale)
-   when its sibling hit area registers a hover (the "active" class
-   is applied from React state, not :hover, so transitions don't
-   feed back into hit-area changes). */
+   foreignObject and the hit-area path. The "active" class is
+   applied from React state, not :hover. Used to scale up on hover;
+   we now only swap fill — the scale-up read as gimmicky next to a
+   precise stroke-trace outline (.visitedStroke) which carries the
+   hover state visually instead. */
 .visitedVisual {
   fill: #1a1a1a;
   pointer-events: none;
   transform-box: fill-box;
   transform-origin: center center;
-  transition: fill 0.22s ease,
-    transform 0.32s cubic-bezier(0.2, 0.7, 0.4, 1);
+  transition: fill 0.22s ease;
 }
 
 .visitedVisualActive {
   fill: #c14a3a;
-  transform: scale(var(--hover-scale, 2));
 }
 
-/* Hit area: same path as the visual, transparent, but PERMANENTLY
-   scaled to the hover scale. This is the trick that kills the
-   flicker — the cursor sits inside a stable region the size of the
-   would-be enlarged country, so the scale animation on the visual
-   doesn't change anything about hit detection. */
+/* Stroke-trace overlay: invisible by default, on hover the white
+   1px outline animates around the country's perimeter over 1.5s
+   (stroke-dasharray: 1 1 + pathLength="1" → dashoffset 1 → 0
+   reads the path from start to end). Off-state fades opacity
+   without un-tracing — looks tighter than a reverse animation,
+   which would lag the cursor. */
+.visitedStroke {
+  fill: none;
+  stroke: #ffffff;
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
+  stroke-dasharray: 1 1;
+  stroke-dashoffset: 1;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.25s ease;
+}
+
+.visitedStrokeActive {
+  opacity: 1;
+  stroke-dashoffset: 0;
+  transition: opacity 0.08s ease, stroke-dashoffset 1.5s linear;
+}
+
+/* Hit area: same path as the visual, transparent. Used to be
+   permanently 2× scaled to hide the visual's scale animation;
+   now that the country no longer scales on hover, hit area
+   matches the visible silhouette 1:1 (no more cursor sitting
+   inside an invisible rectangle that overlaps neighbours). */
 .visitedHit {
   fill: transparent;
   stroke: transparent;
@@ -89,9 +112,6 @@
   vector-effect: non-scaling-stroke;
   pointer-events: all;
   cursor: none;
-  transform-box: fill-box;
-  transform-origin: center center;
-  transform: scale(var(--hover-scale, 2));
 }
 
 /* Bottom-left zoom controls. Two stacked square buttons in the same
@@ -166,18 +186,16 @@
   }
 }
 
-/* LiquidEther wrapper inside the foreignObject. Fades in only after
-   the visual has finished its scale-up animation (0.32s) — without
-   the delay, the fluid renders at full 2× size while the visual is
-   still 1.x, leaking out of the country's pre-grown silhouette and
-   reading as a glitch. The trailing duration keeps the entrance
-   smooth. */
+/* LiquidEther wrapper inside the foreignObject. Short fade-in so
+   the WebGL canvas's first frame doesn't pop in with scrambled
+   noise — once the scale-up was removed there's no need for a
+   long entrance delay. */
 .liquidWrap {
   width: 100%;
   height: 100%;
   pointer-events: none;
   opacity: 0;
-  animation: liquidFadeIn 0.45s ease 0.32s forwards;
+  animation: liquidFadeIn 0.4s ease 0.08s forwards;
 }
 
 @keyframes liquidFadeIn {
@@ -201,7 +219,6 @@
 
 .visitedDotActive {
   fill: #c14a3a;
-  transform: scale(2.6);
 }
 
 .visitedDotHit {
@@ -243,8 +260,12 @@
   .visitedVisual {
     transition: fill 0.22s ease;
   }
-  .visitedVisualActive {
-    transform: none;
+  .visitedStroke {
+    transition: opacity 0.25s ease;
+  }
+  .visitedStrokeActive {
+    stroke-dashoffset: 0;
+    transition: opacity 0.08s ease;
   }
   .liquidWrap {
     animation: none;

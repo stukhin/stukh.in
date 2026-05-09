@@ -67,7 +67,7 @@
   position: absolute;
   left: 50%;
   transform: translateX(-50%);
-  height: 2px;
+  height: 1.5px;
   bottom: 0;
   width: 22px;
 }
@@ -81,7 +81,7 @@
      cleanly without transform-list interpolation surprises. */
   left: 50%;
   translate: -50% 0;
-  height: 2px;
+  height: 1.5px;
   bottom: -12px;
   width: 22px;
   border-radius: 3px;
