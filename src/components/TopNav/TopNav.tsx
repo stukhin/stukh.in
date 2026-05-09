@@ -97,29 +97,39 @@ export default function TopNav({ className = "" }: Props) {
    * remounts on every chained navigation. If we marked the new
    * active link via pathname directly, the underline would render
    * already at translateY(-44px) on first paint and the CSS
-   * transition wouldn't fire (no value change between renders) —
-   * the user reads that as "no animation, just snaps."
+   * transition wouldn't fire — the user reads that as "no animation,
+   * just snaps."
    *
-   * Workaround: when we mount mid-chain (html.chain-active class
-   * is set), start with no active link, then promote pathname →
-   * activeLink on the second paint frame. The underline's value
-   * transitions from idle (translate -50% 0) to active
-   * (translate -50% -44px) over its CSS easing, riding through
-   * the chain-bridge slide.
+   * Workaround for mid-chain mounts: read the FROM-path that
+   * navigateChained() stashed on window before dispatching the
+   * chain event, render with that as the initial active link, then
+   * on the second paint frame setActivePath(pathname) so the new
+   * active rises while the OLD active drops back down — both bars
+   * travel mirror-symmetrically. If the from-path isn't usable
+   * (off-strip, missing), fall back to "no active" and just animate
+   * the new one rising.
    *
-   * On a hard load (no chain) we initialise with pathname so the
-   * server-rendered markup already has the active link and the
-   * client hydrates without a flicker.
+   * Hard load (no chain) initialises with pathname so SSR + client
+   * hydrate identically, no flicker.
    */
   const [activePath, setActivePath] = useState<string | null>(() => {
     if (typeof document === "undefined") return pathname;
-    return document.documentElement.classList.contains("chain-active")
-      ? null
-      : pathname;
+    if (!document.documentElement.classList.contains("chain-active")) {
+      return pathname;
+    }
+    type ChainWindow = Window & { __stukhinChainFrom?: string };
+    const fromPath = (window as unknown as ChainWindow).__stukhinChainFrom;
+    if (typeof fromPath === "string" && fromPath !== pathname) {
+      return fromPath;
+    }
+    return null;
   });
 
   useLayoutEffect(() => {
-    if (activePath === null) {
+    if (activePath !== pathname) {
+      // Mid-chain mount started with the OLD active path (or null).
+      // Promote to the new pathname on the second paint frame so the
+      // CSS transition has a clean from-state to interpolate from.
       let r1 = 0;
       let r2 = 0;
       r1 = requestAnimationFrame(() => {
@@ -132,7 +142,6 @@ export default function TopNav({ className = "" }: Props) {
         cancelAnimationFrame(r2);
       };
     }
-    if (activePath !== pathname) setActivePath(pathname);
     // Intentionally only depend on pathname — activePath changes
     // shouldn't retrigger this effect.
     // eslint-disable-next-line react-hooks/exhaustive-deps

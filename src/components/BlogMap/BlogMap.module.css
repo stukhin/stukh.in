@@ -1,11 +1,19 @@
 /* Root absolutely fills the /blog .page wrapper. Children: the
    parallax-translated map, two zoom buttons, the centred "under
-   construction" stamp. */
+   construction" stamp.
+   z-index 8 lifts the whole map above EdgeNav (z 7) so country
+   hit-area paths intercept hover/click before EdgeNav's top
+   click-zone does — countries in the top 15 vh band (e.g. UK,
+   north of France/Spain) used to be blocked by EdgeNav's
+   transparent button. The .map SVG below sets pointer-events:
+   none so events on the cream paper still reach EdgeNav, while
+   the .visitedHit / .visitedDotHit paths override with all. */
 .root {
   position: absolute;
   inset: 0;
   overflow: hidden;
   cursor: none;
+  z-index: 8;
 }
 
 /* Wrap composes pan + zoom into a single transform so they stay on
@@ -46,6 +54,13 @@
   flex-shrink: 0;
   display: block;
   cursor: none;
+  /* Pass mouse events through the cream-paper area so EdgeNav's
+     top click-zone (z 7, beneath .root z 8) still receives clicks
+     where there's no country. The .visitedHit / .visitedDotHit
+     paths override pointer-events: all, so countries themselves
+     stay interactive — and now sit ABOVE EdgeNav, fixing the
+     previous "UK can't be hovered" issue. */
+  pointer-events: none;
 }
 
 /* Default country: solid pale fill, NO stroke. Continents read as
@@ -75,12 +90,11 @@
 }
 
 /* Stroke-trace overlay: invisible by default; on hover the white
-   1 px outline animates around the country's perimeter over 1.5 s.
-   stroke-dasharray + stroke-dashoffset are written INLINE by the
-   <CountryStroke> component (using the path's real getTotalLength
-   value) so the trace actually closes around multi-subpath
-   countries. Off-state just fades opacity — un-tracing in reverse
-   lags the cursor and reads worse. */
+   1 px outline draws around the country's perimeter. stroke-
+   dasharray and stroke-dashoffset are written inline + animated
+   via rAF in <CountryStroke> (CSS transitions on dashoffset were
+   bailing short on multi-subpath geometries — JS guarantees the
+   trace reaches 100 %). Off-state opacity fade is still CSS. */
 .visitedStroke {
   fill: none;
   stroke: #ffffff;
@@ -93,7 +107,7 @@
 
 .visitedStrokeActive {
   opacity: 1;
-  transition: opacity 0.08s ease, stroke-dashoffset 1.5s linear;
+  transition: opacity 0.08s ease;
 }
 
 /* Hit area: same path as the visual, transparent. Used to be
@@ -262,7 +276,6 @@
     transition: opacity 0.25s ease;
   }
   .visitedStrokeActive {
-    stroke-dashoffset: 0;
     transition: opacity 0.08s ease;
   }
   .liquidWrap {

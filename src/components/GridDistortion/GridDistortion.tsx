@@ -36,6 +36,14 @@ type Props = {
    * photography.
    */
   dispIntensity?: number;
+  /**
+   * Direction the wave-front sweeps in when transitioning. "forward"
+   * sweeps right-to-left (new photo enters from the right); "backward"
+   * sweeps left-to-right (new photo enters from the left). The
+   * caller flips this each time the user pages prev so the visual
+   * feedback matches the navigation direction.
+   */
+  direction?: "forward" | "backward";
   className?: string;
 };
 
@@ -64,6 +72,8 @@ uniform sampler2D uTexture;
 uniform sampler2D uTexture2;
 uniform float uProgress;
 uniform float uDispIntensity;
+// 0 = forward (sweep right-to-left); 1 = backward (sweep left-to-right).
+uniform float uAxisFlip;
 uniform vec4 resolution;
 varying vec2 vUv;
 
@@ -104,10 +114,11 @@ void main() {
   float n = fbm(vUv * 3.0);
   float lower = uProgress - uDispIntensity;
   float higher = uProgress + uDispIntensity;
-  // (1 - vUv.x) is high on the LEFT, low on the RIGHT — so as
-  // uProgress sweeps 0 -> 1 the threshold rises and pixels with
-  // smaller axis values (right-side first) flip from t1 to t2.
-  float axis = (1.0 - vUv.x) + (n - 0.5) * uDispIntensity * 2.0;
+  // axisDir: forward (uAxisFlip=0) → high on LEFT, low on RIGHT, so
+  // pixels with smaller axis values flip first → reveal sweeps R→L.
+  // backward (uAxisFlip=1) → swap, so reveal sweeps L→R.
+  float axisDir = mix(1.0 - vUv.x, vUv.x, uAxisFlip);
+  float axis = axisDir + (n - 0.5) * uDispIntensity * 2.0;
   float mask = smoothstep(lower, higher, axis);
 
   // mask=1 -> t1 (current), mask=0 -> t2 (incoming). At
@@ -143,6 +154,7 @@ export default function GridDistortion({
   relaxation = 0.9,
   transitionMs = 1200,
   dispIntensity = 0.5,
+  direction = "forward",
   className = "",
 }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -183,6 +195,7 @@ export default function GridDistortion({
       uDataTexture: { value: null as THREE.DataTexture | null },
       uProgress: { value: 0 },
       uDispIntensity: { value: dispIntensity },
+      uAxisFlip: { value: direction === "backward" ? 1 : 0 },
     };
     uniformsRef.current = uniforms;
 
@@ -439,6 +452,14 @@ export default function GridDistortion({
       handleResizeRef.current = null;
     };
   }, [grid, mouse, strength, relaxation, dispIntensity]);
+
+  // Direction prop drives a single uniform — no need to rebuild the
+  // renderer / scene just to flip the sweep axis.
+  useEffect(() => {
+    const uniforms = uniformsRef.current;
+    if (!uniforms) return;
+    uniforms.uAxisFlip.value = direction === "backward" ? 1 : 0;
+  }, [direction]);
 
   // Texture loading + crossfade. Swapping `imageSrc` doesn't tear
   // down the renderer — we just load the new image, drop it into

@@ -65,6 +65,16 @@ export function navigateChained(
     typeof window !== "undefined"
   ) {
     setTransitionDirection(getDirection(from, to));
+    // Stash the from-path on a window key so TopNav (which
+    // remounts on every chain navigation because AppShell is
+    // per-page) can render with the OLD active link initially and
+    // then animate it back down while the NEW active rises — both
+    // bars travel mirror-symmetrically instead of the leaving one
+    // snapping. Cleared again by ChainBridge once the slide settles.
+    type ChainWindow = Window & {
+      __stukhinChainFrom?: string;
+    };
+    (window as unknown as ChainWindow).__stukhinChainFrom = from;
     window.dispatchEvent(
       new CustomEvent("chainNavigate", { detail: { from, to } })
     );

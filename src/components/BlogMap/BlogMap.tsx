@@ -53,33 +53,87 @@ type CountryFeature = Feature<Geometry, { name?: string }>;
 
 /**
  * Stroke-trace overlay for a single visited country. Reads the path's
- * actual length via getTotalLength() on mount and writes it into the
- * stroke-dasharray + stroke-dashoffset inline style. The CSS-only
- * variant we tried first (pathLength="1" + dasharray "1 1") left a
- * noticeable gap on countries with multi-subpath geometry — the
- * dasharray period collided with the subpath boundaries and the
- * stroke didn't reach all the way back to the start. Driving the
- * dasharray off the real measured length avoids that entirely.
+ * real length via getTotalLength() and animates stroke-dashoffset
+ * from full → 0 over 1.5 s via rAF, writing the value directly to
+ * the DOM each frame. CSS transitions on stroke-dashoffset have
+ * been flaky here — on countries with multi-subpath geometry
+ * (mainland + islands, fragmented borders) the transition often
+ * ended visibly short of the perimeter — so we drive the property
+ * imperatively to guarantee a clean 100 % final state. Opacity
+ * fade-in/out still rides the CSS transition on the .active class.
  */
+const STROKE_TRACE_MS = 1500;
+
 function CountryStroke({ d, active }: { d: string; active: boolean }) {
   const ref = useRef<SVGPathElement>(null);
-  const [length, setLength] = useState(0);
+  const lengthRef = useRef(0);
+  const rafRef = useRef<number | null>(null);
+
   useEffect(() => {
     if (!ref.current) return;
+    let L = 0;
     try {
-      const L = ref.current.getTotalLength();
-      if (Number.isFinite(L) && L > 0) setLength(L);
+      L = ref.current.getTotalLength();
     } catch {
-      // getTotalLength can throw on degenerate paths; fall back to
-      // a large finite value so the stroke at least renders.
-      setLength(2000);
+      L = 2000;
     }
+    if (!Number.isFinite(L) || L <= 0) L = 2000;
+    // Pad the dash a bit past the measured length so subpath
+    // rounding never leaves a visible seam at the close-point.
+    lengthRef.current = L + 8;
+    // Initialise to invisible; the active effect below will start
+    // the animation if we mount in active state.
+    ref.current.style.strokeDasharray = `${L + 8} ${L + 8}`;
+    ref.current.style.strokeDashoffset = active ? "0" : String(L + 8);
   }, [d]);
-  const ready = length > 0;
-  // Closed/multi-sub-path safety: extend the dash a few units past
-  // the measured length so any subpath rounding doesn't leave a
-  // visible gap at the seam.
-  const dashLen = ready ? length + 4 : 0;
+  // active dependency intentionally omitted from the measurement
+  // effect — only re-measure when the path geometry changes.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    const path = ref.current;
+    if (!path) return;
+    const dashLen = lengthRef.current;
+    if (dashLen <= 0) return;
+
+    if (rafRef.current !== null) {
+      cancelAnimationFrame(rafRef.current);
+      rafRef.current = null;
+    }
+
+    if (!active) {
+      // Snap back to invisible — opacity fade (CSS) handles the
+      // visible departure, the inline offset just resets so the
+      // next entrance starts from "nothing drawn".
+      path.style.strokeDashoffset = String(dashLen);
+      return;
+    }
+
+    const start = performance.now();
+    path.style.strokeDashoffset = String(dashLen);
+    const tick = (now: number) => {
+      const t = Math.min(1, (now - start) / STROKE_TRACE_MS);
+      path.style.strokeDashoffset = String(dashLen * (1 - t));
+      if (t < 1) {
+        rafRef.current = requestAnimationFrame(tick);
+      } else {
+        rafRef.current = null;
+        // Force the final value to exactly 0 — float math during
+        // rAF can leave ~1 e-7 of residual offset that paints as a
+        // tiny visible gap on some browsers.
+        path.style.strokeDashoffset = "0";
+      }
+    };
+    rafRef.current = requestAnimationFrame(tick);
+
+    return () => {
+      if (rafRef.current !== null) {
+        cancelAnimationFrame(rafRef.current);
+        rafRef.current = null;
+      }
+    };
+  }, [active]);
+
   return (
     <path
       ref={ref}
@@ -87,14 +141,6 @@ function CountryStroke({ d, active }: { d: string; active: boolean }) {
       className={`${styles.visitedStroke} ${
         active ? styles.visitedStrokeActive : ""
       }`}
-      style={
-        ready
-          ? {
-              strokeDasharray: `${dashLen} ${dashLen}`,
-              strokeDashoffset: active ? 0 : dashLen,
-            }
-          : undefined
-      }
     />
   );
 }
@@ -137,6 +183,23 @@ export default function BlogMap() {
   const recomputePanRef = useRef<(() => void) | null>(null);
   const leaveTimerRef = useRef<number | null>(null);
   const [hover, setHover] = useState<CountryHoverState | null>(null);
+  // Mirror of `hover` for the imperatively-updated coords readout.
+  // The coords flush() runs in a useEffect closure and can't read
+  // React state directly without re-creating the listener every
+  // render; a ref lets it cheaply check "is the cursor over a
+  // country right now?" each frame and hide the lat/long label
+  // when it is, since the country plate already carries the
+  // location info and the two were stacking on top of each other.
+  const hoverRef = useRef<CountryHoverState | null>(null);
+  useEffect(() => {
+    hoverRef.current = hover;
+    // Hide the coords readout the moment a country is hovered, even
+    // if the cursor isn't moving — flush() only runs on mousemove,
+    // so without this the coords would linger until the next event.
+    if (hover && coordsRef.current) {
+      coordsRef.current.style.opacity = "0";
+    }
+  }, [hover]);
   const [openIso, setOpenIso] = useState<string | null>(null);
 
   // Project all country paths once on mount. The viewBox is then
@@ -323,6 +386,14 @@ export default function BlogMap() {
       const projection = projectionRef.current;
       const display = coordsRef.current;
       if (!svg || !projection || !display) return;
+      // Hide the lat/long readout while the cursor is over a
+      // visited country — the BlogCountryPlate next to the
+      // cursor already carries the location info, and the two
+      // labels were overlapping into an unreadable mess.
+      if (hoverRef.current) {
+        display.style.opacity = "0";
+        return;
+      }
       const ctm = svg.getScreenCTM();
       if (!ctm) return;
       const inv = ctm.inverse();
