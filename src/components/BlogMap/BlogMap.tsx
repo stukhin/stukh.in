@@ -52,6 +52,34 @@ const LIQUID_COLORS = ["#c14a3a", "#f08a5d", "#ffd2b3"];
 type CountryFeature = Feature<Geometry, { name?: string }>;
 
 /**
+ * Per-path explode vector. Same input → same output, so each
+ * country always flies the same way every time the user enters
+ * focus mode (deterministic feels intentional; truly random feels
+ * jittery). Distance is in viewport pixels — large enough to clear
+ * the screen even if the country starts at the far edge.
+ */
+function explodeStyleFor(id: string | number): CSSProperties {
+  let seed = 0;
+  if (typeof id === "string") {
+    for (let i = 0; i < id.length; i++) seed = seed * 31 + id.charCodeAt(i);
+  } else {
+    seed = id;
+  }
+  // Hash through a few rounds so neighbouring IDs (which are
+  // adjacent country numbers in the topology) don't fly in similar
+  // directions.
+  seed = Math.abs((seed * 2654435761) >>> 0);
+  const angle = (seed % 360) * (Math.PI / 180);
+  const distance = 900 + ((seed >> 8) % 700);
+  const rotation = (((seed >> 16) % 720) - 360) * 0.6;
+  return {
+    "--explode-x": `${Math.cos(angle) * distance}px`,
+    "--explode-y": `${Math.sin(angle) * distance}px`,
+    "--explode-rot": `${rotation}deg`,
+  } as CSSProperties;
+}
+
+/**
  * Stroke-trace overlay for a single visited country. Reads the path's
  * real length via getTotalLength() and animates stroke-dashoffset
  * from full → 0 over 1.5 s via rAF, writing the value directly to
@@ -209,7 +237,23 @@ export default function BlogMap() {
       coordsRef.current.style.opacity = "0";
     }
   }, [hover]);
-  const [openIso, setOpenIso] = useState<string | null>(null);
+  /**
+   * Focus mode: when a country is selected, the rest of the map's
+   * paths "explode" outward + fade out, the map translates so the
+   * selected country sits in the LEFT part of the viewport, and a
+   * detail panel slides in from the right. Tracked by ISO so the
+   * selected path can opt out of the explode CSS rule below.
+   */
+  const [selectedIso, setSelectedIso] = useState<string | null>(null);
+  /**
+   * Refs to each visited country's hit path. Used to measure the
+   * path's screen position right before entering focus mode so we
+   * can translate the map to centre the country on the left third
+   * of the viewport. Hit paths are 1:1 with the visible silhouette
+   * now (we removed the pre-scale), so getBoundingClientRect on
+   * them gives the exact rect we want.
+   */
+  const visitedPathRefs = useRef<Record<string, SVGPathElement | null>>({});
 
   // Project all country paths once on mount. The viewBox is then
   // tightened to the projected feature bounds — no internal padding,
@@ -468,14 +512,58 @@ export default function BlogMap() {
       setHover(null);
     }, LEAVE_DEBOUNCE_MS);
   };
+  /**
+   * Enter focus mode for the clicked visited country. Computes the
+   * delta between the path's current centre and the target focus
+   * point (~17 % from the left, vertically centred), then writes
+   * the result to --focus-x / --focus-y on .mapWrap. The CSS rule
+   * for .mapWrap.focused uses those vars in place of the cursor-
+   * driven --pan-x / --pan-y so the map glides to its focused
+   * position over the same 1.5 s the explode animation runs for.
+   */
   const onCountryClick = (iso: string) => {
-    if (VISIT_BY_ISO.has(iso)) {
-      setOpenIso(iso);
-      setHover(null);
+    if (!VISIT_BY_ISO.has(iso)) return;
+    setHover(null);
+    setSelectedIso(iso);
+
+    const wrap = wrapRef.current;
+    const pathEl = visitedPathRefs.current[iso];
+    if (!wrap) return;
+
+    let targetCx = window.innerWidth * 0.5;
+    let targetCy = window.innerHeight * 0.5;
+    if (pathEl) {
+      const rect = pathEl.getBoundingClientRect();
+      const countryCenterX = rect.left + rect.width / 2;
+      const countryCenterY = rect.top + rect.height / 2;
+      const focusX = window.innerWidth * 0.17;
+      const focusY = window.innerHeight * 0.5;
+      const dx = focusX - countryCenterX;
+      const dy = focusY - countryCenterY;
+      const currentPanX =
+        parseFloat(wrap.style.getPropertyValue("--pan-x")) || 0;
+      const currentPanY =
+        parseFloat(wrap.style.getPropertyValue("--pan-y")) || 0;
+      targetCx = currentPanX + dx;
+      targetCy = currentPanY + dy;
+    }
+    wrap.style.setProperty("--focus-x", `${targetCx}px`);
+    wrap.style.setProperty("--focus-y", `${targetCy}px`);
+  };
+
+  const exitFocus = () => {
+    setSelectedIso(null);
+    const wrap = wrapRef.current;
+    if (wrap) {
+      // Clear focus vars so the next focus computes fresh deltas.
+      wrap.style.removeProperty("--focus-x");
+      wrap.style.removeProperty("--focus-y");
     }
   };
 
-  const openVisit = openIso ? VISIT_BY_ISO.get(openIso) ?? null : null;
+  const selectedVisit = selectedIso
+    ? VISIT_BY_ISO.get(selectedIso) ?? null
+    : null;
 
   // Split visited from the rest so visited paths render LAST and
   // stay on top of their neighbours when they scale up on hover.
@@ -530,10 +618,12 @@ export default function BlogMap() {
   }, [paths]);
 
   return (
-    <div className={styles.root}>
+    <div
+      className={`${styles.root} ${selectedIso ? styles.focusing : ""}`}
+    >
       <div
         ref={wrapRef}
-        className={styles.mapWrap}
+        className={`${styles.mapWrap} ${selectedIso ? styles.focused : ""}`}
         style={
           {
             "--map-aspect": String(mapAspect),
@@ -559,9 +649,17 @@ export default function BlogMap() {
           </defs>
 
           {/* Default world: filled, no stroke, neighbours blur into
-              one continent silhouette. */}
+              one continent silhouette. In focus mode (.root.focusing
+              applied) every unvisited country gets its inline
+              explode vector and the CSS rule below transforms /
+              fades it out. */}
           {unvisited.map((p) => (
-            <path key={p.id} d={p.d} className={styles.country}>
+            <path
+              key={p.id}
+              d={p.d}
+              className={styles.country}
+              style={explodeStyleFor(p.id)}
+            >
               <title>{p.name}</title>
             </path>
           ))}
@@ -574,13 +672,15 @@ export default function BlogMap() {
               hit-area path. */}
           {visitedSorted.map((p) => {
             const isActive = hover?.visit.iso === p.id;
+            const isSelected = selectedIso === p.id;
             return (
               <path
                 key={`visual-${p.id}`}
                 d={p.d}
                 className={`${styles.visitedVisual} ${
-                  isActive ? styles.visitedVisualActive : ""
-                }`}
+                  isActive || isSelected ? styles.visitedVisualActive : ""
+                } ${isSelected ? styles.selected : ""}`}
+                style={isSelected ? undefined : explodeStyleFor(p.id)}
               />
             );
           })}
@@ -592,6 +692,7 @@ export default function BlogMap() {
               circle at the projected lat/long. */}
           {dotMarkers.map((m) => {
             const isActive = hover?.visit.iso === m.iso;
+            const isSelected = selectedIso === m.iso;
             return (
               <circle
                 key={`dot-visual-${m.iso}`}
@@ -599,8 +700,9 @@ export default function BlogMap() {
                 cy={m.y}
                 r={2.6}
                 className={`${styles.visitedDot} ${
-                  isActive ? styles.visitedDotActive : ""
-                }`}
+                  isActive || isSelected ? styles.visitedDotActive : ""
+                } ${isSelected ? styles.selected : ""}`}
+                style={isSelected ? undefined : explodeStyleFor(m.iso)}
               />
             );
           })}
@@ -666,51 +768,68 @@ export default function BlogMap() {
               and inlines dasharray + dashoffset so the trace
               actually closes a full perimeter (the
               pathLength="1" recipe was leaving subpath gaps). */}
-          {visited.map((p) => (
-            <CountryStroke
-              key={`stroke-${p.id}`}
-              d={p.d}
-              active={hover?.visit.iso === p.id}
-            />
-          ))}
+          {visited.map((p) => {
+            const isSelected = selectedIso === p.id;
+            return (
+              <CountryStroke
+                key={`stroke-${p.id}`}
+                d={p.d}
+                active={hover?.visit.iso === p.id || isSelected}
+              />
+            );
+          })}
 
           {/* Hit area on top — captures all mouse events for the
-              country. Transparent fill so it stays invisible.
-              aria-label (not <title>) gives the country a name for
-              screen readers without firing the native browser
-              tooltip we don't want — the cursor-following plate
-              already carries the visible label. */}
-          {visited.map((p) => (
-            <path
-              key={`hit-${p.id}`}
-              d={p.d}
-              className={styles.visitedHit}
-              onMouseEnter={() => onCountryEnter(p.id)}
-              onMouseLeave={onCountryLeave}
-              onClick={() => onCountryClick(p.id)}
-              data-cursor="magnifier"
-              aria-label={p.name}
-            />
-          ))}
+              country. Transparent fill so it stays invisible. ref
+              keeps a live handle so onCountryClick can read the
+              path's screen rect and centre the map on it when
+              entering focus mode. */}
+          {visited.map((p) => {
+            const isSelected = selectedIso === p.id;
+            return (
+              <path
+                ref={(el) => {
+                  visitedPathRefs.current[p.id] = el;
+                }}
+                key={`hit-${p.id}`}
+                d={p.d}
+                className={`${styles.visitedHit} ${
+                  isSelected ? styles.selected : ""
+                }`}
+                style={isSelected ? undefined : explodeStyleFor(p.id)}
+                onMouseEnter={() => onCountryEnter(p.id)}
+                onMouseLeave={onCountryLeave}
+                onClick={() => onCountryClick(p.id)}
+                data-cursor="magnifier"
+                aria-label={p.name}
+              />
+            );
+          })}
 
           {/* Hit areas for the dot markers — bigger transparent
               circle around the visible 2.6r dot so the cursor can
               actually land on it (the visual is too small to grab
               by itself). */}
-          {dotMarkers.map((m) => (
-            <circle
-              key={`dot-hit-${m.iso}`}
-              cx={m.x}
-              cy={m.y}
-              r={14}
-              className={styles.visitedDotHit}
-              onMouseEnter={() => onCountryEnter(m.iso)}
-              onMouseLeave={onCountryLeave}
-              onClick={() => onCountryClick(m.iso)}
-              data-cursor="magnifier"
-              aria-label={m.name}
-            />
-          ))}
+          {dotMarkers.map((m) => {
+            const isSelected = selectedIso === m.iso;
+            return (
+              <circle
+                key={`dot-hit-${m.iso}`}
+                cx={m.x}
+                cy={m.y}
+                r={14}
+                className={`${styles.visitedDotHit} ${
+                  isSelected ? styles.selected : ""
+                }`}
+                style={isSelected ? undefined : explodeStyleFor(m.iso)}
+                onMouseEnter={() => onCountryEnter(m.iso)}
+                onMouseLeave={onCountryLeave}
+                onClick={() => onCountryClick(m.iso)}
+                data-cursor="magnifier"
+                aria-label={m.name}
+              />
+            );
+          })}
         </svg>
       </div>
 
@@ -744,8 +863,8 @@ export default function BlogMap() {
           off-screen until the first move. */}
       <div ref={coordsRef} className={styles.coords} aria-hidden="true" />
 
-      <BlogCountryPlate hover={hover} />
-      <BlogCountryModal visit={openVisit} onClose={() => setOpenIso(null)} />
+      <BlogCountryPlate hover={selectedIso ? null : hover} />
+      <BlogCountryModal visit={selectedVisit} onClose={exitFocus} />
     </div>
   );
 }

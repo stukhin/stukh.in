@@ -10,29 +10,27 @@ type Props = {
 };
 
 /**
- * Country detail popup. Opens when the user clicks one of the visited
- * countries on the map. Rectangular box (no rounded corners) on a
- * frosted-glass backdrop — same right-angle aesthetic as the rest of
- * the site. Holds dates, cities, a description, and a list of
- * recommendations; eventually photos will live here too.
+ * Country detail panel. Slides in from the right of the viewport
+ * when the user clicks one of the visited countries on /blog —
+ * BlogMap enters "focus mode" at the same time, exploding the rest
+ * of the world outward and gliding the selected country to the
+ * left third. The panel is intentionally NOT a fullscreen modal:
+ * the map stays visible (and interactive on the empty cream paper)
+ * while the panel covers ~60 % of the viewport width on the right.
  *
- * Closes on backdrop click, the X button, or Escape. Locks body
- * scroll while open via the existing global "hidden" + "zoom-open"
- * classes (the same hooks the gallery / walls modals use, so the
- * shell elements like the burger and logo dim out cleanly).
+ * Close hooks: the X button and Escape key. We deliberately don't
+ * close on outside clicks because the map underneath is part of
+ * the same scene the user is reading — accidental dismissal would
+ * be jarring after the slow build-up animation.
  */
 export default function BlogCountryModal({ visit, onClose }: Props) {
   useEffect(() => {
     if (!visit) return;
-    document.body.classList.add("hidden");
-    document.documentElement.classList.add("zoom-open");
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();
     };
     window.addEventListener("keydown", onKey);
     return () => {
-      document.body.classList.remove("hidden");
-      document.documentElement.classList.remove("zoom-open");
       window.removeEventListener("keydown", onKey);
     };
   }, [visit, onClose]);
@@ -40,14 +38,13 @@ export default function BlogCountryModal({ visit, onClose }: Props) {
   if (!visit) return null;
 
   return (
-    <div
+    <aside
       className={styles.backdrop}
-      onClick={onClose}
       role="dialog"
-      aria-modal="true"
+      aria-modal="false"
       aria-label={`${visit.name} story`}
     >
-      <div className={styles.box} onClick={(e) => e.stopPropagation()}>
+      <div className={styles.box}>
         <button
           type="button"
           className={styles.close}
@@ -95,6 +92,6 @@ export default function BlogCountryModal({ visit, onClose }: Props) {
           </p>
         </div>
       </div>
-    </div>
+    </aside>
   );
 }

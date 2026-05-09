@@ -43,6 +43,19 @@
   pointer-events: none;
 }
 
+/* Focus mode: cursor-driven --pan-x/y is replaced with the JS-set
+   --focus-x/y so the map can glide to a position that puts the
+   selected country in the left third of the viewport. The slow
+   1.4 s easing matches the explode timing on the other paths.
+   Cursor parallax is disabled while focused — the recomputePan
+   effect leaves --pan-x/y as they were so the on-exit transition
+   eases back smoothly. */
+.mapWrap.focused {
+  transform: translate3d(var(--focus-x, 0), var(--focus-y, 0), 0)
+    scale(var(--zoom, 1));
+  transition: transform 1.4s cubic-bezier(0.5, 0, 0.4, 1);
+}
+
 
 /* Map: height fills the viewport, width is derived explicitly from
    the dynamic-viewport-height × the projected feature bbox aspect
@@ -72,12 +85,60 @@
 /* Default country: solid pale fill, NO stroke. Continents read as
    one mass — neighbours' borders disappear into the shared fill.
    pointer-events: none so events fall through to EdgeNav (visited
-   countries opt back in via .visitedHit). */
+   countries opt back in via .visitedHit). transform-box +
+   transform-origin: centre let the per-path explode vector (set
+   inline by React) rotate / translate around each country's own
+   centroid in focus mode. */
 .country {
   fill: #d6d2c8;
   stroke: none;
   cursor: none;
   pointer-events: none;
+  transform-box: fill-box;
+  transform-origin: center center;
+  transition: opacity 1.5s cubic-bezier(0.7, 0, 0.84, 0),
+    transform 1.5s cubic-bezier(0.7, 0, 0.84, 0);
+}
+
+/* Focus mode: every path that does NOT carry .selected explodes
+   outward — translates by its inline --explode-x/--explode-y vector
+   (with rotation), shrinks to 0.4×, fades to 0. Easing is
+   deliberately slow-then-fast (cubic-bezier(0.7, 0, 0.84, 0)) so
+   the user's eye sees the build-up before the "shoosh" the user
+   asked for. The .selected path keeps its full opacity / no
+   transform via the longer-specificity rule below. */
+.focusing .country,
+.focusing .visitedVisual:not(.selected),
+.focusing .visitedDot:not(.selected),
+.focusing .visitedHit:not(.selected),
+.focusing .visitedDotHit:not(.selected) {
+  opacity: 0;
+  transform: translate(var(--explode-x, 0px), var(--explode-y, 0px))
+    rotate(var(--explode-rot, 0deg))
+    scale(0.4);
+  pointer-events: none;
+}
+
+/* Selected country / dot: stays in place, keeps its red-active
+   fill and stroke trace. The .visitedVisualActive class above
+   already paints the red fill via React state. */
+.visitedVisual.selected,
+.visitedDot.selected {
+  /* explicit transform reset so the not-selected rule above doesn't
+     leak through any later cascade adjustment. */
+  transform: none;
+  opacity: 1;
+}
+
+/* During focus, the "under construction" stamp, lat/long readout,
+   zoom controls, and hover plate get out of the way — the right-
+   side panel takes over as the page's primary content. */
+.focusing .stamp,
+.focusing .coords,
+.focusing .zoomControls {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.4s ease;
 }
 
 /* Visited country: visual layer. Renders underneath the LiquidEther
@@ -91,7 +152,9 @@
   pointer-events: none;
   transform-box: fill-box;
   transform-origin: center center;
-  transition: fill 0.22s ease;
+  transition: fill 0.22s ease,
+    opacity 1.5s cubic-bezier(0.7, 0, 0.84, 0),
+    transform 1.5s cubic-bezier(0.7, 0, 0.84, 0);
 }
 
 .visitedVisualActive {
@@ -133,6 +196,10 @@
   vector-effect: non-scaling-stroke;
   pointer-events: all;
   cursor: none;
+  transform-box: fill-box;
+  transform-origin: center center;
+  transition: opacity 1.5s cubic-bezier(0.7, 0, 0.84, 0),
+    transform 1.5s cubic-bezier(0.7, 0, 0.84, 0);
 }
 
 /* Bottom-left zoom controls. Two stacked square buttons in the same
@@ -239,7 +306,8 @@
   transform-box: fill-box;
   transform-origin: center center;
   transition: fill 0.22s ease,
-    transform 0.32s cubic-bezier(0.2, 0.7, 0.4, 1);
+    opacity 1.5s cubic-bezier(0.7, 0, 0.84, 0),
+    transform 1.5s cubic-bezier(0.7, 0, 0.84, 0);
 }
 
 .visitedDotActive {
@@ -250,6 +318,10 @@
   fill: transparent;
   pointer-events: all;
   cursor: none;
+  transform-box: fill-box;
+  transform-origin: center center;
+  transition: opacity 1.5s cubic-bezier(0.7, 0, 0.84, 0),
+    transform 1.5s cubic-bezier(0.7, 0, 0.84, 0);
 }
 
 /* Lat/long readout that follows the cursor over the map. Position
