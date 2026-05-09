@@ -74,19 +74,18 @@
   fill: #c14a3a;
 }
 
-/* Stroke-trace overlay: invisible by default, on hover the white
-   1px outline animates around the country's perimeter over 1.5s
-   (stroke-dasharray: 1 1 + pathLength="1" → dashoffset 1 → 0
-   reads the path from start to end). Off-state fades opacity
-   without un-tracing — looks tighter than a reverse animation,
-   which would lag the cursor. */
+/* Stroke-trace overlay: invisible by default; on hover the white
+   1 px outline animates around the country's perimeter over 1.5 s.
+   stroke-dasharray + stroke-dashoffset are written INLINE by the
+   <CountryStroke> component (using the path's real getTotalLength
+   value) so the trace actually closes around multi-subpath
+   countries. Off-state just fades opacity — un-tracing in reverse
+   lags the cursor and reads worse. */
 .visitedStroke {
   fill: none;
   stroke: #ffffff;
   stroke-width: 1;
   vector-effect: non-scaling-stroke;
-  stroke-dasharray: 1 1;
-  stroke-dashoffset: 1;
   pointer-events: none;
   opacity: 0;
   transition: opacity 0.25s ease;
@@ -94,7 +93,6 @@
 
 .visitedStrokeActive {
   opacity: 1;
-  stroke-dashoffset: 0;
   transition: opacity 0.08s ease, stroke-dashoffset 1.5s linear;
 }
 

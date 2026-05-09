@@ -96,8 +96,16 @@
   background-color: #424242;
 }
 
-/* Magnifier cursor: shown when hovering a wallpaper card so it's clear
-   that clicking will open the photo at full size. */
+/* Magnifier cursor: shown when hovering a wallpaper card or a
+   visited country on /blog so it's clear that clicking will open
+   the photo / country detail. The SVG paints a pure-white stroked
+   icon and the element is composited via mix-blend-mode:
+   difference, so the cursor renders as the EXACT contrast of
+   whatever's behind it — bright over dark areas, dark over bright
+   areas, including the red-fill on hovered countries and the
+   LiquidEther fluid inside them. The .dark variant (light themes)
+   is unnecessary now: difference picks the right contrast on its
+   own. */
 .magnifier {
   border: none;
   width: 32px;
@@ -106,10 +114,12 @@
   background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='1.6'><circle cx='11' cy='11' r='7'/><path d='m20 20-3.5-3.5' stroke-linecap='round'/></svg>");
   background-repeat: no-repeat;
   background-size: contain;
+  mix-blend-mode: difference;
 }
 
 .dark.magnifier {
-  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 24 24' fill='none' stroke='%23424242' stroke-width='1.6'><circle cx='11' cy='11' r='7'/><path d='m20 20-3.5-3.5' stroke-linecap='round'/></svg>");
+  /* Same SVG (white stroke). Mix-blend handles inversion regardless
+     of theme, so we no longer need a separate dark-stroke variant. */
 }
 
 /* "Grab" / "grabbing": shown over the gallery slider thumb on /nature

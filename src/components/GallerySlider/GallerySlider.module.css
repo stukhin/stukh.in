@@ -176,25 +176,57 @@
   opacity: 0.5;
 }
 
-/* Frosted-glass frame around side (non-active) photos. The
-   active slide already wears the picture_frame.png overlay, so
-   we only paint the ring on its neighbours — gives them more
-   presence in the layout instead of looking like floating
-   thumbnails. The mask-composite trick limits the bg +
-   backdrop-filter to a 6 px perimeter band only; the photo
-   centre stays unblurred. */
-.slide:not(:global(.swiper-slide-active)) .wrapper::after {
+/* Side-photo frame + shadow.
+   Side slides are scale-transformed (0.53 desktop, 0.73 tablet/
+   mobile) so anything painted inside .container — including
+   pseudo-elements with absolute insets — also shrinks. To land a
+   visible ~10 px frame on screen we inset/pad the pseudo by
+   10/scale in pre-scale space so it renders at the right size
+   after the parent scale collapses it. --frame-pad is set per
+   breakpoint below. */
+.slide:not(:global(.swiper-slide-active)) .container {
+  --frame-pad: 19px; /* 10 / 0.53 ≈ 19 — visible ring ≈ 10 px on desktop */
+}
+
+@media (max-width: 1024px) {
+  .slide:not(:global(.swiper-slide-active)) .container {
+    --frame-pad: 14px; /* 10 / 0.73 ≈ 14 — visible ring ≈ 10 px on tablet/mobile */
+  }
+}
+
+/* Soft drop-shadow BEHIND the side photos. ::before fills the
+   wrapper (the photo's actual rect) and projects a diffuse shadow
+   behind it — the shadow blur is also scaled down by the parent
+   transform, so we use generous values for them to read at the
+   right strength visually. */
+.slide:not(:global(.swiper-slide-active)) .wrapper::before {
   content: "";
   position: absolute;
   inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  box-shadow: 0 24px 56px rgba(0, 0, 0, 0.28),
+    0 8px 18px rgba(0, 0, 0, 0.18);
+}
+
+/* Frosted-glass ring OUTSIDE the photo — extends --frame-pad in
+   each direction past the photo's bounds. The mask-composite
+   trick keeps bg + backdrop-filter limited to the perimeter band
+   only, so the photo itself stays unblurred. */
+.slide:not(:global(.swiper-slide-active)) .wrapper::after {
+  content: "";
+  position: absolute;
+  inset: calc(var(--frame-pad) * -1);
   pointer-events: none;
   z-index: 2;
-  background: rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.10);
   backdrop-filter: blur(14px) saturate(140%);
   -webkit-backdrop-filter: blur(14px) saturate(140%);
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.16);
-  padding: 6px;
+  /* Border + inset highlight scaled up 2× so they still read at
+     ~1 px on screen after the parent's 0.53 scale. */
+  border: 2px solid rgba(255, 255, 255, 0.18);
+  box-shadow: inset 0 2px 0 rgba(255, 255, 255, 0.16);
+  padding: var(--frame-pad);
   -webkit-mask: linear-gradient(#fff 0 0) content-box,
     linear-gradient(#fff 0 0);
   -webkit-mask-composite: xor;
@@ -202,13 +234,12 @@
   mask-composite: exclude;
 }
 
-/* On dark gallery (/nature) the white tint reads better; on light
-   /city the same recipe needs a darker base + softer highlight or
-   it disappears against the cream bg. */
+/* On the cream /city bg the white-translucent recipe disappears;
+   tint the ring darker so it still reads as a frame. */
 .city .slide:not(:global(.swiper-slide-active)) .wrapper::after {
   background: rgba(0, 0, 0, 0.12);
-  border-color: rgba(0, 0, 0, 0.18);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12);
+  border-color: rgba(0, 0, 0, 0.20);
+  box-shadow: inset 0 2px 0 rgba(255, 255, 255, 0.10);
 }
 
 /* Loading placeholder shown while the image is downloading. */
@@ -471,19 +502,22 @@
 .sliderThumb::before {
   content: "";
   width: 100%;
-  height: 3px;
-  background-color: #fff;
+  /* Same 1.5 px and same colour treatment as the menu / TopNav
+     underlines — the slider thumb reads as the same family of
+     "indicator bar" as the rest of the chrome. */
+  height: 1.5px;
+  background-color: var(--shell-fg-strong, #fff);
   border-radius: 3px;
   transition: height 0.15s ease;
 }
 
 .slider_city .sliderThumb::before {
-  background-color: #000;
+  background-color: var(--shell-fg-strong, #000);
 }
 
-/* While the user is actively dragging, the bar thickens slightly so
-   the grabbed state is felt on the bar itself, not just on the
-   cursor. */
+/* Dragging state: tiny thickness bump so the grabbed state is felt
+   on the bar itself, not just the cursor. Stays well within
+   underline territory. */
 .sliderThumbDragging::before {
-  height: 4px;
+  height: 2px;
 }

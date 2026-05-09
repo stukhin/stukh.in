@@ -52,6 +52,54 @@ const LIQUID_COLORS = ["#c14a3a", "#f08a5d", "#ffd2b3"];
 type CountryFeature = Feature<Geometry, { name?: string }>;
 
 /**
+ * Stroke-trace overlay for a single visited country. Reads the path's
+ * actual length via getTotalLength() on mount and writes it into the
+ * stroke-dasharray + stroke-dashoffset inline style. The CSS-only
+ * variant we tried first (pathLength="1" + dasharray "1 1") left a
+ * noticeable gap on countries with multi-subpath geometry — the
+ * dasharray period collided with the subpath boundaries and the
+ * stroke didn't reach all the way back to the start. Driving the
+ * dasharray off the real measured length avoids that entirely.
+ */
+function CountryStroke({ d, active }: { d: string; active: boolean }) {
+  const ref = useRef<SVGPathElement>(null);
+  const [length, setLength] = useState(0);
+  useEffect(() => {
+    if (!ref.current) return;
+    try {
+      const L = ref.current.getTotalLength();
+      if (Number.isFinite(L) && L > 0) setLength(L);
+    } catch {
+      // getTotalLength can throw on degenerate paths; fall back to
+      // a large finite value so the stroke at least renders.
+      setLength(2000);
+    }
+  }, [d]);
+  const ready = length > 0;
+  // Closed/multi-sub-path safety: extend the dash a few units past
+  // the measured length so any subpath rounding doesn't leave a
+  // visible gap at the seam.
+  const dashLen = ready ? length + 4 : 0;
+  return (
+    <path
+      ref={ref}
+      d={d}
+      className={`${styles.visitedStroke} ${
+        active ? styles.visitedStrokeActive : ""
+      }`}
+      style={
+        ready
+          ? {
+              strokeDasharray: `${dashLen} ${dashLen}`,
+              strokeDashoffset: active ? 0 : dashLen,
+            }
+          : undefined
+      }
+    />
+  );
+}
+
+/**
  * /blog world map. Renders Natural Earth's 110m country dataset
  * (~80 KB TopoJSON, served via the `world-atlas` npm package) as
  * SVG paths through a d3-geo Equal Earth projection.
@@ -478,10 +526,12 @@ export default function BlogMap() {
           })}
 
           {/* LiquidEther layer — single instance for the currently
-              hovered country, clipped to its silhouette. Mounted on
-              hover, unmounted on leave so we don't keep WebGL
-              running idle when nothing is highlighted. */}
-          {hover && (
+              hovered country, clipped to its silhouette. Skipped for
+              dot-only visits (Seychelles etc.): the dot is too small
+              to clip the WebGL canvas to and the fluid leaks across
+              the whole foreignObject rect. The colour swap on the
+              dot is enough hover affordance there. */}
+          {hover && visitedCountryISOs.has(hover.visit.iso) && (
             /* Wrap the foreignObject in a <g> that carries the clip.
                Applying clip-path directly on a <foreignObject> with
                a WebGL canvas inside is unreliable across browsers —
@@ -530,26 +580,19 @@ export default function BlogMap() {
             </g>
           )}
 
-          {/* Stroke-trace overlay. One path per visited country,
-              always rendered (so the CSS transition can run between
-              states); only the active one's class flips and the
-              outline draws around the perimeter via stroke-dashoffset.
-              pathLength="1" normalises the path so the dasharray
-              recipe (1 1 + offset 1 → 0) reads as start→end
-              regardless of the country's actual perimeter length. */}
-          {visited.map((p) => {
-            const isActive = hover?.visit.iso === p.id;
-            return (
-              <path
-                key={`stroke-${p.id}`}
-                d={p.d}
-                pathLength={1}
-                className={`${styles.visitedStroke} ${
-                  isActive ? styles.visitedStrokeActive : ""
-                }`}
-              />
-            );
-          })}
+          {/* Stroke-trace overlay — one path per visited country,
+              always rendered so the CSS transition runs between
+              states. CountryStroke measures the path's real length
+              and inlines dasharray + dashoffset so the trace
+              actually closes a full perimeter (the
+              pathLength="1" recipe was leaving subpath gaps). */}
+          {visited.map((p) => (
+            <CountryStroke
+              key={`stroke-${p.id}`}
+              d={p.d}
+              active={hover?.visit.iso === p.id}
+            />
+          ))}
 
           {/* Hit area on top — captures all mouse events for the
               country. Transparent fill so it stays invisible.
