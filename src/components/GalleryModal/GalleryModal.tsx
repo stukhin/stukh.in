@@ -31,6 +31,12 @@ type Props = {
    * slide while the modal was open).
    */
   getCurrentRect?: () => DOMRect | null;
+  /** Whether each orientation actually has a corresponding image
+   *  on disk. The toggle hides the orientation that's missing,
+   *  and the toggle group disappears entirely when only one is
+   *  available. */
+  hasVertical?: boolean;
+  hasHorizontal?: boolean;
   onClose: () => void;
   onOrientationChange: (o: "vertical" | "horizontal") => void;
 };
@@ -43,6 +49,8 @@ export default function GalleryModal({
   orientation,
   fromRect,
   getCurrentRect,
+  hasVertical = true,
+  hasHorizontal = true,
   onClose,
   onOrientationChange,
 }: Props) {
@@ -50,6 +58,7 @@ export default function GalleryModal({
   const [imgLoaded, setImgLoaded] = useState(false);
   const [closing, setClosing] = useState(false);
   const imgRef = useRef<HTMLImageElement>(null);
+  const zoomWrapRef = useRef<HTMLDivElement>(null);
   // Tracks whether the open-FLIP has already played for the current
   // modal session. Without this we'd run the morph twice if the
   // image happens to load between mount and the imgLoaded effect.
@@ -170,10 +179,52 @@ export default function GalleryModal({
     return () => window.removeEventListener("keydown", onKey);
   }, [open, onClose]);
 
+  // Hover-zoom: while the cursor is over the photo we apply a 2×
+  // scale on a wrapper element AND translate it so the cursor's
+  // [0..1] position in the photo maps to which part of the photo
+  // sits at the centre of the visible viewport. The wrapper is
+  // separate from the .picture (which still owns the FLIP morph)
+  // so the two transforms compose without stomping each other.
+  const onPictureMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    const wrap = zoomWrapRef.current;
+    if (!wrap) return;
+    const rect = wrap.getBoundingClientRect();
+    if (rect.width === 0 || rect.height === 0) return;
+    const cx = Math.max(
+      0,
+      Math.min(1, (e.clientX - rect.left) / rect.width)
+    );
+    const cy = Math.max(
+      0,
+      Math.min(1, (e.clientY - rect.top) / rect.height)
+    );
+    // At scale 2, the photo is 2× its own size and the visible area
+    // is half the original. Translating by -W·cx / -H·cy pulls the
+    // window across the photo so cursor at (0,0) shows the top-left
+    // quarter, (1,1) shows the bottom-right quarter, (0.5,0.5) the
+    // centre quarter — i.e. cursor position commands the pan.
+    wrap.style.transformOrigin = "0 0";
+    wrap.style.transform = `translate(${-rect.width * cx}px, ${
+      -rect.height * cy
+    }px) scale(2)`;
+  };
+  const onPictureMouseLeave = () => {
+    const wrap = zoomWrapRef.current;
+    if (!wrap) return;
+    wrap.style.transform = "";
+    wrap.style.transformOrigin = "";
+  };
+
   if (!mounted || !item) return null;
 
   const pic = String(index + 1).padStart(2, "0");
   const src = `/images/gallery/${category}/${orientation}/${pic}.jpg`;
+  // The orientation toggle group only renders if at least one
+  // orientation has more than zero choices — and we hide each
+  // individual button if its orientation isn't actually available
+  // on disk. With both available we get the existing two-button
+  // toggle; with only one, no toggle group at all.
+  const showToggle = hasVertical && hasHorizontal;
 
   return (
     <div
@@ -199,29 +250,36 @@ export default function GalleryModal({
             <span className={styles.bar} />
           </span>
         </span>
-        <img
-          alt={item.title}
-          loading="eager"
-          decoding="sync"
-          className={`${styles.picture} ${
-            imgLoaded ? styles.pictureLoaded : ""
-          }`}
-          src={src}
+        <div
+          ref={zoomWrapRef}
+          className={styles.zoomWrap}
+          onMouseMove={onPictureMouseMove}
+          onMouseLeave={onPictureMouseLeave}
           onClick={(e) => e.stopPropagation()}
-          onLoad={() => setImgLoaded(true)}
-          ref={(el) => {
-            imgRef.current = el;
-            if (el && el.complete && el.naturalWidth > 0) {
-              setImgLoaded(true);
-            }
-          }}
-          onError={(e) => {
-            const el = e.currentTarget as HTMLImageElement;
-            if (orientation === "horizontal") {
-              el.src = `/images/gallery/${category}/vertical/${pic}.jpg`;
-            }
-          }}
-        />
+        >
+          <img
+            alt={item.title}
+            loading="eager"
+            decoding="sync"
+            className={`${styles.picture} ${
+              imgLoaded ? styles.pictureLoaded : ""
+            }`}
+            src={src}
+            onLoad={() => setImgLoaded(true)}
+            ref={(el) => {
+              imgRef.current = el;
+              if (el && el.complete && el.naturalWidth > 0) {
+                setImgLoaded(true);
+              }
+            }}
+            onError={(e) => {
+              const el = e.currentTarget as HTMLImageElement;
+              if (orientation === "horizontal") {
+                el.src = `/images/gallery/${category}/vertical/${pic}.jpg`;
+              }
+            }}
+          />
+        </div>
       </div>
       <div
         className={styles.buttons}
@@ -238,6 +296,7 @@ export default function GalleryModal({
             <span className={styles.bar} />
           </button>
         </div>
+        {showToggle && (
         <div className={styles.resizeButtons}>
           <button
             className={`${styles.button} ${
@@ -287,6 +346,7 @@ export default function GalleryModal({
             </svg>
           </button>
         </div>
+        )}
       </div>
     </div>
   );

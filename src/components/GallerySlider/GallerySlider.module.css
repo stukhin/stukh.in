@@ -109,11 +109,19 @@
 }
 
 .slide:not(:global(.swiper-slide-active)) .container {
-  transform: scale(0.53);
+  /* On desktop, --slide-shift-x is set per slide by the React
+     component (see updateSlideShifts in GallerySlider.tsx). It pulls
+     non-immediate-neighbour slides toward the centre so the gap
+     between further-out photos halves. Slides at distance 1 (the
+     immediate left/right of the active one) get --slide-shift-x =
+     0px, so adjacent spacing stays exactly as before. */
+  transform: translateX(var(--slide-shift-x, 0px)) scale(0.53);
 }
 
 @media (max-width: 1024px) {
   .slide:not(:global(.swiper-slide-active)) .container {
+    /* Tablet / mobile keeps the looser arrangement — the --slide-shift-x
+       hint is ignored here so the existing layout doesn't change. */
     transform: scale(0.73);
   }
 }
@@ -233,6 +241,29 @@
   .activeText {
     width: 260px;
     bottom: 90px;
+  }
+}
+
+/* Short-viewport rescue: when the page can't fit the centred photo
+   AND the title/location below it without the text climbing onto the
+   frame, dock the text block to the LEFT of the frame instead. The
+   frame is 408px wide × 506px tall on desktop (1024px+), centred at
+   50%/50%. The trigger is "page height too short for text below
+   frame": vh < ~860px (frame height + frame top margin + text height
+   buffer). Both lines stay right-aligned so they read flush against
+   the frame's left edge. */
+@media (min-width: 1025px) and (max-height: 860px) {
+  .activeText {
+    /* Right edge of text sits just to the left of the frame:
+       50% (frame centre) - 204px (half frame width) - 24px (gap). */
+    right: calc(50% + 204px + 24px);
+    left: auto;
+    bottom: auto;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 240px;
+    text-align: right;
+    padding-top: 0;
   }
 }
 

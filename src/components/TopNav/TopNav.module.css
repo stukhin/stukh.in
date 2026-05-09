@@ -105,15 +105,49 @@
   bottom: -5px;
 }
 
-/* Active item — no underline (idle or animated) and the same
-   brightness as the rest. The fact that it's the current page is
-   communicated by the URL itself; the menu stays uniform. */
+/* Active item — same brightness as the rest, but the indicator
+   underline flips to ABOVE the link (a small bar sitting over the
+   word) so the user can see at a glance which page they're on. No
+   hover animation: the link is its own page already, nothing to
+   trigger. */
 .link.active {
   pointer-events: none;
 }
 
 .link.active .underline {
-  display: none;
+  /* Anchor at the top of the link instead of the bottom. */
+  bottom: auto;
+  top: 0;
+}
+
+.link.active .underline::before {
+  /* Visible bar floats just above the text. */
+  bottom: auto;
+  top: -7px;
+  width: 22px;
+  left: 0;
+  transform: none;
+  background-color: var(--shell-fg-strong);
+  /* Kill the hover animation — active stays visually static. */
+  transition: none;
+}
+
+/* Belt-and-suspenders: the generic .link:hover and .link:active
+   rules earlier in the file would otherwise widen the bar on hover
+   even on the active page. Lock those overrides to inactive links
+   only. */
+.link.active:hover .underline,
+.link.active:active .underline {
+  width: 22px;
+}
+
+.link.active:hover .underline::before,
+.link.active:active .underline::before {
+  width: 22px;
+  left: 0;
+  bottom: auto;
+  top: -7px;
+  transform: none;
 }
 
 /* First-load typewriter entrance. The .typing class lives on the nav

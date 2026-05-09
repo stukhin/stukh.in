@@ -136,15 +136,19 @@
   width: 28px;
   height: 2px;
   border-radius: 3px;
-  background-color: hsla(0, 0%, 100%, 0.35);
+  /* Theme-driven so the slider indicator follows the same
+     dark/light flip the rest of the shell does — when an active
+     slide is bright enough that the logo + nav switch to black,
+     the dots and progress bar do too instead of staying white. */
+  background-color: var(--shell-fg-soft, hsla(0, 0%, 100%, 0.35));
   overflow: hidden;
   position: relative;
-  transition: height 0.3s ease, background-color 0.3s ease;
+  transition: height 0.3s ease, background-color 0.4s ease;
 }
 
 .dot.dotActive .bar {
   height: 4px;
-  background-color: hsla(0, 0%, 100%, 0.45);
+  background-color: var(--shell-fg-soft, hsla(0, 0%, 100%, 0.45));
 }
 
 /* Active dot doubles as a slide-progress indicator: the white fill
@@ -161,9 +165,13 @@
   bottom: 0;
   right: 0;
   border-radius: 3px;
-  background-color: #fff;
+  /* Match the active fg colour so on light slides the progress
+     fill reads black, on dark slides white — same as the logo
+     and nav. */
+  background-color: var(--shell-fg-strong, #fff);
   transform: translateX(-100%);
   will-change: transform;
+  transition: background-color 0.4s ease;
 }
 
 .dot.dotActive .value {

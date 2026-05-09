@@ -13,6 +13,10 @@ import { Keyboard, Mousewheel } from "swiper/modules";
 import type { Swiper as SwiperType } from "swiper";
 import "swiper/css";
 import GalleryModal from "../GalleryModal/GalleryModal";
+import {
+  hasHorizontal,
+  hasVertical,
+} from "@/data/galleryManifest";
 import { useVerticalPageSwipe } from "@/lib/useVerticalPageSwipe";
 import styles from "./GallerySlider.module.css";
 
@@ -37,10 +41,54 @@ export default function GallerySlider({ category, items }: Props) {
   const [modalOrientation, setModalOrientation] = useState<
     "vertical" | "horizontal"
   >("vertical");
+
+  // Available orientations for the photo currently in the modal.
+  // Drives whether the resize buttons render at all (hidden if only
+  // one orientation exists) and forces the modal back to vertical
+  // when the user navigates to a photo that ships only vertical.
+  const availableHorizontal = hasHorizontal(category, activeIndex);
+  const availableVertical = hasVertical(category, activeIndex);
+  useEffect(() => {
+    if (modalOrientation === "horizontal" && !availableHorizontal) {
+      setModalOrientation("vertical");
+    } else if (modalOrientation === "vertical" && !availableVertical) {
+      setModalOrientation("horizontal");
+    }
+  }, [availableHorizontal, availableVertical, modalOrientation]);
+
   const [loadedImages, setLoadedImages] = useState<Set<number>>(new Set());
   const [modalFromRect, setModalFromRect] = useState<DOMRect | null>(null);
 
   const swiperRef = useRef<SwiperType | null>(null);
+
+  /**
+   * For each rendered Swiper slide, write a CSS variable that pulls
+   * non-immediate-neighbour slides closer to the centre. Adjacent
+   * slides (distance 1) keep their natural Swiper position; slide
+   * pairs further out shift toward the active slide so the visual
+   * gap between them halves. The shift compounds with distance
+   * (2 → 1 step, 3 → 2 steps, ...) so the trailing slides ride
+   * inward like a perspective. Desktop only — the CSS that reads
+   * --slide-shift-x is gated on min-width: 1025px.
+   */
+  const updateSlideShifts = useCallback((s: SwiperType) => {
+    // The shift step matches the visual margin around a non-active
+    // slide on desktop: slide layout width 370px × scale 0.53 leaves
+    // (370 - 196) / 2 ≈ 87px of empty space on each side. Pulling a
+    // slide inward by one step closes one of those margins.
+    const STEP_PX = 87;
+    s.slides.forEach((slideEl, i) => {
+      const slide = slideEl as HTMLElement;
+      const rawDist = i - s.activeIndex;
+      const ringsIn = Math.max(0, Math.abs(rawDist) - 1);
+      const sign = rawDist === 0 ? 0 : rawDist > 0 ? -1 : 1;
+      slide.style.setProperty(
+        "--slide-shift-x",
+        `${ringsIn * STEP_PX * sign}px`
+      );
+    });
+  }, []);
+
   /** Drag state for the custom slider thumb (the small bar that
    *  shows where in the gallery the user currently is). Hover paints
    *  a filled disc cursor; pressing shrinks it to a smaller disc with
@@ -206,8 +254,12 @@ export default function GallerySlider({ category, items }: Props) {
         speed={650}
         onSwiper={(s) => {
           swiperRef.current = s;
+          updateSlideShifts(s);
         }}
-        onSlideChange={(s) => setActiveIndex(s.realIndex % items.length)}
+        onSlideChange={(s) => {
+          setActiveIndex(s.realIndex % items.length);
+          updateSlideShifts(s);
+        }}
       >
         {renderedSlides.map((item, i) => {
           const realIdx = i % items.length;
@@ -345,6 +397,8 @@ export default function GallerySlider({ category, items }: Props) {
         item={activeItem}
         index={activeIndex}
         orientation={modalOrientation}
+        hasVertical={availableVertical}
+        hasHorizontal={availableHorizontal}
         fromRect={modalFromRect}
         getCurrentRect={getActiveImgRect}
         onClose={() => setModalOpen(false)}
