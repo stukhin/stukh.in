@@ -191,14 +191,14 @@ export default function GalleryModal({
 
   // Hover-zoom: the visible picture's outer frame stays fixed at
   // its fit-to-screen size; what zooms is the <img> INSIDE the
-  // frame, kept clipped by the wrapper's overflow: hidden. So the
-  // photo's bounding box never changes — the user just sees a
-  // closer crop of it, panned by cursor position. Scale 1.25
-  // (≈ +25%) is enough to bring detail in without making the
-  // image feel like it's escaping its frame. Cursor at (cx, cy)
-  // ∈ [0,1] maps to which point of the photo sits at the centre
-  // of the visible frame; cursor outside the frame clears the
-  // transform and we're back to the natural fit.
+  // frame, kept clipped by the wrapper's overflow: hidden. The
+  // photo ALWAYS covers the wrapper at any cursor position — its
+  // edges never poke into view. Math: at scale S the photo is S×
+  // the wrapper, with (S - 1) × wrap_size of slack to slide
+  // around. Cursor (cx, cy) ∈ [0..1] maps linearly to that slack:
+  //   tx = -wrap_w · (S-1) · cx
+  // so cursor=0 pins photo's left edge to wrap's left, cursor=1
+  // pins its right edge to wrap's right, mid keeps it centred.
   const HOVER_SCALE = 1.25;
   const onPictureMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     const wrap = zoomWrapRef.current;
@@ -214,10 +214,8 @@ export default function GalleryModal({
       0,
       Math.min(1, (e.clientY - rect.top) / rect.height)
     );
-    // Translate the scaled image so the (cx, cy) point of the
-    // original photo lands at the centre of the wrapper.
-    const tx = rect.width * (0.5 - HOVER_SCALE * cx);
-    const ty = rect.height * (0.5 - HOVER_SCALE * cy);
+    const tx = -rect.width * (HOVER_SCALE - 1) * cx;
+    const ty = -rect.height * (HOVER_SCALE - 1) * cy;
     img.style.transformOrigin = "0 0";
     img.style.transform = `translate(${tx}px, ${ty}px) scale(${HOVER_SCALE})`;
   };

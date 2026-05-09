@@ -7,6 +7,7 @@ import MenuPopup from "../MenuPopup/MenuPopup";
 import TopNav from "../TopNav/TopNav";
 import Cursor from "../Cursor/Cursor";
 import EdgeNav from "../EdgeNav/EdgeNav";
+import { useDesktopPageWheel } from "@/lib/useDesktopPageWheel";
 
 type Theme = "light" | "dark";
 type CursorVariant = "light" | "dark";
@@ -54,6 +55,11 @@ export default function AppShell({
 }: Props) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+
+  // Desktop-only: wheel/trackpad past a threshold pages between
+  // PAGE_ORDER routes (matches the mobile vertical-swipe gesture
+  // useVerticalPageSwipe handles for touch).
+  useDesktopPageWheel();
 
   // Track scroll position when either themeScrolled or
   // cursorVariantScrolled is provided. Single observer handles both.

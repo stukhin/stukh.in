@@ -72,13 +72,15 @@
 }
 
 .dropdownTrigger {
+  position: relative;
   display: inline-flex;
   align-items: center;
   gap: 8px;
   padding: 9px 14px;
   /* Frosted-glass pill: dim dark fill + heavy backdrop blur so the
-     wallpapers scrolling behind read as "behind glass", letting the
-     trigger stay legible against any photo. */
+     wallpapers scrolling behind read as "behind glass", and a
+     subtle SVG turbulence noise overlay (see ::before below) for
+     the matte / grainy quality that real frosted glass has. */
   background: rgba(15, 15, 18, 0.55);
   backdrop-filter: blur(18px) saturate(170%);
   -webkit-backdrop-filter: blur(18px) saturate(170%);
@@ -92,6 +94,32 @@
   cursor: none;
   white-space: nowrap;
   transition: border-color 0.2s ease, background 0.2s ease;
+  /* Children (label / value / chevron / pseudo) need this so the
+     noise pseudo doesn't paint over the text when it's drawn. */
+  isolation: isolate;
+  overflow: hidden;
+}
+
+/* Inline SVG fractal-noise overlay — gives the frosted glass real
+   tactile grain on top of the backdrop blur. The noise is drawn
+   once per element and scaled to fill; mix-blend-mode: overlay
+   keeps the bright accents bright and the dark base dark. */
+.dropdownTrigger::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 240 240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 160px 160px;
+  opacity: 0.18;
+  mix-blend-mode: overlay;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Lift the actual trigger content above the noise pseudo. */
+.dropdownTrigger > * {
+  position: relative;
+  z-index: 1;
 }
 
 .dropdownTrigger:hover,

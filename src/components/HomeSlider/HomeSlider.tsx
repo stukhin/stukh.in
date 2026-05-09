@@ -1,11 +1,7 @@
 "use client";
 
-import { useEffect, useLayoutEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import GridDistortion from "../GridDistortion/GridDistortion";
-import {
-  HOME_INTRO_KEY,
-  PRELOADER_DONE_EVENT,
-} from "../Preloader/Preloader";
 import { useVerticalPageSwipe } from "@/lib/useVerticalPageSwipe";
 import styles from "./HomeSlider.module.css";
 
@@ -17,9 +13,6 @@ const slides = [
 ];
 
 const AUTOPLAY_MS = 7000;
-/** Duration of the TV-style reveal — the photo grows vertically out
- *  of a thin horizontal line into the full slider. */
-const REVEAL_MS = 1500;
 
 // Mid-grey threshold (0–1) for picking light vs dark theme. Anything
 // above is "light enough that black glyphs read better"; anything
@@ -61,44 +54,11 @@ async function sampleLuminance(src: string): Promise<number> {
 export default function HomeSlider() {
   const [active, setActive] = useState(0);
 
-  /**
-   * "TV-on" reveal: starts the photo as a thin horizontal line and
-   * grows it vertically into a full slide over ~1.5s, then settles.
-   * The phase drives a CSS class on the slider.
-   *
-   *  - "done"    : final state (no animation). Used both by users
-   *                returning later in the session (we skip the
-   *                entrance) and by the slider after the reveal
-   *                completes.
-   *  - "pending" : pre-roll state — the slide is collapsed to a
-   *                line waiting for the preloader to fade out.
-   *  - "playing" : 1.5s opening animation in progress.
-   *
-   * Default state is "done" so SSR and the very first client render
-   * agree on the markup (no hydration mismatch). A useLayoutEffect
-   * post-mount inspects sessionStorage and either skips the entrance
-   * or schedules it via the preloader-done event.
-   */
-  const [reveal, setReveal] = useState<"done" | "pending" | "playing">(
-    "done"
-  );
-  useLayoutEffect(() => {
-    if (typeof window === "undefined") return;
-    // Already shown in this tab — no entrance, just static slider.
-    if (window.sessionStorage.getItem(HOME_INTRO_KEY) === "1") return;
-
-    setReveal("pending");
-    let endTimer: number | null = null;
-    const onPreloaderDone = () => {
-      setReveal("playing");
-      endTimer = window.setTimeout(() => setReveal("done"), REVEAL_MS);
-    };
-    window.addEventListener(PRELOADER_DONE_EVENT, onPreloaderDone);
-    return () => {
-      window.removeEventListener(PRELOADER_DONE_EVENT, onPreloaderDone);
-      if (endTimer !== null) window.clearTimeout(endTimer);
-    };
-  }, []);
+  // First-load entrance is now just the Preloader's opacity fade-out
+  // sitting over the slider. The earlier clip-path "TV reveal"
+  // animation introduced visible jumps + flicker as the WebGL
+  // canvas warmed up under it; with the reveal removed the photo
+  // simply emerges as the white preloader fades. Cleaner.
 
   const next = () => setActive((i) => (i + 1) % slides.length);
   const prev = () =>
@@ -210,15 +170,8 @@ export default function HomeSlider() {
     return () => mq.removeEventListener("change", update);
   }, []);
 
-  const revealClass =
-    reveal === "pending"
-      ? styles.revealPending
-      : reveal === "playing"
-      ? styles.revealPlaying
-      : "";
-
   return (
-    <div className={`${styles.wrap} ${revealClass}`}>
+    <div className={styles.wrap}>
       <div className={styles.slider}>
         <div className={styles.canvas}>
           {isDesktop ? (

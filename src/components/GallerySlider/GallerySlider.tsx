@@ -61,6 +61,20 @@ export default function GallerySlider({ category, items }: Props) {
 
   const swiperRef = useRef<SwiperType | null>(null);
 
+  // Defer enabling the `.container` transform transition until the
+  // first Swiper layout pass has settled. With the transition active
+  // from frame 0, every slide animates from transform: identity to
+  // its scale(0.53) + translateX target on mount, which read as a
+  // "left side drifts in" glitch. With the transition flipped on
+  // ~100ms after mount, the initial scaled positions snap into place
+  // instantly AND subsequent state changes (clicking a side photo
+  // → it gracefully zooms into the active frame) animate smoothly.
+  const [transitionsReady, setTransitionsReady] = useState(false);
+  useEffect(() => {
+    const t = window.setTimeout(() => setTransitionsReady(true), 120);
+    return () => window.clearTimeout(t);
+  }, []);
+
   /**
    * For each rendered Swiper slide, write a CSS variable that pulls
    * non-immediate-neighbour slides closer to the centre. Adjacent
@@ -237,7 +251,11 @@ export default function GallerySlider({ category, items }: Props) {
       : Array.from({ length: repeats }, () => items).flat();
 
   return (
-    <div className={`${styles.gallerySlider} ${styles[category]}`}>
+    <div
+      className={`${styles.gallerySlider} ${styles[category]} ${
+        transitionsReady ? styles.transitionsReady : ""
+      }`}
+    >
       {/* Central picture background (shadowed rectangle) + frame overlay */}
       <div className={styles.pictureBg} />
       <div className={styles.frame} />

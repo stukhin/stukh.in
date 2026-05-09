@@ -103,16 +103,20 @@
   width: 100%;
   height: 100%;
   position: relative;
-  /* No transform transition here. The previous 1s ease-out caused
-     the left-side slides to visibly slide in from the left when
-     React first mounted Swiper — every slide started at transform
-     identity, then the scale(0.53) + translateX rules animated in
-     over 1s. The right-side slides happened to look fine because
-     they were in their final position from the start; the left-
-     side slides got a directional drift that read as a glitch.
-     Slide positions now snap into place instantly. */
+  /* Transform transition is gated on .transitionsReady, which is
+     added on the gallery wrapper ~120ms after mount. That means:
+       - On first paint every slide snaps into its scale(0.53) +
+         translateX position with NO animation, so we don't see the
+         "left-side slides drift in" glitch.
+       - After the gate flips, click-to-active swaps between slides
+         animate smoothly — clicking a side photo gracefully zooms
+         it into the active frame instead of snapping. */
   -webkit-backface-visibility: hidden;
   backface-visibility: hidden;
+}
+
+.transitionsReady .container {
+  transition: transform 1s ease-out;
 }
 
 .slide:not(:global(.swiper-slide-active)) .container {
