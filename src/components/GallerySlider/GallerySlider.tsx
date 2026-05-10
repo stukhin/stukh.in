@@ -270,6 +270,21 @@ export default function GallerySlider({ category, items }: Props) {
         loop
         mousewheel={{ forceToAxis: true, sensitivity: 0.6 }}
         speed={650}
+        // Single-slide gestures: cap one swipe at one slide
+        // regardless of velocity, prevent the "I swiped once but
+        // it advanced two photos" issue on mobile. threshold
+        // ignores tiny stutters so a sloppy tap doesn't register
+        // as a swipe; longSwipesRatio raises the per-slide
+        // distance bar; longSwipesMs widens the window so flicks
+        // are still classified as long-swipes (one slide) rather
+        // than fast short swipes (which momentum-multiplied).
+        slidesPerGroup={1}
+        threshold={8}
+        longSwipes
+        longSwipesRatio={0.5}
+        longSwipesMs={400}
+        shortSwipes
+        followFinger
         onSwiper={(s) => {
           swiperRef.current = s;
           updateSlideShifts(s);

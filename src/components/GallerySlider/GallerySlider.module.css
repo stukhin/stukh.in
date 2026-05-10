@@ -340,6 +340,19 @@
   }
 }
 
+/* Mobile/tablet: when the viewport is too short to fit the title
+   between the photo frame's bottom edge and the position slider,
+   hide the title entirely instead of letting it overlap the
+   frame. Mobile frame is 358 px tall + the slider sits at
+   bottom: 20 with 22 px height; below ~760 px viewport height
+   the title intrudes onto the photo. (Desktop has its own
+   "dock left" rescue at 1025 px+ / 860 px-, see below.) */
+@media (max-width: 1024px) and (max-height: 760px) {
+  .activeText {
+    display: none;
+  }
+}
+
 /* Short-viewport rescue: when the page can't fit the centred photo
    AND the title/location below it without the text climbing onto
    the frame OR onto the side photos in the slider, dock the text

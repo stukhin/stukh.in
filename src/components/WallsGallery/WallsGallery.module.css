@@ -73,13 +73,30 @@
   }
 }
 
+/* Tablet + mobile: drop the grid-column alignment and centre the
+   row horizontally — feels balanced when the page itself is
+   narrower and the filters carry no left/right context. Desktop
+   keeps its leftmost-column alignment. */
+@media (max-width: 1024px) {
+  .filters {
+    left: 50%;
+    transform: translateX(-50%);
+  }
+}
+
 @media (max-width: 597px) {
   .filters {
-    /* Mobile .layout has no horizontal padding (cards go edge-to-
-       edge) so the grid's left edge is 0. Filters follow. */
     top: 140px;
-    left: 0;
     gap: 8px;
+  }
+}
+
+/* The .filtersHidden state slides the row up & fades it; on mobile
+   we have to combine that with the centring transform so it
+   doesn't snap to the top-left. */
+@media (max-width: 1024px) {
+  .filters.filtersHidden {
+    transform: translate(-50%, -8px);
   }
 }
 
@@ -266,12 +283,15 @@
 
 @media (max-width: 597px) {
   .grid {
-    gap: 4px;
-    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+    /* Single-column "snippet preview" layout on mobile. Each card
+       shows the middle slice of the wallpaper with a 5× height
+       crop — the photo is wide and short, so you can scan many
+       wallpapers per screen at a glance and tap into a fullscreen
+       view for the real picture. */
+    grid-template-columns: 1fr;
+    padding: 0 12px;
   }
-  /* Plain scroll on mobile — no per-row height taper, no magnetic
-     snap. Cards keep their natural 9:16 aspect-ratio (driven by
-     .tilt) and the page just scrolls normally. */
 }
 
 /* The card itself sets up the 3D perspective; the inner .tilt wrapper
@@ -299,6 +319,17 @@
   will-change: transform;
 }
 
+/* Mobile snippet-preview override: card aspect goes from 9:16
+   portrait to a wide 5:1.78 (≈ 1080 / 384) — a 5× height crop of
+   the same source photo, with object-fit: cover keeping the
+   centre slice. Lots of wallpapers visible per screen, taps open
+   the fullscreen modal for the real view. */
+@media (max-width: 597px) {
+  .tilt {
+    aspect-ratio: 1080 / 384;
+  }
+}
+
 .frame {
   position: absolute;
   inset: 0;
@@ -317,6 +348,11 @@
   height: 100%;
   display: block;
   object-fit: cover;
+  /* On mobile the .tilt aspect is wide (~5:1.78), so without an
+     explicit object-position: center the cover crop would default
+     to centre anyway — set explicitly so the rule survives any
+     future portrait-aspect overrides. */
+  object-position: center;
   -webkit-backface-visibility: hidden;
   backface-visibility: hidden;
   /* Motion handles the hover scale on the parent tilt now. */
@@ -722,13 +758,27 @@
   will-change: transform;
 }
 
-/* Bottom-right corner arrow icon — same shape as the on-card download
-   button so the affordance is consistent. Visible on hover (desktop)
-   and always on touch (so phone users can tap to save). */
-.zoomDownload {
+/* Action group at bottom-right of the zoomed photo: info + download
+   buttons sit side-by-side and stay visible from the moment the
+   FLIP-in completes (.photoBoxReady) until close. No hover-gating
+   — user wanted the affordance to never appear/disappear. */
+.zoomActions {
   position: absolute;
   bottom: 14px;
   right: 14px;
+  display: flex;
+  gap: 8px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.22s ease;
+}
+
+.photoBoxReady .zoomActions {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.zoomAction {
   width: 40px;
   height: 40px;
   display: flex;
@@ -738,35 +788,95 @@
   border: 1px solid rgba(255, 255, 255, 0.55);
   color: #fff;
   cursor: none;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.18s ease, background 0.2s ease, border-color 0.2s ease;
+  transition: background 0.2s ease, border-color 0.2s ease;
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
 }
 
-/* Only show the Download button once the FLIP zoom-in has completed
-   (.photoBoxReady is added by JS after ZOOM_IN_MS) AND the cursor is
-   hovering the photo. */
-.photoBoxReady:hover .zoomDownload {
-  opacity: 1;
-  pointer-events: auto;
-}
-
-/* Touch / no-hover devices: keep the button always visible (no
-   hovering possible) once the FLIP-in finishes. */
-@media (hover: none) {
-  .photoBoxReady .zoomDownload {
-    opacity: 1;
-    pointer-events: auto;
-  }
-}
-
-.zoomDownload:hover {
+.zoomAction:hover {
   background: rgba(255, 255, 255, 0.25);
   border-color: #fff;
 }
 
-.zoomDownload:disabled {
+.zoomActionPressed,
+.zoomActionPressed:hover {
+  background: rgba(255, 255, 255, 0.35);
+  border-color: #fff;
+}
+
+.zoomAction:disabled {
   opacity: 0.5;
+}
+
+/* Info panel that slides in over the bottom of the photo when the
+   user taps the (i) button. Frosted dark on top of the photo so
+   the metadata reads against any wallpaper. */
+.zoomInfoPanel {
+  position: absolute;
+  left: 14px;
+  right: 14px;
+  bottom: 64px;
+  padding: 16px 18px 18px;
+  background: rgba(0, 0, 0, 0.62);
+  backdrop-filter: blur(20px) saturate(160%);
+  -webkit-backdrop-filter: blur(20px) saturate(160%);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  color: #fff;
+  font-family: "Rubik", "Inter", sans-serif;
+  font-weight: 300;
+  letter-spacing: -0.01em;
+  animation: zoomInfoIn 0.22s cubic-bezier(0.4, 0, 0.2, 1) both;
+  max-width: 440px;
+}
+
+@keyframes zoomInfoIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.zoomInfoTitle {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 400;
+  text-transform: lowercase;
+  letter-spacing: -0.01em;
+}
+
+.zoomInfoMeta {
+  margin: 4px 0 0;
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  text-transform: lowercase;
+  opacity: 0.6;
+}
+
+.zoomInfoStory {
+  margin: 12px 0 0;
+  font-size: 13px;
+  line-height: 1.5;
+  opacity: 0.86;
+}
+
+.zoomInfoCount {
+  margin: 14px 0 0;
+  padding-top: 10px;
+  border-top: 1px solid rgba(255, 255, 255, 0.16);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  opacity: 0.55;
+}
+
+@media (max-width: 597px) {
+  .zoomInfoPanel {
+    left: 8px;
+    right: 8px;
+    bottom: 60px;
+  }
 }

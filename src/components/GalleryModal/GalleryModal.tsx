@@ -292,6 +292,16 @@ export default function GalleryModal({
     writeZoom(tx, ty, HOVER_SCALE);
   };
   const beginHover = (clientX: number, clientY: number) => {
+    // Hover-zoom is desktop-only. On touch / hover-less devices the
+    // photo stays at its natural fit-to-modal size; the user explicitly
+    // asked for no cursor-tracking zoom on tablets / phones because
+    // there's no meaningful "cursor" to follow there.
+    if (
+      typeof window !== "undefined" &&
+      window.matchMedia("(hover: none)").matches
+    ) {
+      return;
+    }
     const wrap = zoomWrapRef.current;
     if (!wrap) return;
     const rect = wrap.getBoundingClientRect();

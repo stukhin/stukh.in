@@ -93,6 +93,7 @@ export default function WallsGallery({ items }: Props) {
   const [zoomed, setZoomed] = useState<Wallpaper | null>(null);
   const [zoomClosing, setZoomClosing] = useState(false);
   const [zoomReady, setZoomReady] = useState(false);
+  const [zoomInfoOpen, setZoomInfoOpen] = useState(false);
   const [activeCategory, setActiveCategory] = useState<string>(ALL);
   const [activeTone, setActiveTone] = useState<string>(ALL_TONE);
   const [hover, setHover] = useState<HoverState | null>(null);
@@ -186,6 +187,7 @@ export default function WallsGallery({ items }: Props) {
     fromRectRef.current = cardImg ? cardImg.getBoundingClientRect() : null;
     setZoomClosing(false);
     setZoomReady(false);
+    setZoomInfoOpen(false);
     setZoomed(w);
   };
 
@@ -359,34 +361,91 @@ export default function WallsGallery({ items }: Props) {
               className={styles.zoomImage}
               draggable={false}
             />
-            <button
-              type="button"
-              className={styles.zoomDownload}
-              onClick={(e) => {
-                e.stopPropagation();
-                download(zoomed);
-              }}
-              disabled={(downloads[zoomed.id] || "idle") === "loading"}
-              aria-label={`Download ${zoomed.title}`}
-              data-cursor="hover"
-            >
-              <svg
-                width="20"
-                height="20"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1.6"
+            {/* Action group, bottom-right of the photo. ALWAYS
+                visible (no hover gating) on every breakpoint —
+                user wanted the affordance to never appear/
+                disappear because it's confusing on touch. The
+                info button toggles a metadata panel; the
+                download button kicks off the actual download. */}
+            <div className={styles.zoomActions}>
+              <button
+                type="button"
+                className={`${styles.zoomAction} ${
+                  zoomInfoOpen ? styles.zoomActionPressed : ""
+                }`}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setZoomInfoOpen((v) => !v);
+                }}
+                aria-label={zoomInfoOpen ? "Hide info" : "Show info"}
+                aria-pressed={zoomInfoOpen}
+                data-cursor="hover"
               >
-                <path d="M12 4v12" strokeLinecap="round" />
-                <path
-                  d="m6 11 6 6 6-6"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-                <path d="M5 20h14" strokeLinecap="round" />
-              </svg>
-            </button>
+                <svg
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.6"
+                >
+                  <circle cx="12" cy="12" r="9" />
+                  <path d="M12 11v6" strokeLinecap="round" />
+                  <circle cx="12" cy="7.6" r="0.6" fill="currentColor" />
+                </svg>
+              </button>
+              <button
+                type="button"
+                className={styles.zoomAction}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  download(zoomed);
+                }}
+                disabled={(downloads[zoomed.id] || "idle") === "loading"}
+                aria-label={`Download ${zoomed.title}`}
+                data-cursor="hover"
+              >
+                <svg
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.6"
+                >
+                  <path d="M12 4v12" strokeLinecap="round" />
+                  <path
+                    d="m6 11 6 6 6-6"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                  <path d="M5 20h14" strokeLinecap="round" />
+                </svg>
+              </button>
+            </div>
+            {/* Metadata panel — slides in over the photo when info
+                is toggled. Carries everything the on-card
+                interaction used to surface (title, location/year,
+                story); the download count is also shown so the
+                user can see how many people grabbed this one. */}
+            {zoomInfoOpen && (
+              <div
+                className={styles.zoomInfoPanel}
+                onClick={(e) => e.stopPropagation()}
+              >
+                <h3 className={styles.zoomInfoTitle}>{zoomed.title}</h3>
+                <p className={styles.zoomInfoMeta}>
+                  {zoomed.location} · {zoomed.year}
+                </p>
+                {zoomed.story && (
+                  <p className={styles.zoomInfoStory}>{zoomed.story}</p>
+                )}
+                <p className={styles.zoomInfoCount}>
+                  {(counts[zoomed.id] ?? zoomed.downloads).toLocaleString()}{" "}
+                  downloads
+                </p>
+              </div>
+            )}
           </div>
         </div>
       )}
