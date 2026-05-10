@@ -5,6 +5,171 @@
   overflow: hidden;
 }
 
+/* Skeleton overlay: barely-visible outlines that mark where the
+   gallery's elements (centre frame, two side previews, title, and
+   position slider) are about to land. Visible only while the
+   chain-bridge is on screen (html.chain-active during the strip
+   slide, html.chain-settling during the fade-out); otherwise
+   opacity 0 so they never poke through over real content.
+   `--skeleton-stroke` is set per category below — barely-visible
+   per user spec, "не навязчиво". */
+.gallerySlider.nature {
+  --skeleton-stroke: rgba(255, 255, 255, 0.07);
+}
+
+.gallerySlider.city {
+  --skeleton-stroke: rgba(0, 0, 0, 0.08);
+}
+
+.skeleton {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  z-index: 1;
+}
+
+:global(html.chain-active) .skeleton,
+:global(html.chain-settling) .skeleton {
+  opacity: 1;
+}
+
+/* Hide real gallery content during the chain so the skeleton has
+   the stage to itself. Each element fades back over 0.4s once the
+   chain classes drop. */
+.pictureBg,
+.frame,
+.swiper,
+.activeText,
+.slider {
+  transition: opacity 0.4s ease;
+}
+
+:global(html.chain-active) .pictureBg,
+:global(html.chain-active) .frame,
+:global(html.chain-active) .swiper,
+:global(html.chain-active) .activeText,
+:global(html.chain-active) .slider,
+:global(html.chain-settling) .pictureBg,
+:global(html.chain-settling) .frame,
+:global(html.chain-settling) .swiper,
+:global(html.chain-settling) .activeText,
+:global(html.chain-settling) .slider {
+  opacity: 0;
+}
+
+/* Centre frame outline: matches the framed photo's natural rect
+   exactly so when the real frame fades in it lands on top of its
+   own outline shape. */
+.skeletonFrame {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 408px;
+  height: 506px;
+  border: 1px solid var(--skeleton-stroke);
+}
+
+@media (max-width: 1024px) {
+  .skeletonFrame {
+    width: 288px;
+    height: 358px;
+  }
+}
+
+/* Two side-photo placeholders flanking the centre. Their position
+   matches the side slides' visible rect after the 0.53× scale. */
+.skeletonSidePhoto {
+  position: absolute;
+  top: 50%;
+  width: 196px;
+  height: 249px;
+  border: 1px solid var(--skeleton-stroke);
+  transform: translateY(-50%);
+}
+
+.skeletonSidePhoto[data-side="left"] {
+  right: 50%;
+  margin-right: 230px;
+}
+
+.skeletonSidePhoto[data-side="right"] {
+  left: 50%;
+  margin-left: 230px;
+}
+
+@media (max-width: 1024px) {
+  .skeletonSidePhoto {
+    width: 138px;
+    height: 176px;
+  }
+  .skeletonSidePhoto[data-side="left"] {
+    margin-right: 160px;
+  }
+  .skeletonSidePhoto[data-side="right"] {
+    margin-left: 160px;
+  }
+}
+
+@media (max-width: 597px) {
+  /* Mobile: skip the side previews — at this size they'd cluster
+     into the centre frame and just add visual noise. */
+  .skeletonSidePhoto {
+    display: none;
+  }
+}
+
+/* Title placeholder under the frame. */
+.skeletonText {
+  position: absolute;
+  left: 50%;
+  bottom: 138px;
+  transform: translateX(-50%);
+  width: 220px;
+  height: 14px;
+  border-radius: 2px;
+  background: var(--skeleton-stroke);
+}
+
+@media (max-width: 1024px) {
+  .skeletonText {
+    bottom: 108px;
+    width: 160px;
+    height: 12px;
+  }
+}
+
+/* Position-slider stub at the bottom — same width as the real
+   slider track. */
+.skeletonSlider {
+  position: absolute;
+  left: 50%;
+  bottom: 50px;
+  transform: translateX(-50%);
+  width: 292px;
+  height: 1.5px;
+  border-radius: 3px;
+  background: var(--skeleton-stroke);
+}
+
+@media (max-width: 1024px) {
+  .skeletonSlider {
+    bottom: 30px;
+    width: 211px;
+  }
+}
+
+/* Short-viewport / mobile rescue: hide title placeholder when the
+   real one would also be hidden so the skeleton doesn't promise
+   something that won't appear. */
+@media (max-width: 1024px) and (max-height: 760px) {
+  .skeletonText {
+    display: none;
+  }
+}
+
 /* Shadowed rectangle behind the active picture */
 .pictureBg {
   background-size: contain;

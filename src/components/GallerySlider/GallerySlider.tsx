@@ -256,6 +256,21 @@ export default function GallerySlider({ category, items }: Props) {
         transitionsReady ? styles.transitionsReady : ""
       }`}
     >
+      {/* Skeleton outline shown only during a chain-bridge transition
+          (html.chain-active / html.chain-settling). Reads as a barely
+          visible "page is here, real elements arriving" hint instead
+          of a flash of empty wall while the new page mounts behind
+          the still-fading bridge. CSS swaps real content out for
+          this overlay via the same chain-class hooks; on hard load
+          (no chain) the skeleton stays at opacity 0. */}
+      <div className={styles.skeleton} aria-hidden="true">
+        <span className={styles.skeletonSidePhoto} data-side="left" />
+        <span className={styles.skeletonFrame} />
+        <span className={styles.skeletonSidePhoto} data-side="right" />
+        <span className={styles.skeletonText} />
+        <span className={styles.skeletonSlider} />
+      </div>
+
       {/* Central picture background (shadowed rectangle) + frame overlay */}
       <div className={styles.pictureBg} />
       <div className={styles.frame} />
