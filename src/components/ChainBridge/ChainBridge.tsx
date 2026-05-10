@@ -10,6 +10,16 @@ const BASE_DURATION = 800;
 const PER_EXTRA_STEP = 320;
 const FADE_IN_MS = 250;
 const FADE_OUT_MS = 280;
+// Buffer between "opacity transition would finish" and "we hand off
+// to the new route". The 2 RAFs we use to commit opacity 0 before
+// transitioning to 1 push the actual fade END to ~FADE_IN_MS + 33ms,
+// and React's microtasks need a frame or two of slack on top. Without
+// this buffer the home page (and its WebGL canvas) start unmounting
+// while the bridge is still ~85% opaque, and the canvas's brief
+// black-clear during context-loss leaks through the bridge's
+// transparency — that's the "black flash on / → next-page" the user
+// kept reporting.
+const ROUTE_HANDOFF_BUFFER = 80;
 
 type ChainEvent = CustomEvent<{ from: string; to: string }>;
 
@@ -94,32 +104,35 @@ export default function ChainBridge() {
         requestAnimationFrame(() => setOpaque(true));
       });
 
-      // After the fade-in completes, kick off the route change AND
-      // start the strip animation. Holding off the route swap until
-      // the bridge is fully opaque keeps the OLD page DOM alive (and
-      // visible behind the fading bridge) so the user reads it as
-      // "page softly disappearing" rather than an abrupt cut.
+      // After the fade-in completes (with a small buffer so the
+      // bridge is GUARANTEED at full opacity before we start
+      // tearing down the old page) kick off the route change AND
+      // the strip animation. The buffer is what removed the
+      // residual black flash on / → next-page: the home page's
+      // WebGL canvas briefly clears to black during dispose +
+      // forceContextLoss, and we don't want any of that frame
+      // leaking through a partially-transparent bridge.
+      const handoffAt = FADE_IN_MS + ROUTE_HANDOFF_BUFFER;
       timersRef.current.push(
         window.setTimeout(() => {
-          // chain-active toggles the logo's mix-blend-mode so the
-          // boundary effect cuts through the glyphs while the
-          // strip is moving.
+          // chain-active toggles a few shell-class hooks while the
+          // strip is moving (logo colour lock, etc.).
           document.documentElement.classList.add("chain-active");
           router.push(e.detail.to);
           setAnimating(true);
-        }, FADE_IN_MS)
+        }, handoffAt)
       );
 
       // End of the strip animation: hand off from chain-active to
-      // chain-settling. The shell snaps to its data-theme colour
-      // with no transition (no flash white), and the bridge starts
-      // fading out, revealing the NEW page's gallery underneath.
+      // chain-settling. The shell eases to its data-theme colour,
+      // and the bridge starts fading out, revealing the NEW page's
+      // gallery underneath.
       timersRef.current.push(
         window.setTimeout(() => {
           setFading(true);
           document.documentElement.classList.remove("chain-active");
           document.documentElement.classList.add("chain-settling");
-        }, FADE_IN_MS + dur)
+        }, handoffAt + dur)
       );
       // End of the fade-out: drop chain-settling, unmount.
       timersRef.current.push(
@@ -129,7 +142,7 @@ export default function ChainBridge() {
           setAnimating(false);
           setFading(false);
           document.documentElement.classList.remove("chain-settling");
-        }, FADE_IN_MS + dur + FADE_OUT_MS)
+        }, handoffAt + dur + FADE_OUT_MS)
       );
     };
 

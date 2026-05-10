@@ -115,34 +115,54 @@ export default function GalleryModal({
       setClosing(false);
     } else if (mounted) {
       // open just flipped to false → run the close animation, then
-      // unmount once it's finished.
+      // unmount once it's finished. The buttons (X + orientation
+      // toggle) fade out FIRST in a fast keyframe; only after
+      // BUTTONS_HEAD_START has elapsed do we kick off the slow
+      // photo FLIP-back + frosted-glass wash-out. Without this
+      // delay the photo morph and the bg fade started simultaneously
+      // with the buttons fade and the user repeatedly read the
+      // controls as "hanging in the air" while the photo had
+      // already started moving.
+      const BUTTONS_HEAD_START = 180;
       const target = zoomWrapRef.current;
       const fromRectNow = getCurrentRect?.() ?? null;
+      let dx = 0;
+      let dy = 0;
+      let scale = 1;
+      let canFlip = false;
       if (target && fromRectNow) {
         const tRect = target.getBoundingClientRect();
-        const dx =
+        dx =
           fromRectNow.left + fromRectNow.width / 2 - (tRect.left + tRect.width / 2);
-        const dy =
+        dy =
           fromRectNow.top + fromRectNow.height / 2 - (tRect.top + tRect.height / 2);
-        const scale = fromRectNow.width / tRect.width;
-        target.animate(
-          [
-            { transform: "translate(0,0) scale(1)" },
-            { transform: `translate(${dx}px, ${dy}px) scale(${scale})` },
-          ],
-          {
-            duration: ZOOM_OUT_MS,
-            easing: ZOOM_EASING,
-            fill: "forwards",
-          }
-        );
+        scale = fromRectNow.width / tRect.width;
+        canFlip = true;
       }
       setClosing(true);
-      const t = setTimeout(() => {
+      const flipTimer = window.setTimeout(() => {
+        if (canFlip && target) {
+          target.animate(
+            [
+              { transform: "translate(0,0) scale(1)" },
+              { transform: `translate(${dx}px, ${dy}px) scale(${scale})` },
+            ],
+            {
+              duration: ZOOM_OUT_MS,
+              easing: ZOOM_EASING,
+              fill: "forwards",
+            }
+          );
+        }
+      }, BUTTONS_HEAD_START);
+      const closeTimer = window.setTimeout(() => {
         setMounted(false);
         setClosing(false);
-      }, ZOOM_OUT_MS);
-      return () => clearTimeout(t);
+      }, BUTTONS_HEAD_START + ZOOM_OUT_MS);
+      return () => {
+        window.clearTimeout(flipTimer);
+        window.clearTimeout(closeTimer);
+      };
     }
   }, [open, mounted, getCurrentRect]);
 

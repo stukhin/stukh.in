@@ -54,6 +54,18 @@
   transition: opacity 0.75s cubic-bezier(0.65, 0, 0.25, 1);
 }
 
+/* Frosted-glass + bg fade-out gets a head-start delay (180 ms) so
+   the .buttons keyframe (0.18 s) has time to fully fade the X +
+   orientation toggle BEFORE the photo + bg start gliding back. The
+   React component's close timer also waits the same 180 ms before
+   triggering the picture FLIP, so all three motions are aligned:
+   buttons leave → photo + bg ease away. */
+.modal.closing {
+  visibility: visible;
+  opacity: 0;
+  transition: opacity 0.85s cubic-bezier(0.65, 0, 0.25, 1) 0.18s;
+}
+
 /* On close, the buttons (X + orientation toggle) finish their
    collapse animation and fade out FAST, well ahead of the
    frosted-glass wash-out — so the photo and the bg are still
