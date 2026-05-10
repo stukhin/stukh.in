@@ -7,9 +7,14 @@ import {
   useState,
   type CSSProperties,
 } from "react";
+import { motion } from "motion/react";
 import { feature } from "topojson-client";
 import { geoEqualEarth, geoPath } from "d3-geo";
-import worldRaw from "world-atlas/countries-110m.json";
+// 50m TopoJSON instead of 110m — significantly smoother country
+// outlines when scaled up by focus mode (110m's coarse polygons
+// looked pixelated/jagged at the 60 % vh focus size). Adds ~300 KB
+// gzipped to the bundle but only on /blog where the map renders.
+import worldRaw from "world-atlas/countries-50m.json";
 import type { Feature, Geometry, FeatureCollection } from "geojson";
 import type { Topology, GeometryCollection } from "topojson-specification";
 import LiquidEther from "../LiquidEther/LiquidEther";
@@ -80,77 +85,37 @@ function explodeStyleFor(id: string | number): CSSProperties {
 }
 
 /**
- * Stroke-trace overlay for a single visited country. We measure the
- * path's real length via getTotalLength() and use SVG's NATIVE
- * <animate> SMIL element to animate the stroke-dashoffset
- * attribute from `dashLen` (invisible) to `-FINAL_OVERSHOOT`
- * (full + overshoot) over STROKE_TRACE_MS. fill="freeze" pins the
- * attribute to its terminal value once the animation ends, so the
- * trace stays at full closure even if the rest of the page
- * triggers a repaint (LiquidEther's WebGL canvas re-paints the
- * country area every frame; the user reported the trace
- * "partially disappearing a second after completion" with the
- * earlier rAF + inline-style approach, which we attribute to the
- * compositor occasionally dropping the imperatively-set inline
- * style during a re-paint pass). SMIL's freeze is applied at the
- * attribute level by the browser engine and is the most stable
- * way to lock SVG animation state. Opacity fade-in/out still
- * rides the CSS transition on the .active class.
+ * Stroke-trace overlay for a single visited country. Uses Framer
+ * Motion's motion.path + pathLength animation, which under the hood
+ * applies stroke-dasharray + stroke-dashoffset normalised against
+ * the path's real length and renders via Web Animations API. Three
+ * earlier approaches (CSS transition on dashoffset, JS rAF +
+ * imperative inline-style, SVG <animate> SMIL) each had a different
+ * failure mode (incomplete close on multi-subpath, compositor
+ * dropping inline style during LiquidEther repaint, partial
+ * disappear after freeze). motion.path is well-tested across
+ * browsers for exactly this "draw an SVG outline" effect.
  */
 const STROKE_TRACE_MS = 1500;
-// 200 user units of overshoot (paired with dashLen = L + 400) so
-// the dash wraps PAST the path's start point — guarantees the
-// close-point is painted on multi-subpath countries (China +
-// Hainan, UK + islands, Japan, Indonesia) where the dash otherwise
-// ended a few units short. Combined with stroke-linecap: round on
-// .visitedStroke any residual nick at a sub-path seam is filled.
-const FINAL_OVERSHOOT = 200;
 
 function CountryStroke({ d, active }: { d: string; active: boolean }) {
-  const ref = useRef<SVGPathElement>(null);
-  const [dashLen, setDashLen] = useState(0);
-
-  useEffect(() => {
-    if (!ref.current) return;
-    let L = 0;
-    try {
-      L = ref.current.getTotalLength();
-    } catch {
-      L = 2000;
-    }
-    if (!Number.isFinite(L) || L <= 0) L = 2000;
-    // Pad the dash by 2× the overshoot so the dashoffset endpoints
-    // (-FINAL_OVERSHOOT to dashLen) fully cover any subpath gap.
-    setDashLen(L + FINAL_OVERSHOOT * 2);
-  }, [d]);
-
-  // SMIL <animate> element is conditionally rendered when active.
-  // Keying it by the d string + active flag forces a fresh element
-  // on every hover so the animation restarts from `from` rather
-  // than resuming from wherever the previous run left off.
-  const ready = dashLen > 0;
-  const offset = active ? -FINAL_OVERSHOOT : dashLen;
   return (
-    <path
-      ref={ref}
+    <motion.path
       d={d}
       className={`${styles.visitedStroke} ${
         active ? styles.visitedStrokeActive : ""
       }`}
-      strokeDasharray={ready ? `${dashLen} ${dashLen}` : undefined}
-      strokeDashoffset={ready ? offset : undefined}
-    >
-      {ready && active && (
-        <animate
-          key={`anim-${d}`}
-          attributeName="stroke-dashoffset"
-          from={dashLen}
-          to={-FINAL_OVERSHOOT}
-          dur={`${STROKE_TRACE_MS}ms`}
-          fill="freeze"
-        />
-      )}
-    </path>
+      // pathLength: 0 = nothing drawn; 1 = full perimeter drawn.
+      // motion handles the stroke-dasharray math internally, including
+      // multi-subpath geometries (the close-point seam that broke
+      // every previous approach).
+      initial={false}
+      animate={{ pathLength: active ? 1 : 0 }}
+      transition={{
+        duration: STROKE_TRACE_MS / 1000,
+        ease: "linear",
+      }}
+    />
   );
 }
 
@@ -533,12 +498,17 @@ export default function BlogMap() {
     // panel, vertically dead-centre.
     const targetCx = availableWidth / 2;
     const targetCy = vh / 2;
-    // Country bbox fills ~60 % of viewport height (20 % empty top
-    // + 20 % empty bottom). Floor at 1× so we never SHRINK the
-    // map; tiny countries get magnified, big ones (Russia, Brazil)
-    // would zoom out and a 1× floor keeps them at current size.
+    // Country target box: ≤ 60 % of viewport height (20 % padding
+    // top + bottom) AND ≤ 80 % of the available width (10 % padding
+    // on each side between the left edge and the panel divider).
+    // Pick the smaller of the two scales so neither dimension
+    // exceeds its cap. Floor at 1× so big countries (Russia,
+    // Brazil) stay at their current size instead of zooming out.
     const targetH = vh * 0.6;
-    const scaleRatio = Math.max(1, targetH / rect.height);
+    const targetW = availableWidth * 0.8;
+    const heightRatio = targetH / rect.height;
+    const widthRatio = targetW / rect.width;
+    const scaleRatio = Math.max(1, Math.min(heightRatio, widthRatio));
 
     // We're REPLACING the wrap's transform (the .focused rule uses
     // --focus-* vars in place of --pan-* / --zoom). Compute the

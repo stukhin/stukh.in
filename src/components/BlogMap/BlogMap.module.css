@@ -99,27 +99,33 @@
     transform 1.5s cubic-bezier(0.7, 0, 0.84, 0);
 }
 
-/* Focus mode: every path that does NOT carry .selected fades to a
-   barely-there neutral gray — both the visited-dark fills and the
-   cream-paper unvisited fills become the same low-opacity tone, so
-   the rest of the world reads as a single soft backdrop while the
-   selected country gets the stage. The earlier "fly apart in
-   pieces" explode transform was rejected — it added visual noise
-   without serving the new focus layout. */
+/* Focus mode: every path that does NOT carry .selected fades to
+   a faint neutral gray — both the visited-dark fills and the
+   cream-paper unvisited fills become the same low-opacity tone,
+   so the rest of the world reads as a single soft backdrop while
+   the selected country gets the stage. Opacity at 0.20 keeps the
+   contours BARELY perceptible (user explicitly asked to see them
+   at ~5 % visibility — 0.05 alpha was math-correct but
+   practically invisible against the cream paper bg, so we land
+   at the 0.20 sweet spot where the silhouettes read as a soft
+   ghost). */
 .focusing .country,
 .focusing .visitedVisual:not(.selected),
 .focusing .visitedDot:not(.selected) {
   fill: #d6d2c8;
-  opacity: 0.05;
+  opacity: 0.2;
   pointer-events: none;
 }
 
-/* Hit areas for non-selected countries can't catch events while
-   focused — the user would otherwise be able to switch country
-   straight from the panel without the explicit close gesture
-   (which we do support, see exitFocus + click-outside). */
-.focusing .visitedHit:not(.selected),
-.focusing .visitedDotHit:not(.selected) {
+/* While focused, the WHOLE map is non-interactive — including the
+   selected country. The user reported the magnifier cursor + hover
+   plumbing kept firing as the cursor moved over the focused
+   country, lagging the LiquidEther fluid sim and occasionally
+   eating clicks meant for the panel's close button. Drop pointer
+   events on every hit area; close handlers (X button, escape,
+   click-outside) own dismissal. */
+.focusing .visitedHit,
+.focusing .visitedDotHit {
   pointer-events: none;
 }
 
@@ -156,13 +162,23 @@
   pointer-events: none;
   transform-box: fill-box;
   transform-origin: center center;
-  transition: fill 0.22s ease,
+  /* Fill transition matches opacity (1.5 s) so visited countries
+     fade THROUGH gray smoothly during focus mode; the previous
+     0.22 s fill made dark countries jump to cream after only a
+     fraction of the fade and the user read it as "Brazil
+     disappears while others stay". Hover-fill swap (#1a1a1a →
+     #c14a3a) is now handled separately on the active class. */
+  transition: fill 1.5s ease,
     opacity 1.5s cubic-bezier(0.7, 0, 0.84, 0),
     transform 1.5s cubic-bezier(0.7, 0, 0.84, 0);
 }
 
+/* Active hover (or focus): the country lights up red, with the
+   snappy fill transition restored so the hover swap feels
+   responsive (not the slow 1.5 s focus-fade timing). */
 .visitedVisualActive {
   fill: #c14a3a;
+  transition: fill 0.22s ease;
 }
 
 /* Stroke-trace overlay: invisible by default; on hover the white
