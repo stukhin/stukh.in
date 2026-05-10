@@ -246,19 +246,23 @@ export default function ChainBridge() {
               : href === "/walls"
               ? "walls"
               : null;
-          // Show the bg photo only on routes without a skeleton —
-          // otherwise the photo and skeleton would compete visually.
-          const showBgImage = !skeleton && v.bg;
-          // Per-slide tint var. Dark routes get a brighter
-          // translucent fill; the cream /city gets a darker fill so
-          // the skeleton reads against the wall colour.
+          // Bg photo always renders when the route has one — skeleton
+          // (when present) sits ON TOP as a barely-translucent
+          // overlay. The user explicitly wanted to keep the
+          // background textures (bg_nature / bg_city) visible during
+          // the slide; the skeleton just marks where elements will
+          // land without dominating the visual.
+          const showBgImage = Boolean(v.bg);
+          // Skeleton fill: very low alpha (~5 %) per user spec —
+          // "еле-еле, чуть-чуть виднелись". Dark routes get a
+          // white-translucent veil; cream /city gets dark.
           const skeletonStyle =
             href === "/city"
               ? ({
-                  "--skeleton-fill": "rgba(0, 0, 0, 0.18)",
+                  "--skeleton-fill": "rgba(0, 0, 0, 0.05)",
                 } as CSSProperties)
               : ({
-                  "--skeleton-fill": "rgba(255, 255, 255, 0.18)",
+                  "--skeleton-fill": "rgba(255, 255, 255, 0.05)",
                 } as CSSProperties);
 
           return (
@@ -285,14 +289,39 @@ export default function ChainBridge() {
 
               {skeleton === "gallery" && (
                 <div className={styles.skeletonGallery}>
+                  {/* Centre frame + 3 thumbs on each side, mirroring
+                      Swiper's coverflow-ish row of side previews on
+                      a wide desktop. */}
                   <span
                     className={styles.skeletonGallerySide}
                     data-side="left"
+                    data-distance="3"
+                  />
+                  <span
+                    className={styles.skeletonGallerySide}
+                    data-side="left"
+                    data-distance="2"
+                  />
+                  <span
+                    className={styles.skeletonGallerySide}
+                    data-side="left"
+                    data-distance="1"
                   />
                   <span className={styles.skeletonGalleryFrame} />
                   <span
                     className={styles.skeletonGallerySide}
                     data-side="right"
+                    data-distance="1"
+                  />
+                  <span
+                    className={styles.skeletonGallerySide}
+                    data-side="right"
+                    data-distance="2"
+                  />
+                  <span
+                    className={styles.skeletonGallerySide}
+                    data-side="right"
+                    data-distance="3"
                   />
                   <span className={styles.skeletonGalleryText} />
                   <span className={styles.skeletonGallerySlider} />
@@ -306,7 +335,11 @@ export default function ChainBridge() {
                     <span className={styles.skeletonWallsPill} />
                   </div>
                   <div className={styles.skeletonWallsGrid}>
-                    {Array.from({ length: 8 }).map((_, i) => (
+                    {/* Render 10 cards so the wide-desktop 5-column
+                        layout fills two full rows; narrower
+                        breakpoints (4/3/1 col) just wrap to more
+                        rows naturally. */}
+                    {Array.from({ length: 10 }).map((_, i) => (
                       <span
                         key={i}
                         className={styles.skeletonWallsCard}

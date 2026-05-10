@@ -108,7 +108,7 @@
   transform: translate(-50%, -50%);
   width: 408px;
   height: 506px;
-  background: var(--skeleton-fill, rgba(255, 255, 255, 0.18));
+  background: var(--skeleton-fill, rgba(255, 255, 255, 0.05));
 }
 
 @media (max-width: 1024px) {
@@ -118,23 +118,48 @@
   }
 }
 
+/* Side thumbs: scaled-down 0.53× preview cards flanking the centre
+   frame. Real Swiper places them at distance × baseGap from the
+   centre; we replicate that spacing by per-thumb data-distance.
+   The closest neighbour (distance=1) sits adjacent to the frame;
+   distances 2 and 3 sit progressively further away with a smaller
+   offset (the live gallery half-pulls far slides via
+   --slide-shift-x — we approximate that here with a fixed ratio).
+   At distance 1: gap 230 px; distance 2: 230 + 196 + 32 = 458 px;
+   distance 3: 458 + 196 + 32 = 686 px (where 196 is the side-thumb
+   width and 32 is the visual breathing space). */
 .skeletonGallerySide {
   position: absolute;
   top: 50%;
   width: 196px;
   height: 249px;
-  background: var(--skeleton-fill, rgba(255, 255, 255, 0.18));
+  background: var(--skeleton-fill, rgba(255, 255, 255, 0.05));
   transform: translateY(-50%);
 }
 
-.skeletonGallerySide[data-side="left"] {
+.skeletonGallerySide[data-side="left"][data-distance="1"] {
   right: 50%;
   margin-right: 230px;
 }
-
-.skeletonGallerySide[data-side="right"] {
+.skeletonGallerySide[data-side="left"][data-distance="2"] {
+  right: 50%;
+  margin-right: 458px;
+}
+.skeletonGallerySide[data-side="left"][data-distance="3"] {
+  right: 50%;
+  margin-right: 686px;
+}
+.skeletonGallerySide[data-side="right"][data-distance="1"] {
   left: 50%;
   margin-left: 230px;
+}
+.skeletonGallerySide[data-side="right"][data-distance="2"] {
+  left: 50%;
+  margin-left: 458px;
+}
+.skeletonGallerySide[data-side="right"][data-distance="3"] {
+  left: 50%;
+  margin-left: 686px;
 }
 
 @media (max-width: 1024px) {
@@ -142,15 +167,29 @@
     width: 138px;
     height: 176px;
   }
-  .skeletonGallerySide[data-side="left"] {
+  .skeletonGallerySide[data-side="left"][data-distance="1"] {
     margin-right: 160px;
   }
-  .skeletonGallerySide[data-side="right"] {
+  .skeletonGallerySide[data-side="left"][data-distance="2"] {
+    margin-right: 320px;
+  }
+  .skeletonGallerySide[data-side="left"][data-distance="3"] {
+    margin-right: 480px;
+  }
+  .skeletonGallerySide[data-side="right"][data-distance="1"] {
     margin-left: 160px;
+  }
+  .skeletonGallerySide[data-side="right"][data-distance="2"] {
+    margin-left: 320px;
+  }
+  .skeletonGallerySide[data-side="right"][data-distance="3"] {
+    margin-left: 480px;
   }
 }
 
 @media (max-width: 597px) {
+  /* Mobile: too narrow for a row of side thumbs; just the centre
+     frame + title/slider stub. */
   .skeletonGallerySide {
     display: none;
   }
@@ -163,7 +202,7 @@
   transform: translateX(-50%);
   width: 220px;
   height: 14px;
-  background: var(--skeleton-fill, rgba(255, 255, 255, 0.18));
+  background: var(--skeleton-fill, rgba(255, 255, 255, 0.05));
 }
 
 @media (max-width: 1024px) {
@@ -187,7 +226,7 @@
   transform: translateX(-50%);
   width: 292px;
   height: 4px;
-  background: var(--skeleton-fill, rgba(255, 255, 255, 0.18));
+  background: var(--skeleton-fill, rgba(255, 255, 255, 0.05));
 }
 
 @media (max-width: 1024px) {
@@ -235,9 +274,17 @@
 .skeletonWallsPill {
   width: 96px;
   height: 38px;
-  background: var(--skeleton-fill, rgba(255, 255, 255, 0.18));
+  background: var(--skeleton-fill, rgba(255, 255, 255, 0.05));
 }
 
+/* Mirrors WallsGallery's real .grid exactly: same max-width,
+   same column rules at every breakpoint, same gap, no extra
+   padding on the grid box itself (real grid has padding: 0; the
+   horizontal padding on /walls comes from .layout). The previous
+   `padding: 0 32px` on this grid was shrinking the inner width
+   enough to push auto-fill from 5 columns down to 4 at the
+   ≥1500 px breakpoint — that's the user-reported "4 cols here vs
+   5 in the real walls page" mismatch. */
 .skeletonWallsGrid {
   position: absolute;
   top: 260px;
@@ -248,12 +295,15 @@
   display: grid;
   gap: 20px;
   grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  padding: 0 32px;
 }
 
+/* 1000–1499: real .layout adds 32 px horizontal padding, so the
+   grid sits 32 px in from each edge. Match by capping width to
+   leave room. */
 @media (min-width: 1000px) and (max-width: 1499px) {
   .skeletonWallsGrid {
     top: 200px;
+    width: calc(100% - 64px);
     grid-template-columns: repeat(4, 1fr);
   }
 }
@@ -261,6 +311,7 @@
 @media (min-width: 598px) and (max-width: 999px) {
   .skeletonWallsGrid {
     top: 200px;
+    width: calc(100% - 64px);
     gap: 16px;
     grid-template-columns: repeat(3, 1fr);
   }
@@ -279,7 +330,7 @@
   display: block;
   width: 100%;
   aspect-ratio: 9 / 16;
-  background: var(--skeleton-fill, rgba(255, 255, 255, 0.18));
+  background: var(--skeleton-fill, rgba(255, 255, 255, 0.05));
 }
 
 @media (max-width: 597px) {
