@@ -10,13 +10,16 @@ import styles from "./GalleryModal.module.css";
 // frosted-glass overlay blooms in as the photo grows.
 const ZOOM_IN_MS = 750;
 // Closing timeline is asymmetric on purpose: the controls (X +
-// orientation toggle) fade fast (~0.32 s, see .modal.closing
+// orientation toggle) fade fast (~0.18 s, see .modal.closing
 // .buttons in CSS), the picture FLIP-morphs back to its thumbnail
 // over ZOOM_OUT_MS, and the frosted-glass wash-out matches that
 // duration via the .modal opacity transition. So the user sees
-// "controls vanish, then bg lingers" instead of all three pulling
-// off-screen together.
-const ZOOM_OUT_MS = 700;
+// the controls disappear FIRST and only then the photo + bg
+// glide back together. Timing tightened from the earlier 0.32 /
+// 0.7 s split because the buttons were still readable when the
+// photo was already mid-FLIP, which user read as "controls
+// hanging in the air."
+const ZOOM_OUT_MS = 850;
 const ZOOM_EASING = "cubic-bezier(0.65, 0, 0.25, 1)";
 
 type Props = {

@@ -76,6 +76,18 @@ export default function WallsGallery({ items }: Props) {
   // Releases events at the document edge so useDesktopPageWheel
   // still gets clean events to nav between routes.
   useSmoothScroll();
+  // Fade the filter row out as soon as the user scrolls — the
+  // wallpapers slide up over the filters' fixed position and the
+  // overlap reads as a visual collision. Show again only when the
+  // page returns to the very top.
+  const [filtersHidden, setFiltersHidden] = useState(false);
+  useEffect(() => {
+    const HIDE_AT = 40;
+    const onScroll = () => setFiltersHidden(window.scrollY > HIDE_AT);
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
   const [counts, setCounts] = useState<Record<string, number>>({});
   const [downloads, setDownloads] = useState<Record<string, DownloadState>>({});
   const [zoomed, setZoomed] = useState<Wallpaper | null>(null);
@@ -270,7 +282,11 @@ export default function WallsGallery({ items }: Props) {
   return (
     <>
       <div className={styles.layout}>
-        <div className={styles.filters}>
+        <div
+          className={`${styles.filters} ${
+            filtersHidden ? styles.filtersHidden : ""
+          }`}
+        >
           <FilterDropdown
             label="type"
             value={activeCategory}

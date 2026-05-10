@@ -15,26 +15,30 @@
   transition: color 0.4s ease;
 }
 
-/* While ChainBridge is sliding the strip behind, switch the logo
-   to white + mix-blend-mode: difference. The bridge sits below
-   the logo (z-index 30 vs 45), so the blend reads the actual
-   moving bg pixels and the colour boundary tracks the page edge
-   live. */
+/* During the chain navigation, hold the logo at white so it stays
+   visible against the dark slide backgrounds without using mix-
+   blend-mode. The earlier mix-blend recipe inverted the logo
+   against the home photo at chain-start and read as a gray jolt
+   the moment the user pressed the arrow — explicitly rejected.
+   Plain white during the slide is the simplest "stays visible
+   without flashing colour" answer.
+
+   No transition here so the logo doesn't lerp from a previous
+   theme colour into white as the chain begins; the home page's
+   logo is already white, so this is a no-op visually. */
 :global(html.chain-active) .logo {
   color: #ffffff;
-  mix-blend-mode: difference;
   transition: none;
 }
 
-/* Settling phase: bridge is still on screen but fading out. We
-   snap the logo to the new theme's static colour with NO
-   transition (otherwise the colour would lerp from white to the
-   theme value over 0.4s and flash white on light pages). The
-   bridge's own opacity fade visually covers this hand-off. */
+/* Settling: bridge is fading out, the destination theme has taken
+   over via [data-theme]. The colour smoothly lerps from white to
+   the new --shell-fg-strong over 0.4 s, hand-in-hand with the
+   bridge's own opacity fade so the user reads the swap as one
+   continuous transition rather than a snap. */
 :global(html.chain-settling) .logo {
   color: var(--shell-fg-strong);
-  mix-blend-mode: normal;
-  transition: none;
+  transition: color 0.4s ease;
 }
 
 .logo.hidden {

@@ -77,7 +77,10 @@
 .bar {
   display: block;
   width: 28px;
-  height: 2px;
+  /* Inactive bar height matches the menu / TopNav underline so the
+     home indicators read as the same family of "thin bar" rather
+     than a chunky 2 px row. */
+  height: 1.5px;
   border-radius: 3px;
   /* Theme-driven so the slider indicator follows the same
      dark/light flip the rest of the shell does — when an active
@@ -90,7 +93,10 @@
 }
 
 .dot.dotActive .bar {
-  height: 4px;
+  /* Active bar 20 % shorter than the previous 4 px (to 3.2 px), so
+     the contrast with inactive bars stays clear without dominating
+     the bottom of the page. */
+  height: 3.2px;
   background-color: var(--shell-fg-soft, hsla(0, 0%, 100%, 0.45));
 }
 

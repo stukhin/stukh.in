@@ -24,13 +24,16 @@ export default function ChainBridge() {
   const [duration, setDuration] = useState(BASE_DURATION);
   const timersRef = useRef<number[]>([]);
 
-  // Warm the HTTP cache on mount so the very first cross-page slide
-  // doesn't hitch fetching the bg images. PAGE_VISUALS["/"].bg is
-  // mutated by HomeSlider as the active slide rotates, so we also
-  // pre-warm every home slide here — otherwise navigating away from
-  // / mid-rotation could land on a bridge slide whose bg image
-  // hasn't loaded yet, painting the slide's solid colour fallback
-  // (#0d1117) for a frame and reading as a black flash.
+  // Warm the HTTP cache on mount AND force a decode pass so the bg
+  // image is fully ready in the browser's image-decode cache by the
+  // time the bridge mounts and tries to paint it. Without the
+  // explicit decode(), Image().src=… only schedules the HTTP fetch;
+  // the first paint of background-image: url(…) on the bridge
+  // slide can still race the decode and show only the solid
+  // fallback colour for a frame — that was the residual "black
+  // flash" the user kept seeing on / → next-page. PAGE_VISUALS["/"]
+  // .bg is also mutated by HomeSlider as it rotates, so we pre-warm
+  // every home slide here regardless of the static value.
   useEffect(() => {
     const sources = new Set<string>();
     Object.values(PAGE_VISUALS).forEach((v) => {
@@ -42,6 +45,9 @@ export default function ChainBridge() {
     sources.forEach((src) => {
       const img = new window.Image();
       img.src = src;
+      // decode() is best-effort; failures (e.g. 404) just leave the
+      // fallback colour in place, same as before.
+      img.decode().catch(() => {});
     });
   }, []);
 

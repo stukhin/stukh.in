@@ -51,6 +51,20 @@
   display: flex;
   gap: 12px;
   align-items: flex-start;
+  /* Fade out / slide back when the user scrolls (handled by the
+     .filtersHidden class below). Filters are position: fixed so
+     they otherwise stay glued in place while wallpapers scroll
+     UNDER them — that overlap was the user's complaint. */
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+/* Applied while window.scrollY > a small threshold; the filter row
+   eases out so the wallpaper grid scrolls behind it cleanly. Pointer
+   events also off so a hidden row can't intercept clicks. */
+.filtersHidden {
+  opacity: 0;
+  transform: translateY(-8px);
+  pointer-events: none;
 }
 
 @media (max-width: 1499px) {

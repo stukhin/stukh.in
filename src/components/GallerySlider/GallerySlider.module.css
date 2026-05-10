@@ -194,40 +194,55 @@
   }
 }
 
-/* Soft drop-shadow BEHIND the side photos. ::before fills the
-   wrapper (the photo's actual rect) and projects a diffuse shadow
-   behind it — the shadow blur is also scaled down by the parent
-   transform, so we use generous values for them to read at the
-   right strength visually. */
+/* Soft drop shadow behind the FRAME (the passe-partout), not the
+   photo. ::before sits at the SAME outer extents as the frame
+   ::after below — inset: -frame-pad — and just casts a diffuse
+   shadow on the wall. The earlier separate shadow on the photo's
+   own rect read as "two stacked items casting their own shadows",
+   which the user explicitly didn't want; one shadow on the outer
+   frame is enough. */
 .slide:not(:global(.swiper-slide-active)) .wrapper::before {
   content: "";
   position: absolute;
-  inset: 0;
+  inset: calc(var(--frame-pad) * -1);
   z-index: 0;
   pointer-events: none;
-  box-shadow: 0 24px 56px rgba(0, 0, 0, 0.28),
-    0 8px 18px rgba(0, 0, 0, 0.18);
+  /* Generous values because the parent .container is
+     transform: scale(0.53), shrinking the rendered shadow blur
+     proportionally. Per-category opacity tuned below so the
+     shadow reads on each page's wall colour. */
+  box-shadow: 0 32px 64px rgba(0, 0, 0, 0.24),
+    0 12px 22px rgba(0, 0, 0, 0.16);
 }
 
-/* Frosted-glass ring OUTSIDE the photo — extends --frame-pad in
-   each direction past the photo's bounds. The mask-composite
-   trick keeps bg + backdrop-filter limited to the perimeter band
-   only, so the photo itself stays unblurred. */
+/* /nature: dark wall — a darker shadow on dark mostly disappears,
+   so deepen the alpha to keep the lift readable. */
+.nature .slide:not(:global(.swiper-slide-active)) .wrapper::before {
+  box-shadow: 0 28px 56px rgba(0, 0, 0, 0.5),
+    0 10px 20px rgba(0, 0, 0, 0.32);
+}
+
+/* /city: cream wall — softer shadow so it reads as a paper lift
+   without smudging the page. */
+.city .slide:not(:global(.swiper-slide-active)) .wrapper::before {
+  box-shadow: 0 32px 64px rgba(0, 0, 0, 0.22),
+    0 12px 22px rgba(0, 0, 0, 0.14);
+}
+
+/* Passe-partout (frame) ring OUTSIDE the photo. No border anywhere
+   — the previous 2 px outer border read as a 1 px hairline on the
+   photo's edge once the slide was scaled 0.53× and the user
+   asked to remove it. The mask-composite trick keeps the bg +
+   backdrop-filter limited to the perimeter band only, so the
+   photo itself stays unblurred and unframed by any line. */
 .slide:not(:global(.swiper-slide-active)) .wrapper::after {
   content: "";
   position: absolute;
   inset: calc(var(--frame-pad) * -1);
   pointer-events: none;
   z-index: 2;
-  /* Tint and border colour are set per-category below so the frame
-     blends with the page background instead of contrasting with it
-     — the previous version was inverted. Border kept at 2 px in
-     pre-scale space so it reads at ~1 px on screen after the
-     parent's 0.53 scale-down. No inset top highlight. */
   backdrop-filter: blur(14px) saturate(140%);
   -webkit-backdrop-filter: blur(14px) saturate(140%);
-  border-style: solid;
-  border-width: 2px;
   padding: var(--frame-pad);
   -webkit-mask: linear-gradient(#fff 0 0) content-box,
     linear-gradient(#fff 0 0);
@@ -236,20 +251,14 @@
   mask-composite: exclude;
 }
 
-/* /nature: dark page bg → dark frame. Subtle dark fill + lightly
-   lit hairline border so the frame reads as a recess into the
-   wall, not a bright sticker on top of it. */
+/* /nature: dark wall → dark passe-partout. */
 .nature .slide:not(:global(.swiper-slide-active)) .wrapper::after {
   background: rgba(0, 0, 0, 0.30);
-  border-color: rgba(255, 255, 255, 0.10);
 }
 
-/* /city: cream page bg → light frame. Light fill + dim hairline
-   border so the frame matches the gallery wall rather than punching
-   through it. */
+/* /city: cream wall → light passe-partout. */
 .city .slide:not(:global(.swiper-slide-active)) .wrapper::after {
   background: rgba(255, 255, 255, 0.36);
-  border-color: rgba(0, 0, 0, 0.14);
 }
 
 /* Loading placeholder shown while the image is downloading. */
