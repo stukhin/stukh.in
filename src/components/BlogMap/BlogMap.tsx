@@ -97,13 +97,16 @@ function CountryStroke({ d, active }: { d: string; active: boolean }) {
   const lengthRef = useRef(0);
   const rafRef = useRef<number | null>(null);
 
-  // Final dashoffset overshoots zero so the dash actually wraps
-  // PAST the path's start point — guarantees the close-point is
-  // painted on multi-subpath countries where the dash sometimes
-  // ended a few units short. With a 1 px stroke the overshoot is
-  // invisible (it shifts the dash, not the visible stroke endpoint
-  // since the dash already covers >= the full path length).
-  const FINAL_OVERSHOOT = 12;
+  // Final dashoffset overshoots zero so the dash wraps PAST the
+  // path's start point — guarantees the close-point is painted on
+  // multi-subpath countries (China + Hainan, UK + islands, Japan,
+  // Indonesia) where the dash otherwise ended a few units short.
+  // We use a generous overshoot (50 user units) since some d3-geo
+  // path strings include short M jumps between sub-paths that
+  // getTotalLength includes in its sum but the visible stroke
+  // can't cover. Combined with stroke-linecap: round on the
+  // .visitedStroke rule any residual nick at a seam is filled.
+  const FINAL_OVERSHOOT = 50;
 
   useEffect(() => {
     if (!ref.current) return;
@@ -114,8 +117,9 @@ function CountryStroke({ d, active }: { d: string; active: boolean }) {
       L = 2000;
     }
     if (!Number.isFinite(L) || L <= 0) L = 2000;
-    // Generous padding so subpath rounding can't leave a seam.
-    const dashLen = L + 24;
+    // Pad the dash by 2× the overshoot so the dashoffset endpoints
+    // (-FINAL_OVERSHOOT to dashLen) fully cover any subpath gap.
+    const dashLen = L + FINAL_OVERSHOOT * 2;
     lengthRef.current = dashLen;
     ref.current.style.strokeDasharray = `${dashLen} ${dashLen}`;
     ref.current.style.strokeDashoffset = active
@@ -237,14 +241,27 @@ export default function BlogMap() {
       coordsRef.current.style.opacity = "0";
     }
   }, [hover]);
+
   /**
    * Focus mode: when a country is selected, the rest of the map's
-   * paths "explode" outward + fade out, the map translates so the
-   * selected country sits in the LEFT part of the viewport, and a
-   * detail panel slides in from the right. Tracked by ISO so the
-   * selected path can opt out of the explode CSS rule below.
+   * paths fade to a barely-visible neutral gray, the map glides
+   * to centre the country at ~60 % vh in the left half of the
+   * viewport, and a detail panel slides in from the right.
+   * Tracked by ISO so the selected path can opt out of the
+   * focusing CSS rules.
    */
   const [selectedIso, setSelectedIso] = useState<string | null>(null);
+  // Mirror of selectedIso for the imperatively-updated coords
+  // readout (same trick as hoverRef). flush() reads this and bails
+  // when a country is in focus mode — the side panel covers the
+  // right half and the lat/long would just clutter it.
+  const selectedIsoRef = useRef<string | null>(null);
+  useEffect(() => {
+    selectedIsoRef.current = selectedIso;
+    if (selectedIso && coordsRef.current) {
+      coordsRef.current.style.opacity = "0";
+    }
+  }, [selectedIso]);
   /**
    * Refs to each visited country's hit path. Used to measure the
    * path's screen position right before entering focus mode so we
@@ -440,10 +457,11 @@ export default function BlogMap() {
       const display = coordsRef.current;
       if (!svg || !projection || !display) return;
       // Hide the lat/long readout while the cursor is over a
-      // visited country — the BlogCountryPlate next to the
-      // cursor already carries the location info, and the two
-      // labels were overlapping into an unreadable mess.
-      if (hoverRef.current) {
+      // visited country OR while a country is in focus mode (the
+      // side panel covers the readout's preferred location and
+      // the country plate / panel already carries the location
+      // info).
+      if (hoverRef.current || selectedIsoRef.current) {
         display.style.opacity = "0";
         return;
       }
@@ -513,13 +531,15 @@ export default function BlogMap() {
     }, LEAVE_DEBOUNCE_MS);
   };
   /**
-   * Enter focus mode for the clicked visited country. Computes the
-   * delta between the path's current centre and the target focus
-   * point (~17 % from the left, vertically centred), then writes
-   * the result to --focus-x / --focus-y on .mapWrap. The CSS rule
-   * for .mapWrap.focused uses those vars in place of the cursor-
-   * driven --pan-x / --pan-y so the map glides to its focused
-   * position over the same 1.5 s the explode animation runs for.
+   * Enter focus mode for the clicked visited country. Scales the
+   * map so the country's bounding box fills ~60% of the viewport
+   * height (with 20% empty padding above and below), and centres
+   * it horizontally between the left edge and the right-side
+   * detail panel. CSS variables --focus-x / --focus-y / --focus-
+   * scale are written to .mapWrap; the .mapWrap.focused rule
+   * applies them as a single transition so the country glides
+   * into place while the rest of the world fades to a neutral
+   * gray (see .focusing rules below).
    */
   const onCountryClick = (iso: string) => {
     if (!VISIT_BY_ISO.has(iso)) return;
@@ -528,27 +548,50 @@ export default function BlogMap() {
 
     const wrap = wrapRef.current;
     const pathEl = visitedPathRefs.current[iso];
-    if (!wrap) return;
+    if (!wrap || !pathEl) return;
 
-    let targetCx = window.innerWidth * 0.5;
-    let targetCy = window.innerHeight * 0.5;
-    if (pathEl) {
-      const rect = pathEl.getBoundingClientRect();
-      const countryCenterX = rect.left + rect.width / 2;
-      const countryCenterY = rect.top + rect.height / 2;
-      const focusX = window.innerWidth * 0.17;
-      const focusY = window.innerHeight * 0.5;
-      const dx = focusX - countryCenterX;
-      const dy = focusY - countryCenterY;
-      const currentPanX =
-        parseFloat(wrap.style.getPropertyValue("--pan-x")) || 0;
-      const currentPanY =
-        parseFloat(wrap.style.getPropertyValue("--pan-y")) || 0;
-      targetCx = currentPanX + dx;
-      targetCy = currentPanY + dy;
-    }
-    wrap.style.setProperty("--focus-x", `${targetCx}px`);
-    wrap.style.setProperty("--focus-y", `${targetCy}px`);
+    const rect = pathEl.getBoundingClientRect();
+    if (!rect.width || !rect.height) return;
+    const cx = rect.left + rect.width / 2;
+    const cy = rect.top + rect.height / 2;
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
+
+    // Side panel width matches BlogCountryModal's
+    // clamp(360px, 60vw, 880px).
+    const panelWidth = Math.max(360, Math.min(vw * 0.6, 880));
+    const availableWidth = vw - panelWidth;
+    // Country target: centred in the empty space to the left of the
+    // panel, vertically dead-centre.
+    const targetCx = availableWidth / 2;
+    const targetCy = vh / 2;
+    // Country bbox fills ~60 % of viewport height (20 % empty top
+    // + 20 % empty bottom). Floor at 1× so we never SHRINK the
+    // map; tiny countries get magnified, big ones (Russia, Brazil)
+    // would zoom out and a 1× floor keeps them at current size.
+    const targetH = vh * 0.6;
+    const scaleRatio = Math.max(1, targetH / rect.height);
+
+    // We're REPLACING the wrap's transform (the .focused rule uses
+    // --focus-* vars in place of --pan-* / --zoom). Compute the
+    // absolute focus values that put the country at (targetCx,
+    // targetCy) at the new scale, accounting for the wrap's
+    // transform-origin (viewport centre) and the current pan/
+    // zoom that's about to be replaced.
+    const currentZoom = zoomRef.current || 1;
+    const newScale = currentZoom * scaleRatio;
+    const panX =
+      parseFloat(wrap.style.getPropertyValue("--pan-x")) || 0;
+    const panY =
+      parseFloat(wrap.style.getPropertyValue("--pan-y")) || 0;
+    const focusX =
+      targetCx - vw / 2 - (cx - vw / 2 - panX) * scaleRatio;
+    const focusY =
+      targetCy - vh / 2 - (cy - vh / 2 - panY) * scaleRatio;
+
+    wrap.style.setProperty("--focus-x", `${focusX}px`);
+    wrap.style.setProperty("--focus-y", `${focusY}px`);
+    wrap.style.setProperty("--focus-scale", `${newScale}`);
   };
 
   const exitFocus = () => {
@@ -558,8 +601,31 @@ export default function BlogMap() {
       // Clear focus vars so the next focus computes fresh deltas.
       wrap.style.removeProperty("--focus-x");
       wrap.style.removeProperty("--focus-y");
+      wrap.style.removeProperty("--focus-scale");
     }
   };
+
+  // Document-level click outside the right panel exits focus mode.
+  // The panel marks itself with [data-blog-country-panel]; clicks
+  // anywhere else (map, empty paper, even another country) close
+  // the current view. Escape also closes (BlogCountryModal owns
+  // that listener).
+  useEffect(() => {
+    if (!selectedIso) return;
+    const onPointerDown = (e: PointerEvent) => {
+      const target = e.target as Element | null;
+      if (target && target.closest("[data-blog-country-panel]")) return;
+      exitFocus();
+    };
+    // pointerdown fires earlier than click — the user's "down" on
+    // the map is the cleanest signal to close, before any selection
+    // logic on visited paths fires.
+    document.addEventListener("pointerdown", onPointerDown);
+    return () =>
+      document.removeEventListener("pointerdown", onPointerDown);
+    // exitFocus is stable for our purposes.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedIso]);
 
   const selectedVisit = selectedIso
     ? VISIT_BY_ISO.get(selectedIso) ?? null

@@ -14,7 +14,10 @@
   /* Sits above EdgeNav (z 7), the map (z 8), the gallery position
      slider (z 9), and the modal-class overlays (z 40); below the
      logo (z 45) and burger (z 60) so the user can still escape
-     through the menu. */
+     through the menu. .root on /blog has pointer-events: none for
+     EdgeNav pass-through, so this aside has to opt back in
+     explicitly to receive its own click events. */
+  pointer-events: auto;
   z-index: 30;
   width: clamp(360px, 60vw, 880px);
   background: rgba(245, 244, 241, 0.92);

@@ -97,20 +97,17 @@
 }
 
 /* Magnifier cursor: shown over wallpaper cards on /walls and over
-   visited countries on /blog. Both surfaces are dark behind the
-   cursor (dark photos / dark or red country fill), so a single
-   white-stroked magnifier reads everywhere it can appear — no
-   theme-aware variant needed. We previously experimented with
-   mix-blend-mode: difference for automatic contrast, but it
-   produced colour artefacts (white cursor over red country
-   inverts to cyan), which the user explicitly rejected. Plain
-   white. */
+   visited countries on /blog. The CIRCLE part is the same outer
+   diameter as the default ring (16 px / 1 px stroke) so it doesn't
+   feel oversized; the small extra bump is just a handle pointing
+   bottom-right that signals "magnify". User explicitly asked to
+   match the base ring size — 32 px was too big. */
 .magnifier {
   border: none;
-  width: 32px;
-  height: 32px;
+  width: 24px;
+  height: 24px;
   background-color: transparent;
-  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='1.6'><circle cx='11' cy='11' r='7'/><path d='m20 20-3.5-3.5' stroke-linecap='round'/></svg>");
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='1' stroke-linecap='round'><circle cx='12' cy='12' r='7.5'/><path d='m17.5 17.5 3 3'/></svg>");
   background-repeat: no-repeat;
   background-size: contain;
 }

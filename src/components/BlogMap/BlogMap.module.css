@@ -43,16 +43,15 @@
   pointer-events: none;
 }
 
-/* Focus mode: cursor-driven --pan-x/y is replaced with the JS-set
-   --focus-x/y so the map can glide to a position that puts the
-   selected country in the left third of the viewport. The slow
-   1.4 s easing matches the explode timing on the other paths.
-   Cursor parallax is disabled while focused — the recomputePan
-   effect leaves --pan-x/y as they were so the on-exit transition
-   eases back smoothly. */
+/* Focus mode: full transform replacement. --pan-* and --zoom are
+   swapped for JS-computed --focus-x/y/scale so the map can glide
+   to a state that puts the selected country at ~60 % vh, centred
+   between the left edge and the right-side detail panel. 1.4 s
+   eased transition. Cursor parallax (--pan-*) is left alone so
+   the on-exit transition lerps back smoothly. */
 .mapWrap.focused {
   transform: translate3d(var(--focus-x, 0), var(--focus-y, 0), 0)
-    scale(var(--zoom, 1));
+    scale(var(--focus-scale, 1));
   transition: transform 1.4s cubic-bezier(0.5, 0, 0.4, 1);
 }
 
@@ -100,22 +99,27 @@
     transform 1.5s cubic-bezier(0.7, 0, 0.84, 0);
 }
 
-/* Focus mode: every path that does NOT carry .selected explodes
-   outward — translates by its inline --explode-x/--explode-y vector
-   (with rotation), shrinks to 0.4×, fades to 0. Easing is
-   deliberately slow-then-fast (cubic-bezier(0.7, 0, 0.84, 0)) so
-   the user's eye sees the build-up before the "shoosh" the user
-   asked for. The .selected path keeps its full opacity / no
-   transform via the longer-specificity rule below. */
+/* Focus mode: every path that does NOT carry .selected fades to a
+   barely-there neutral gray — both the visited-dark fills and the
+   cream-paper unvisited fills become the same low-opacity tone, so
+   the rest of the world reads as a single soft backdrop while the
+   selected country gets the stage. The earlier "fly apart in
+   pieces" explode transform was rejected — it added visual noise
+   without serving the new focus layout. */
 .focusing .country,
 .focusing .visitedVisual:not(.selected),
-.focusing .visitedDot:not(.selected),
+.focusing .visitedDot:not(.selected) {
+  fill: #d6d2c8;
+  opacity: 0.05;
+  pointer-events: none;
+}
+
+/* Hit areas for non-selected countries can't catch events while
+   focused — the user would otherwise be able to switch country
+   straight from the panel without the explicit close gesture
+   (which we do support, see exitFocus + click-outside). */
 .focusing .visitedHit:not(.selected),
 .focusing .visitedDotHit:not(.selected) {
-  opacity: 0;
-  transform: translate(var(--explode-x, 0px), var(--explode-y, 0px))
-    rotate(var(--explode-rot, 0deg))
-    scale(0.4);
   pointer-events: none;
 }
 
@@ -172,6 +176,13 @@
   stroke: #ffffff;
   stroke-width: 1;
   vector-effect: non-scaling-stroke;
+  /* Round caps + joins fill any seam where the dasharray pattern
+     terminates between two sub-paths of a multi-island country
+     (e.g. China / UK / Japan). Without these, the close-point
+     could leave a 1 px nick visible even with the pad+overshoot
+     trick in CountryStroke. */
+  stroke-linecap: round;
+  stroke-linejoin: round;
   pointer-events: none;
   opacity: 0;
   transition: opacity 0.25s ease;
@@ -189,12 +200,14 @@
    inside an invisible rectangle that overlaps neighbours). */
 .visitedHit {
   fill: transparent;
-  stroke: transparent;
-  /* Slight stroke buffer for the very edge — extends the hit
-     region by a few px past the path outline. */
-  stroke-width: 4;
-  vector-effect: non-scaling-stroke;
-  pointer-events: all;
+  /* No stroke buffer: Safari was extending the hit area far past
+     the country silhouette via the previous transparent stroke +
+     non-scaling-stroke + pointer-events: all combo (Chromium
+     handled it correctly; Safari did not). pointer-events: fill
+     hits the geometric fill region regardless of paint visibility,
+     giving a clean country-shaped hit area in both browsers. */
+  stroke: none;
+  pointer-events: fill;
   cursor: none;
   transform-box: fill-box;
   transform-origin: center center;

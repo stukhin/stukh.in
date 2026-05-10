@@ -43,12 +43,20 @@ export default function BlogCountryModal({ visit, onClose }: Props) {
       role="dialog"
       aria-modal="false"
       aria-label={`${visit.name} story`}
+      data-blog-country-panel
     >
       <div className={styles.box}>
         <button
           type="button"
           className={styles.close}
-          onClick={onClose}
+          onClick={(e) => {
+            // Stop propagation so the document-level pointerdown
+            // close handler in BlogMap doesn't fire alongside this
+            // (it would no-op because the target IS inside the
+            // panel, but belt-and-suspenders).
+            e.stopPropagation();
+            onClose();
+          }}
           aria-label="Close"
           data-cursor="hover"
         >
