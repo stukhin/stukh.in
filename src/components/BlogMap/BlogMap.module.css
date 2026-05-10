@@ -55,6 +55,17 @@
   transition: transform 1.4s cubic-bezier(0.5, 0, 0.4, 1);
 }
 
+/* Closing: held for the same 1.4 s as the focus entry so the
+   reverse animation (focused transform → cursor-pan transform)
+   uses the SAME timing curve. Without this the close would fall
+   back to .mapWrap's base 0.18 s parallax transition and feel
+   like an instant snap-back. The class is dropped by JS once
+   the transition finishes, restoring the snappy parallax
+   timing. */
+.mapWrap.closing {
+  transition: transform 1.4s cubic-bezier(0.5, 0, 0.4, 1);
+}
+
 
 /* Map: height fills the viewport, width is derived explicitly from
    the dynamic-viewport-height × the projected feature bbox aspect
@@ -189,18 +200,23 @@
    trace reaches 100 %). Off-state opacity fade is still CSS. */
 .visitedStroke {
   fill: none;
-  stroke: #ffffff;
+  /* Match the page's cream-paper background so the trace reads as a
+     hairline cut into the country's red fill rather than a bright
+     white line on top. */
+  stroke: #f5f4f1;
   stroke-width: 1;
-  /* vector-effect: non-scaling-stroke was producing inconsistent
-     dasharray rendering on multi-subpath countries (China + Hainan,
-     UK + islands, Japan, Indonesia) — Chromium and especially
-     Safari were leaving the trace visibly short of the close-point
-     even with generous overshoot. The trade-off without it is the
-     stroke gets slightly thicker as the user zooms the map in,
-     which is acceptable for a hover affordance. */
-  /* Round caps + joins fill any micro-seam where the dasharray
-     pattern terminates between two sub-paths so the trace reads
-     as continuous around all islands. */
+  /* Lock the stroke at 1 px regardless of the map's CSS scale.
+     When focus mode zooms the country to 60 % vh, the country
+     fill scales with the wrap; the stroke MUST NOT scale or it
+     reads as a chunky border on the focused country. We can use
+     non-scaling-stroke now because motion.path handles dasharray
+     internally — the bug it caused with the earlier rAF/SMIL
+     approaches isn't an issue with motion.path's pathLength
+     normalisation. */
+  vector-effect: non-scaling-stroke;
+  /* Round caps + joins fill any micro-seam where the dash pattern
+     terminates between two sub-paths so the trace reads
+     continuous around all islands. */
   stroke-linecap: round;
   stroke-linejoin: round;
   pointer-events: none;

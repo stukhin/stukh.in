@@ -36,13 +36,17 @@ const FIT_H = 488;
 // Zoom. Floor at 1.0 = the map sized to fill the viewport
 // vertically with no parallax slack. Default ZOOM_INITIAL is 1.2
 // so the page lands on a slightly cropped map and the cursor can
-// pan around it from frame zero — same idea as a hover-zoomed
-// modal photo. Wheel + buttons can zoom out to 1.0 (full world
-// in frame, no parallax) or in to 3.2.
+// pan around it from frame zero. Max capped at 2.0 (= 2× the
+// fully-zoomed-out state) per the user's "max twice the
+// outermost view" spec.
 const ZOOM_MIN = 1.0;
-const ZOOM_MAX = 3.2;
+const ZOOM_MAX = 2.0;
 const ZOOM_INITIAL = 1.2;
 const ZOOM_STEP = 0.005;
+// Pinch gestures on macOS trackpads fire wheel events with
+// e.ctrlKey === true and very small deltaY values per "tick" —
+// scale the per-event zoom up so the gesture feels responsive.
+const PINCH_STEP = 0.04;
 const ZOOM_BUTTON_STEP = 0.22;
 
 // How long after a mouseleave we wait before clearing the hover
@@ -184,6 +188,18 @@ export default function BlogMap() {
    * focusing CSS rules.
    */
   const [selectedIso, setSelectedIso] = useState<string | null>(null);
+  /**
+   * `closing` flips on for ~1.4 s after exitFocus runs, applying
+   * the same 1.4 s transition curve to .mapWrap as the focus
+   * entry. Without this, removing .focused would fall back to
+   * .mapWrap's base 0.18 s transition (used for cursor parallax)
+   * and the close animation would feel like an instant snap-back
+   * even though the entry had a full 1.4 s glide. The class is
+   * dropped after the transition completes so cursor parallax
+   * gets its snappy timing back.
+   */
+  const [closing, setClosing] = useState(false);
+  const closingTimerRef = useRef<number | null>(null);
   // Mirror of selectedIso for the imperatively-updated coords
   // readout (same trick as hoverRef). flush() reads this and bails
   // when a country is in focus mode — the side panel covers the
@@ -327,15 +343,20 @@ export default function BlogMap() {
 
     const onWheel = (e: WheelEvent) => {
       if (!wrap.contains(e.target as Node)) return;
+      // Trackpad pinch gestures arrive as wheel events with ctrlKey
+      // = true on every browser; the deltaY ticks are much smaller
+      // than a regular scroll wheel, so we use a wider per-event
+      // step for pinch to keep the gesture feeling 1:1 with the
+      // user's fingers.
+      const isPinch = e.ctrlKey;
+      const step = isPinch ? PINCH_STEP : ZOOM_STEP;
       const next = Math.max(
         ZOOM_MIN,
-        Math.min(ZOOM_MAX, zoomRef.current - e.deltaY * ZOOM_STEP)
+        Math.min(ZOOM_MAX, zoomRef.current - e.deltaY * step)
       );
       // At a zoom limit and wheeling further in the same direction
       // — no zoom change to make. Let the event through so the
       // global page-wheel handler can decide what to do with it.
-      // (Combined with its gesture gate, the user has to pause and
-      // start a new wheel gesture before it fires a page nav.)
       if (next === zoomRef.current) return;
       e.preventDefault();
       zoomRef.current = next;
@@ -534,13 +555,21 @@ export default function BlogMap() {
 
   const exitFocus = () => {
     setSelectedIso(null);
-    const wrap = wrapRef.current;
-    if (wrap) {
-      // Clear focus vars so the next focus computes fresh deltas.
-      wrap.style.removeProperty("--focus-x");
-      wrap.style.removeProperty("--focus-y");
-      wrap.style.removeProperty("--focus-scale");
+    setClosing(true);
+    if (closingTimerRef.current !== null) {
+      window.clearTimeout(closingTimerRef.current);
     }
+    closingTimerRef.current = window.setTimeout(() => {
+      setClosing(false);
+      closingTimerRef.current = null;
+      const wrap = wrapRef.current;
+      if (wrap) {
+        // Clear focus vars so the next focus computes fresh deltas.
+        wrap.style.removeProperty("--focus-x");
+        wrap.style.removeProperty("--focus-y");
+        wrap.style.removeProperty("--focus-scale");
+      }
+    }, 1400);
   };
 
   // Document-level click outside the right panel exits focus mode.
@@ -589,11 +618,18 @@ export default function BlogMap() {
     : visited;
 
   /**
-   * Visits whose country is too small to be in the 110m TopoJSON
-   * (Seychelles, etc.) — they have explicit coords on the visit
-   * record and we render them as a small filled circle at the
-   * projected location. Same hover plate / click-to-modal as a
-   * full country path.
+   * Visits with explicit `coords` always render as a circle
+   * marker on top of the map, regardless of whether the country
+   * exists in the TopoJSON. Tiny island nations (Seychelles,
+   * Maldives) are practically invisible in their topology
+   * silhouette at default zoom — the dot makes them clickable.
+   * For visits that ALSO have a country path (e.g. if the topology
+   * resolution is bumped up), the dot just sits over the country
+   * fill as an emphasis marker; click hits whichever happens to
+   * be on top (same handler either way). The earlier
+   * `!visitedCountryISOs.has(v.iso)` filter dropped Seychelles
+   * the moment 50m TopoJSON started including it as a tiny
+   * polygon — user reported "Сейшелы пропали".
    */
   const visitedCountryISOs = new Set(visited.map((p) => p.id));
   const dotMarkers = useMemo(() => {
@@ -601,7 +637,7 @@ export default function BlogMap() {
     if (!projection) return [];
     const visits = Array.from(VISIT_BY_ISO.values());
     return visits
-      .filter((v) => v.coords && !visitedCountryISOs.has(v.iso))
+      .filter((v) => v.coords)
       .map((v) => {
         const projected = projection(v.coords as [number, number]);
         if (!projected) return null;
@@ -615,10 +651,6 @@ export default function BlogMap() {
       .filter((m): m is { iso: string; name: string; x: number; y: number } =>
         m !== null
       );
-    // visitedCountryISOs is rebuilt every render but its contents
-    // are deterministic from VISIT_BY_ISO, so we only depend on
-    // the underlying source.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [paths]);
 
   return (
@@ -627,7 +659,9 @@ export default function BlogMap() {
     >
       <div
         ref={wrapRef}
-        className={`${styles.mapWrap} ${selectedIso ? styles.focused : ""}`}
+        className={`${styles.mapWrap} ${selectedIso ? styles.focused : ""} ${
+          closing ? styles.closing : ""
+        }`}
         style={
           {
             "--map-aspect": String(mapAspect),
@@ -712,12 +746,16 @@ export default function BlogMap() {
           })}
 
           {/* LiquidEther layer — single instance for the currently
-              hovered country, clipped to its silhouette. Skipped for
-              dot-only visits (Seychelles etc.): the dot is too small
-              to clip the WebGL canvas to and the fluid leaks across
-              the whole foreignObject rect. The colour swap on the
-              dot is enough hover affordance there. */}
-          {hover && visitedCountryISOs.has(hover.visit.iso) && (
+              hovered country, clipped to its silhouette. Skipped
+              for dot-style visits (where v.coords is set —
+              Seychelles, Maldives, etc.): the dot is too small
+              to clip the WebGL canvas to. Earlier we used "not in
+              topology" as the dot flag, but 50m TopoJSON includes
+              tiny island nations as polygons, so the better signal
+              is hover.visit.coords being set. */}
+          {hover &&
+            !hover.visit.coords &&
+            visitedCountryISOs.has(hover.visit.iso) && (
             /* Wrap the foreignObject in a <g> that carries the clip.
                Applying clip-path directly on a <foreignObject> with
                a WebGL canvas inside is unreliable across browsers —
