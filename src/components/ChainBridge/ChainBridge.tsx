@@ -98,59 +98,76 @@ export default function ChainBridge() {
       setOpaque(false);
       setAnimating(false);
       setFading(false);
-      // Mount the bridge at opacity 0 (default in CSS); it fades in
-      // over FADE_IN_MS so the OLD page (and its gallery) blends
-      // out smoothly behind the rising overlay instead of being
-      // covered by an instant black screen.
+      // Mount the bridge at opacity 0 (default in CSS); fade-in is
+      // started below AFTER we explicitly decode the from-slide's
+      // bg image, so the CSS background-image: url() on the bridge
+      // slide can paint instantly on the first frame instead of
+      // briefly showing the bg-color fallback.
       setActive(true);
 
-      // Two RAFs to ensure the initial opaque=false / animating=false
-      // state is committed before flipping it on — without that the
-      // CSS transition would skip its start keyframe.
-      requestAnimationFrame(() => {
-        requestAnimationFrame(() => setOpaque(true));
-      });
+      const startFade = () => {
+        // Two RAFs to ensure the initial opaque=false state is
+        // committed before flipping it on — without that the CSS
+        // transition would skip its start keyframe.
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => setOpaque(true));
+        });
 
-      // After the fade-in completes (with a small buffer so the
-      // bridge is GUARANTEED at full opacity before we start
-      // tearing down the old page) kick off the route change AND
-      // the strip animation. The buffer is what removed the
-      // residual black flash on / → next-page: the home page's
-      // WebGL canvas briefly clears to black during dispose +
-      // forceContextLoss, and we don't want any of that frame
-      // leaking through a partially-transparent bridge.
-      const handoffAt = FADE_IN_MS + ROUTE_HANDOFF_BUFFER;
-      timersRef.current.push(
-        window.setTimeout(() => {
-          // chain-active toggles a few shell-class hooks while the
-          // strip is moving (logo colour lock, etc.).
-          document.documentElement.classList.add("chain-active");
-          router.push(e.detail.to);
-          setAnimating(true);
-        }, handoffAt)
-      );
+        // After the fade-in completes (with a buffer so the bridge
+        // is GUARANTEED at full opacity before we start tearing
+        // down the old page) kick off the route change AND the
+        // strip animation.
+        const handoffAt = FADE_IN_MS + ROUTE_HANDOFF_BUFFER;
+        timersRef.current.push(
+          window.setTimeout(() => {
+            document.documentElement.classList.add("chain-active");
+            router.push(e.detail.to);
+            setAnimating(true);
+          }, handoffAt)
+        );
 
-      // End of the strip animation: hand off from chain-active to
-      // chain-settling. The shell eases to its data-theme colour,
-      // and the bridge starts fading out, revealing the NEW page's
-      // gallery underneath.
-      timersRef.current.push(
-        window.setTimeout(() => {
-          setFading(true);
-          document.documentElement.classList.remove("chain-active");
-          document.documentElement.classList.add("chain-settling");
-        }, handoffAt + dur)
-      );
-      // End of the fade-out: drop chain-settling, unmount.
-      timersRef.current.push(
-        window.setTimeout(() => {
-          setActive(false);
-          setOpaque(false);
-          setAnimating(false);
-          setFading(false);
-          document.documentElement.classList.remove("chain-settling");
-        }, handoffAt + dur + FADE_OUT_MS)
-      );
+        timersRef.current.push(
+          window.setTimeout(() => {
+            setFading(true);
+            document.documentElement.classList.remove("chain-active");
+            document.documentElement.classList.add("chain-settling");
+          }, handoffAt + dur)
+        );
+        timersRef.current.push(
+          window.setTimeout(() => {
+            setActive(false);
+            setOpaque(false);
+            setAnimating(false);
+            setFading(false);
+            document.documentElement.classList.remove("chain-settling");
+          }, handoffAt + dur + FADE_OUT_MS)
+        );
+      };
+
+      // Critical: explicitly decode the FROM-route's bg image
+      // (whatever the bridge slide for that route will paint as
+      // its background-image) BEFORE letting the fade-in start.
+      // The user's specific clue — flash exists on home slides
+      // 2/3/4 but never on slide 1 — was the smoking gun: slide 1
+      // is the only one GridDistortion has ever rendered live as
+      // a WebGL texture, which warmed Chrome's render-pipeline
+      // image cache for that URL. Slides 2/3/4 sit only in the
+      // <link rel="preload"> + off-screen <img> caches, which
+      // browsers will lazy-decode when the resource isn't
+      // visibly painted yet, so the bridge's first paint
+      // showed only the bg-color fallback (#0d1117 dark) for a
+      // frame and read as a black flash. Forcing img.decode()
+      // synchronously here guarantees the URL is in the
+      // rendering cache before we fade the bridge in.
+      const fromVisual = PAGE_VISUALS[e.detail.from];
+      const fromBg = fromVisual?.bg;
+      if (fromBg && typeof Image !== "undefined") {
+        const img = new Image();
+        img.src = fromBg;
+        img.decode().then(startFade, startFade);
+      } else {
+        startFade();
+      }
     };
 
     window.addEventListener("chainNavigate", handler);
@@ -221,11 +238,30 @@ export default function ChainBridge() {
             <div
               key={href}
               className={styles.slide}
-              style={{
-                backgroundColor: v.color,
-                backgroundImage: v.bg ? `url(${v.bg})` : undefined,
-              }}
-            />
+              style={{ backgroundColor: v.color }}
+            >
+              {v.bg && (
+                /* Use a real <img> instead of CSS background-image:
+                   url(). The img element has its own paint
+                   pipeline that's less prone to a "fallback colour
+                   shows for one frame while CSS decodes" race —
+                   the user-reported black flash on / → next-page
+                   was traced to that race for slides 2/3/4 (slide
+                   1 always paints because GridDistortion already
+                   warmed its decode cache via the WebGL texture
+                   upload). decoding="sync" tells the browser to
+                   decode on the same paint pass; loading="eager"
+                   defeats lazy-load. */
+                <img
+                  src={v.bg}
+                  alt=""
+                  loading="eager"
+                  decoding="sync"
+                  fetchPriority="high"
+                  className={styles.slideImg}
+                />
+              )}
+            </div>
           );
         })}
       </div>
