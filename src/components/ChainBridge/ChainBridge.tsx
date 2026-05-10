@@ -33,13 +33,40 @@ export default function ChainBridge() {
   const [duration, setDuration] = useState(BASE_DURATION);
   const timersRef = useRef<number[]>([]);
 
-  // The image preload rack now lives in JSX (see the <img> tags
-  // rendered below); the JS-only Image()+decode() pass we used
-  // before only populated the *script* image cache, which CSS
-  // background-image: url() can't reliably read from on first
-  // paint. Real <img> tags in the DOM force the browser to keep
-  // those URLs in its rendering image cache from app boot and the
-  // bridge slide paints them instantly on the first frame.
+  // Inject `<link rel="preload" as="image">` tags into document.head
+  // for every URL the bridge can paint. This is the spec-blessed
+  // resource hint for "fetch AND decode this image right now," and
+  // unlike off-screen <img> tags it isn't subject to browsers
+  // skipping decode for elements outside the visible viewport.
+  // The earlier off-screen <img> rack was failing for slides 2-4 on
+  // / specifically because slide 1 is the only one rendered live
+  // by GridDistortion (which forces a decode through its WebGL
+  // texture upload); 2-4 only existed in the off-screen rack and
+  // browsers were lazy-decoding them. With link-preload the
+  // browser eagerly fetches + decodes regardless of viewport.
+  useEffect(() => {
+    const sources = new Set<string>();
+    Object.values(PAGE_VISUALS).forEach((v) => {
+      if (v.bg) sources.add(v.bg);
+    });
+    for (let i = 1; i <= 4; i++) {
+      sources.add(`/images/gallery/main/desktop/${i}.webp`);
+    }
+    const links: HTMLLinkElement[] = [];
+    sources.forEach((src) => {
+      const link = document.createElement("link");
+      link.rel = "preload";
+      link.as = "image";
+      link.href = src;
+      document.head.appendChild(link);
+      links.push(link);
+    });
+    return () => {
+      links.forEach((link) => {
+        if (link.parentNode) link.parentNode.removeChild(link);
+      });
+    };
+  }, []);
 
   useEffect(() => {
     const clearTimers = () => {

@@ -77,17 +77,24 @@
   }
 }
 
-/* Off-screen rack of <img> elements for every URL the bridge can
-   paint as a slide bg. Mounted from app boot so the browser keeps
-   them in its rendering image cache and a CSS background-image:
-   url() on the bridge slide can paint them on the very first
-   frame without a "fallback colour" flash while the image decodes. */
+/* Persistent rack of <img> elements for every URL the bridge can
+   paint as a slide bg. Lives at top-left of the viewport (NOT off-
+   screen) because browsers skip the decode pass on images that
+   sit outside the visible viewport — that's why the previous
+   left: -9999px placement worked for HTTP-cache but not for the
+   render-pipeline cache that CSS background-image: url() reads
+   from. With the rack INSIDE the viewport (1 px square, opacity
+   0) the browser eagerly decodes every image and the bridge
+   slide paints its bg on the first frame. Belt-and-suspenders
+   alongside the <link rel="preload" as="image"> tags injected by
+   ChainBridge.tsx. */
 .preloadRack {
   position: fixed;
-  left: -9999px;
   top: 0;
+  left: 0;
   width: 1px;
   height: 1px;
+  overflow: hidden;
   pointer-events: none;
   opacity: 0;
   z-index: -1;
@@ -97,4 +104,5 @@
   width: 1px;
   height: 1px;
   object-fit: cover;
+  display: block;
 }
