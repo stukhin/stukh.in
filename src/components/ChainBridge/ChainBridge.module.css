@@ -76,3 +76,25 @@
     transition: none;
   }
 }
+
+/* Off-screen rack of <img> elements for every URL the bridge can
+   paint as a slide bg. Mounted from app boot so the browser keeps
+   them in its rendering image cache and a CSS background-image:
+   url() on the bridge slide can paint them on the very first
+   frame without a "fallback colour" flash while the image decodes. */
+.preloadRack {
+  position: fixed;
+  left: -9999px;
+  top: 0;
+  width: 1px;
+  height: 1px;
+  pointer-events: none;
+  opacity: 0;
+  z-index: -1;
+}
+
+.preloadRack img {
+  width: 1px;
+  height: 1px;
+  object-fit: cover;
+}

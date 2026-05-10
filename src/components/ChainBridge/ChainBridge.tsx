@@ -13,13 +13,12 @@ const FADE_OUT_MS = 280;
 // Buffer between "opacity transition would finish" and "we hand off
 // to the new route". The 2 RAFs we use to commit opacity 0 before
 // transitioning to 1 push the actual fade END to ~FADE_IN_MS + 33ms,
-// and React's microtasks need a frame or two of slack on top. Without
-// this buffer the home page (and its WebGL canvas) start unmounting
-// while the bridge is still ~85% opaque, and the canvas's brief
-// black-clear during context-loss leaks through the bridge's
-// transparency — that's the "black flash on / → next-page" the user
-// kept reporting.
-const ROUTE_HANDOFF_BUFFER = 80;
+// and React's microtasks need a frame or two of slack on top. The
+// previous 80 ms buffer reduced the residual flash on / → next-page
+// but didn't fully kill it; bumping to 200 gives the bridge plenty
+// of headroom to be fully opaque before /home unmounts and its
+// WebGL canvas releases its context.
+const ROUTE_HANDOFF_BUFFER = 200;
 
 type ChainEvent = CustomEvent<{ from: string; to: string }>;
 
@@ -34,32 +33,13 @@ export default function ChainBridge() {
   const [duration, setDuration] = useState(BASE_DURATION);
   const timersRef = useRef<number[]>([]);
 
-  // Warm the HTTP cache on mount AND force a decode pass so the bg
-  // image is fully ready in the browser's image-decode cache by the
-  // time the bridge mounts and tries to paint it. Without the
-  // explicit decode(), Image().src=… only schedules the HTTP fetch;
-  // the first paint of background-image: url(…) on the bridge
-  // slide can still race the decode and show only the solid
-  // fallback colour for a frame — that was the residual "black
-  // flash" the user kept seeing on / → next-page. PAGE_VISUALS["/"]
-  // .bg is also mutated by HomeSlider as it rotates, so we pre-warm
-  // every home slide here regardless of the static value.
-  useEffect(() => {
-    const sources = new Set<string>();
-    Object.values(PAGE_VISUALS).forEach((v) => {
-      if (v.bg) sources.add(v.bg);
-    });
-    for (let i = 1; i <= 4; i++) {
-      sources.add(`/images/gallery/main/desktop/${i}.webp`);
-    }
-    sources.forEach((src) => {
-      const img = new window.Image();
-      img.src = src;
-      // decode() is best-effort; failures (e.g. 404) just leave the
-      // fallback colour in place, same as before.
-      img.decode().catch(() => {});
-    });
-  }, []);
+  // The image preload rack now lives in JSX (see the <img> tags
+  // rendered below); the JS-only Image()+decode() pass we used
+  // before only populated the *script* image cache, which CSS
+  // background-image: url() can't reliably read from on first
+  // paint. Real <img> tags in the DOM force the browser to keep
+  // those URLs in its rendering image cache from app boot and the
+  // bridge slide paints them instantly on the first frame.
 
   useEffect(() => {
     const clearTimers = () => {
@@ -154,7 +134,21 @@ export default function ChainBridge() {
     };
   }, [router]);
 
-  if (!active) return null;
+  // Build the union of every URL the bridge could ever paint as a
+  // slide bg — static PAGE_VISUALS values + the four home slides
+  // (PAGE_VISUALS["/"].bg flips between them as the user rotates).
+  // We render these as off-screen <img> tags below, ALWAYS mounted,
+  // so the browser keeps them decoded in the HTML image-decode
+  // cache from app boot and a CSS background-image: url() on the
+  // bridge slide can paint them on the very first frame instead of
+  // briefly showing only the bg-color fallback.
+  const preloadSrcs = new Set<string>();
+  Object.values(PAGE_VISUALS).forEach((v) => {
+    if (v.bg) preloadSrcs.add(v.bg);
+  });
+  for (let i = 1; i <= 4; i++) {
+    preloadSrcs.add(`/images/gallery/main/desktop/${i}.webp`);
+  }
 
   const style: CSSProperties = {
     "--bridge-from": `${-fromIdx * 100}vh`,
@@ -172,8 +166,27 @@ export default function ChainBridge() {
     .filter(Boolean)
     .join(" ");
 
+  if (!active) {
+    // Even when no chain is in flight, keep the preload rack mounted
+    // so the slide bg images stay in the browser's image-decode
+    // cache. Cheap (~6 invisible <img> tags).
+    return (
+      <div className={styles.preloadRack} aria-hidden="true">
+        {Array.from(preloadSrcs).map((src) => (
+          <img key={src} src={src} alt="" />
+        ))}
+      </div>
+    );
+  }
+
   return (
-    <div className={bridgeClasses} style={style} aria-hidden="true">
+    <>
+      <div className={styles.preloadRack} aria-hidden="true">
+        {Array.from(preloadSrcs).map((src) => (
+          <img key={src} src={src} alt="" />
+        ))}
+      </div>
+      <div className={bridgeClasses} style={style} aria-hidden="true">
       <div className={`${styles.strip} ${animating ? styles.animating : ""}`}>
         {PAGE_ORDER.map((href) => {
           const v = PAGE_VISUALS[href] || { color: "#0a0a0c" };
@@ -189,6 +202,7 @@ export default function ChainBridge() {
           );
         })}
       </div>
-    </div>
+      </div>
+    </>
   );
 }
