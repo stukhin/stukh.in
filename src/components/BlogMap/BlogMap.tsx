@@ -80,35 +80,35 @@ function explodeStyleFor(id: string | number): CSSProperties {
 }
 
 /**
- * Stroke-trace overlay for a single visited country. Reads the path's
- * real length via getTotalLength() and animates stroke-dashoffset
- * from full → 0 over 1.5 s via rAF, writing the value directly to
- * the DOM each frame. CSS transitions on stroke-dashoffset have
- * been flaky here — on countries with multi-subpath geometry
- * (mainland + islands, fragmented borders) the transition often
- * ended visibly short of the perimeter — so we drive the property
- * imperatively to guarantee a clean 100 % final state. Opacity
- * fade-in/out still rides the CSS transition on the .active class.
+ * Stroke-trace overlay for a single visited country. We measure the
+ * path's real length via getTotalLength() and use SVG's NATIVE
+ * <animate> SMIL element to animate the stroke-dashoffset
+ * attribute from `dashLen` (invisible) to `-FINAL_OVERSHOOT`
+ * (full + overshoot) over STROKE_TRACE_MS. fill="freeze" pins the
+ * attribute to its terminal value once the animation ends, so the
+ * trace stays at full closure even if the rest of the page
+ * triggers a repaint (LiquidEther's WebGL canvas re-paints the
+ * country area every frame; the user reported the trace
+ * "partially disappearing a second after completion" with the
+ * earlier rAF + inline-style approach, which we attribute to the
+ * compositor occasionally dropping the imperatively-set inline
+ * style during a re-paint pass). SMIL's freeze is applied at the
+ * attribute level by the browser engine and is the most stable
+ * way to lock SVG animation state. Opacity fade-in/out still
+ * rides the CSS transition on the .active class.
  */
 const STROKE_TRACE_MS = 1500;
+// 200 user units of overshoot (paired with dashLen = L + 400) so
+// the dash wraps PAST the path's start point — guarantees the
+// close-point is painted on multi-subpath countries (China +
+// Hainan, UK + islands, Japan, Indonesia) where the dash otherwise
+// ended a few units short. Combined with stroke-linecap: round on
+// .visitedStroke any residual nick at a sub-path seam is filled.
+const FINAL_OVERSHOOT = 200;
 
 function CountryStroke({ d, active }: { d: string; active: boolean }) {
   const ref = useRef<SVGPathElement>(null);
-  const lengthRef = useRef(0);
-  const rafRef = useRef<number | null>(null);
-
-  // Final dashoffset overshoots zero so the dash wraps PAST the
-  // path's start point — guarantees the close-point is painted on
-  // multi-subpath countries (China + Hainan, UK + islands, Japan,
-  // Indonesia) where the dash otherwise ended a few units short.
-  // 200 user units of overshoot (paired with dashLen = L + 400) is
-  // very generous — way more than getTotalLength can plausibly
-  // undercount on a real-world TopoJSON country path — but the
-  // overshoot only shifts the dash, not the visible stroke
-  // endpoint, so a large value costs nothing visually. Combined
-  // with stroke-linecap/linejoin: round on .visitedStroke any
-  // residual nick at a sub-path seam is filled by the round cap.
-  const FINAL_OVERSHOOT = 200;
+  const [dashLen, setDashLen] = useState(0);
 
   useEffect(() => {
     if (!ref.current) return;
@@ -121,62 +121,15 @@ function CountryStroke({ d, active }: { d: string; active: boolean }) {
     if (!Number.isFinite(L) || L <= 0) L = 2000;
     // Pad the dash by 2× the overshoot so the dashoffset endpoints
     // (-FINAL_OVERSHOOT to dashLen) fully cover any subpath gap.
-    const dashLen = L + FINAL_OVERSHOOT * 2;
-    lengthRef.current = dashLen;
-    ref.current.style.strokeDasharray = `${dashLen} ${dashLen}`;
-    ref.current.style.strokeDashoffset = active
-      ? String(-FINAL_OVERSHOOT)
-      : String(dashLen);
-    // active dependency intentionally omitted — only re-measure
-    // when the path geometry changes.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    setDashLen(L + FINAL_OVERSHOOT * 2);
   }, [d]);
 
-  useEffect(() => {
-    const path = ref.current;
-    if (!path) return;
-    const dashLen = lengthRef.current;
-    if (dashLen <= 0) return;
-
-    if (rafRef.current !== null) {
-      cancelAnimationFrame(rafRef.current);
-      rafRef.current = null;
-    }
-
-    if (!active) {
-      // Reset to invisible. Opacity fade (CSS) handles the visible
-      // departure; the next entrance starts from "nothing drawn".
-      path.style.strokeDashoffset = String(dashLen);
-      return;
-    }
-
-    const start = performance.now();
-    const startOffset = dashLen;
-    const endOffset = -FINAL_OVERSHOOT;
-    path.style.strokeDashoffset = String(startOffset);
-    const tick = (now: number) => {
-      const t = Math.min(1, (now - start) / STROKE_TRACE_MS);
-      const offset = startOffset + (endOffset - startOffset) * t;
-      path.style.strokeDashoffset = String(offset);
-      if (t < 1) {
-        rafRef.current = requestAnimationFrame(tick);
-      } else {
-        rafRef.current = null;
-        // Force the exact terminal value so float drift can't leave
-        // a residual gap at the end of the trace.
-        path.style.strokeDashoffset = String(endOffset);
-      }
-    };
-    rafRef.current = requestAnimationFrame(tick);
-
-    return () => {
-      if (rafRef.current !== null) {
-        cancelAnimationFrame(rafRef.current);
-        rafRef.current = null;
-      }
-    };
-  }, [active]);
-
+  // SMIL <animate> element is conditionally rendered when active.
+  // Keying it by the d string + active flag forces a fresh element
+  // on every hover so the animation restarts from `from` rather
+  // than resuming from wherever the previous run left off.
+  const ready = dashLen > 0;
+  const offset = active ? -FINAL_OVERSHOOT : dashLen;
   return (
     <path
       ref={ref}
@@ -184,7 +137,20 @@ function CountryStroke({ d, active }: { d: string; active: boolean }) {
       className={`${styles.visitedStroke} ${
         active ? styles.visitedStrokeActive : ""
       }`}
-    />
+      strokeDasharray={ready ? `${dashLen} ${dashLen}` : undefined}
+      strokeDashoffset={ready ? offset : undefined}
+    >
+      {ready && active && (
+        <animate
+          key={`anim-${d}`}
+          attributeName="stroke-dashoffset"
+          from={dashLen}
+          to={-FINAL_OVERSHOOT}
+          dur={`${STROKE_TRACE_MS}ms`}
+          fill="freeze"
+        />
+      )}
+    </path>
   );
 }
 
