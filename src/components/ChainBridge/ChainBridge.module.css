@@ -84,6 +84,210 @@
   user-select: none;
 }
 
+/* ===== Skeleton placeholders rendered inside slides ============= */
+/* Each route that has a corresponding "loading state" page renders
+   filled translucent rectangles where the real page's elements
+   will be. The fill colour is set per slide via a --skeleton-fill
+   inline CSS var (white-translucent on dark routes, dark-
+   translucent on cream /city). User explicitly asked for filled
+   blocks rather than 1 px borders — "залитое пространство... с
+   сильной заметной полупрозрачностью". */
+
+/* Gallery skeleton (/nature, /city): centre frame + two side
+   thumbs + title bar + slider stub, matching the real layout. */
+.skeletonGallery {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.skeletonGalleryFrame {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 408px;
+  height: 506px;
+  background: var(--skeleton-fill, rgba(255, 255, 255, 0.18));
+}
+
+@media (max-width: 1024px) {
+  .skeletonGalleryFrame {
+    width: 288px;
+    height: 358px;
+  }
+}
+
+.skeletonGallerySide {
+  position: absolute;
+  top: 50%;
+  width: 196px;
+  height: 249px;
+  background: var(--skeleton-fill, rgba(255, 255, 255, 0.18));
+  transform: translateY(-50%);
+}
+
+.skeletonGallerySide[data-side="left"] {
+  right: 50%;
+  margin-right: 230px;
+}
+
+.skeletonGallerySide[data-side="right"] {
+  left: 50%;
+  margin-left: 230px;
+}
+
+@media (max-width: 1024px) {
+  .skeletonGallerySide {
+    width: 138px;
+    height: 176px;
+  }
+  .skeletonGallerySide[data-side="left"] {
+    margin-right: 160px;
+  }
+  .skeletonGallerySide[data-side="right"] {
+    margin-left: 160px;
+  }
+}
+
+@media (max-width: 597px) {
+  .skeletonGallerySide {
+    display: none;
+  }
+}
+
+.skeletonGalleryText {
+  position: absolute;
+  left: 50%;
+  bottom: 138px;
+  transform: translateX(-50%);
+  width: 220px;
+  height: 14px;
+  background: var(--skeleton-fill, rgba(255, 255, 255, 0.18));
+}
+
+@media (max-width: 1024px) {
+  .skeletonGalleryText {
+    bottom: 108px;
+    width: 160px;
+    height: 12px;
+  }
+}
+
+@media (max-width: 1024px) and (max-height: 760px) {
+  .skeletonGalleryText {
+    display: none;
+  }
+}
+
+.skeletonGallerySlider {
+  position: absolute;
+  left: 50%;
+  bottom: 50px;
+  transform: translateX(-50%);
+  width: 292px;
+  height: 4px;
+  background: var(--skeleton-fill, rgba(255, 255, 255, 0.18));
+}
+
+@media (max-width: 1024px) {
+  .skeletonGallerySlider {
+    bottom: 30px;
+    width: 211px;
+  }
+}
+
+/* Walls skeleton (/walls): filter pills + grid cards. */
+.skeletonWalls {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.skeletonWallsFilters {
+  position: absolute;
+  top: 200px;
+  left: max(32px, calc((100vw - 1100px) / 2));
+  display: flex;
+  gap: 12px;
+}
+
+@media (max-width: 1499px) {
+  .skeletonWallsFilters {
+    top: 160px;
+  }
+}
+
+@media (max-width: 1024px) {
+  .skeletonWallsFilters {
+    left: 50%;
+    transform: translateX(-50%);
+  }
+}
+
+@media (max-width: 597px) {
+  .skeletonWallsFilters {
+    top: 140px;
+    gap: 8px;
+  }
+}
+
+.skeletonWallsPill {
+  width: 96px;
+  height: 38px;
+  background: var(--skeleton-fill, rgba(255, 255, 255, 0.18));
+}
+
+.skeletonWallsGrid {
+  position: absolute;
+  top: 260px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: 1100px;
+  display: grid;
+  gap: 20px;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  padding: 0 32px;
+}
+
+@media (min-width: 1000px) and (max-width: 1499px) {
+  .skeletonWallsGrid {
+    top: 200px;
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+@media (min-width: 598px) and (max-width: 999px) {
+  .skeletonWallsGrid {
+    top: 200px;
+    gap: 16px;
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 597px) {
+  .skeletonWallsGrid {
+    top: 200px;
+    gap: 8px;
+    padding: 0 12px;
+    grid-template-columns: 1fr;
+  }
+}
+
+.skeletonWallsCard {
+  display: block;
+  width: 100%;
+  aspect-ratio: 9 / 16;
+  background: var(--skeleton-fill, rgba(255, 255, 255, 0.18));
+}
+
+@media (max-width: 597px) {
+  .skeletonWallsCard {
+    aspect-ratio: 1080 / 384;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .strip,
   .strip.animating {

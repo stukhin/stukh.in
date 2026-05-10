@@ -283,24 +283,6 @@ export default function WallsGallery({ items }: Props) {
 
   return (
     <>
-      {/* Skeleton overlay shown only during a chain-bridge transition
-          (html.chain-active / html.chain-settling). Filter pill
-          outlines + grid card outlines so the page reads as
-          "loading" rather than empty wall the instant the bridge
-          starts to lift; on hard load (no chain) the skeleton stays
-          at opacity 0. */}
-      <div className={styles.skeleton} aria-hidden="true">
-        <div className={styles.skeletonFilters}>
-          <span className={styles.skeletonPill} />
-          <span className={styles.skeletonPill} />
-        </div>
-        <div className={styles.skeletonGrid}>
-          {Array.from({ length: 8 }).map((_, i) => (
-            <span key={i} className={styles.skeletonCard} />
-          ))}
-        </div>
-      </div>
-
       <div className={styles.layout}>
         <div
           className={`${styles.filters} ${

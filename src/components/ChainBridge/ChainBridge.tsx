@@ -234,32 +234,86 @@ export default function ChainBridge() {
       <div className={`${styles.strip} ${animating ? styles.animating : ""}`}>
         {PAGE_ORDER.map((href) => {
           const v = PAGE_VISUALS[href] || { color: "#0a0a0c" };
+          // Routes that render a skeleton instead of a bg photo on
+          // their bridge slide. The skeleton is filled (not bordered)
+          // semi-translucent rectangles in the same shape as the
+          // destination page's real elements, so the user sees a
+          // structural "page is loading here" hint WHILE the strip
+          // is sliding rather than only after the bridge fades out.
+          const skeleton =
+            href === "/nature" || href === "/city"
+              ? "gallery"
+              : href === "/walls"
+              ? "walls"
+              : null;
+          // Show the bg photo only on routes without a skeleton —
+          // otherwise the photo and skeleton would compete visually.
+          const showBgImage = !skeleton && v.bg;
+          // Per-slide tint var. Dark routes get a brighter
+          // translucent fill; the cream /city gets a darker fill so
+          // the skeleton reads against the wall colour.
+          const skeletonStyle =
+            href === "/city"
+              ? ({
+                  "--skeleton-fill": "rgba(0, 0, 0, 0.18)",
+                } as CSSProperties)
+              : ({
+                  "--skeleton-fill": "rgba(255, 255, 255, 0.18)",
+                } as CSSProperties);
+
           return (
             <div
               key={href}
               className={styles.slide}
-              style={{ backgroundColor: v.color }}
+              style={{
+                backgroundColor: v.color,
+                ...(skeleton ? skeletonStyle : {}),
+              }}
             >
-              {v.bg && (
-                /* Use a real <img> instead of CSS background-image:
-                   url(). The img element has its own paint
-                   pipeline that's less prone to a "fallback colour
-                   shows for one frame while CSS decodes" race —
-                   the user-reported black flash on / → next-page
-                   was traced to that race for slides 2/3/4 (slide
-                   1 always paints because GridDistortion already
-                   warmed its decode cache via the WebGL texture
-                   upload). decoding="sync" tells the browser to
-                   decode on the same paint pass; loading="eager"
-                   defeats lazy-load. */
+              {showBgImage && (
+                /* Real <img> rather than CSS background-image:url()
+                   so the image element handles decode + paint. */
                 <img
-                  src={v.bg}
+                  src={v.bg!}
                   alt=""
                   loading="eager"
                   decoding="sync"
                   fetchPriority="high"
                   className={styles.slideImg}
                 />
+              )}
+
+              {skeleton === "gallery" && (
+                <div className={styles.skeletonGallery}>
+                  <span
+                    className={styles.skeletonGallerySide}
+                    data-side="left"
+                  />
+                  <span className={styles.skeletonGalleryFrame} />
+                  <span
+                    className={styles.skeletonGallerySide}
+                    data-side="right"
+                  />
+                  <span className={styles.skeletonGalleryText} />
+                  <span className={styles.skeletonGallerySlider} />
+                </div>
+              )}
+
+              {skeleton === "walls" && (
+                <div className={styles.skeletonWalls}>
+                  <div className={styles.skeletonWallsFilters}>
+                    <span className={styles.skeletonWallsPill} />
+                    <span className={styles.skeletonWallsPill} />
+                  </div>
+                  <div className={styles.skeletonWallsGrid}>
+                    {Array.from({ length: 8 }).map((_, i) => (
+                      <span
+                        key={i}
+                        className={styles.skeletonWallsCard}
+                      />
+                    ))}
+                  </div>
+                </div>
               )}
             </div>
           );
