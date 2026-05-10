@@ -107,7 +107,11 @@
   width: 24px;
   height: 24px;
   background-color: transparent;
-  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='1' stroke-linecap='round'><circle cx='12' cy='12' r='7.5'/><path d='m17.5 17.5 3 3'/></svg>");
+  /* Stroke-width 2 matches the default ring's `border: 2px` so the
+     magnifier's circle reads as the same line weight as the base
+     cursor. r=7 + stroke 2 → outer diameter exactly 16, identical
+     to the default ring's 16 px outer dimension. */
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round'><circle cx='12' cy='12' r='7'/><path d='m17.5 17.5 3 3'/></svg>");
   background-repeat: no-repeat;
   background-size: contain;
 }

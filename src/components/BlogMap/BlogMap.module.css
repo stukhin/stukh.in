@@ -175,12 +175,16 @@
   fill: none;
   stroke: #ffffff;
   stroke-width: 1;
-  vector-effect: non-scaling-stroke;
-  /* Round caps + joins fill any seam where the dasharray pattern
-     terminates between two sub-paths of a multi-island country
-     (e.g. China / UK / Japan). Without these, the close-point
-     could leave a 1 px nick visible even with the pad+overshoot
-     trick in CountryStroke. */
+  /* vector-effect: non-scaling-stroke was producing inconsistent
+     dasharray rendering on multi-subpath countries (China + Hainan,
+     UK + islands, Japan, Indonesia) — Chromium and especially
+     Safari were leaving the trace visibly short of the close-point
+     even with generous overshoot. The trade-off without it is the
+     stroke gets slightly thicker as the user zooms the map in,
+     which is acceptable for a hover affordance. */
+  /* Round caps + joins fill any micro-seam where the dasharray
+     pattern terminates between two sub-paths so the trace reads
+     as continuous around all islands. */
   stroke-linecap: round;
   stroke-linejoin: round;
   pointer-events: none;

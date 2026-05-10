@@ -101,12 +101,14 @@ function CountryStroke({ d, active }: { d: string; active: boolean }) {
   // path's start point — guarantees the close-point is painted on
   // multi-subpath countries (China + Hainan, UK + islands, Japan,
   // Indonesia) where the dash otherwise ended a few units short.
-  // We use a generous overshoot (50 user units) since some d3-geo
-  // path strings include short M jumps between sub-paths that
-  // getTotalLength includes in its sum but the visible stroke
-  // can't cover. Combined with stroke-linecap: round on the
-  // .visitedStroke rule any residual nick at a seam is filled.
-  const FINAL_OVERSHOOT = 50;
+  // 200 user units of overshoot (paired with dashLen = L + 400) is
+  // very generous — way more than getTotalLength can plausibly
+  // undercount on a real-world TopoJSON country path — but the
+  // overshoot only shifts the dash, not the visible stroke
+  // endpoint, so a large value costs nothing visually. Combined
+  // with stroke-linecap/linejoin: round on .visitedStroke any
+  // residual nick at a sub-path seam is filled by the round cap.
+  const FINAL_OVERSHOOT = 200;
 
   useEffect(() => {
     if (!ref.current) return;
