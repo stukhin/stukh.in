@@ -29,13 +29,7 @@ export default function NaturePage() {
         noiseAmount={0.05}
         distortion={0.02}
       />
-      <AppShell
-        theme="dark"
-        logoColor="#fff"
-        cursorVariant="light"
-        burgerBg="#3C3C3C"
-        burgerLine="#FFFFFF"
-      >
+      <AppShell theme="dark" cursorVariant="light">
         <GallerySlider category="nature" items={items} />
       </AppShell>
     </div>

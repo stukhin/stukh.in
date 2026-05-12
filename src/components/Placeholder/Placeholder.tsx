@@ -12,13 +12,7 @@ export default function Placeholder({
 }: Props) {
   return (
     <div className={styles.wrap}>
-      <AppShell
-        theme="dark"
-        logoColor="#F5F9FA"
-        cursorVariant="light"
-        burgerBg="rgba(149, 174, 181, 0.25)"
-        burgerLine="#F5F9FA"
-      >
+      <AppShell theme="dark" cursorVariant="light">
         <main className={styles.inner}>
           <h1 className={styles.title}>{title}</h1>
           <p className={styles.subtitle}>{subtitle}</p>

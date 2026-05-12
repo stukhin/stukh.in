@@ -20,12 +20,7 @@ export default function BlogPage() {
   return (
     <div className={styles.page}>
       <BlogMap />
-      <AppShell
-        theme="light"
-        cursorVariant="dark"
-        burgerBg="rgba(20, 20, 20, 0.08)"
-        burgerLine="#1a1a1a"
-      >
+      <AppShell theme="light" cursorVariant="dark">
         <></>
       </AppShell>
     </div>

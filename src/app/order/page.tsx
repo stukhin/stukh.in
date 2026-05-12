@@ -15,8 +15,6 @@ export default function OrderPage() {
         themeScrolled="light"
         cursorVariant="light"
         cursorVariantScrolled="dark"
-        burgerBg="#B1B1B1"
-        burgerLine="#424242"
         burgerClassName={styles.burger}
       >
         <header className={styles.header}>

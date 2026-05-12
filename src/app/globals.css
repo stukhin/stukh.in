@@ -98,12 +98,29 @@ body.hidden {
   cursor: none;
 }
 
-a, button, body > * {
-  cursor: none;
-}
-
 a {
   color: inherit;
+}
+
+/* Keyboard focus indicator. Global cursor: none means a focus ring is
+   the only feedback a keyboard user gets when tabbing. :focus-visible
+   only fires for keyboard navigation — mouse clicks don't trigger it,
+   so the ring stays invisible during normal pointer use. The theme
+   token follows the page (white on dark routes, black on light). */
+:focus {
+  outline: none;
+}
+
+:focus-visible {
+  outline: 2px solid var(--shell-fg-strong, #fff);
+  outline-offset: 3px;
+}
+
+/* Dialog containers are programmatically focused on open; their inner
+   controls already advertise focus on tab, so a ring around the whole
+   surface is just noise. */
+[role="dialog"]:focus-visible {
+  outline: none;
 }
 
 button {

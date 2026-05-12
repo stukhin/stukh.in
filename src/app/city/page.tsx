@@ -24,13 +24,7 @@ export default function CityPage() {
         noiseAmount={0.05}
         distortion={0.02}
       />
-      <AppShell
-        theme="light"
-        logoColor="#000"
-        cursorVariant="dark"
-        burgerBg="#3C3C3C"
-        burgerLine="#F5F9FA"
-      >
+      <AppShell theme="light" cursorVariant="dark">
         <GallerySlider category="city" items={cityData} />
       </AppShell>
     </div>

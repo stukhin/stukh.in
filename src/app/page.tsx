@@ -10,17 +10,11 @@ export default function Home() {
           the user lands directly on /nature, /city, /walls, etc. */}
       <main className={styles.main}>
         <AppShell
-          logoColor="#F5F9FA"
           cursorVariant="light"
-          burgerBg="rgba(149, 174, 181, 0.25)"
-          burgerLine="#F5F9FA"
           logoNoClick
           burgerClassName={styles.burger}
         >
           <HomeSlider />
-          {/* HomeToggle (hobby/work) parked for now — see
-              src/components/HomeToggle/, will land back on the page
-              once the design is settled. */}
           <Socials className={styles.inlineSocials} />
         </AppShell>
       </main>

@@ -1,35 +1,12 @@
 /**
  * The site is conceptually one tall vertical strip of "blocks". Pages
- * always render in this fixed order, so the cross-page slide animation
- * can pick a direction (forward = down, backward = up) based on where
- * you came from and where you're going.
+ * always render in this fixed order so ChainBridge can determine
+ * whether a navigation moves forward (down) or backward (up).
  *
- * Routes not listed here (e.g. /order, /404) are treated as forward
- * transitions to keep the default behaviour.
+ * Routes not listed here (e.g. /order, /404) skip ChainBridge and
+ * use a plain router push.
  */
 export const PAGE_ORDER = ["/", "/nature", "/city", "/walls", "/blog"];
-
-export type TransitionDirection = "forward" | "backward";
-
-export function getDirection(from: string, to: string): TransitionDirection {
-  const fromIdx = PAGE_ORDER.indexOf(from);
-  const toIdx = PAGE_ORDER.indexOf(to);
-  if (fromIdx === -1 || toIdx === -1) return "forward";
-  return toIdx >= fromIdx ? "forward" : "backward";
-}
-
-/**
- * Toggle a marker class on <html> right before the navigation runs so
- * CSS rules in globals.css can pick the matching slide animation.
- */
-export function setTransitionDirection(direction: TransitionDirection) {
-  if (typeof document === "undefined") return;
-  document.documentElement.classList.remove(
-    "transition-forward",
-    "transition-backward"
-  );
-  document.documentElement.classList.add(`transition-${direction}`);
-}
 
 type ChainRouter = {
   push: (href: string) => void;
@@ -64,7 +41,6 @@ export function navigateChained(
     fromIdx !== toIdx &&
     typeof window !== "undefined"
   ) {
-    setTransitionDirection(getDirection(from, to));
     // Stash the from-path on a window key so TopNav (which
     // remounts on every chain navigation because AppShell is
     // per-page) can render with the OLD active link initially and
@@ -82,6 +58,5 @@ export function navigateChained(
   }
 
   // Off-strip / same-page: plain router push, no animation.
-  setTransitionDirection(getDirection(from, to));
   router.push(to);
 }

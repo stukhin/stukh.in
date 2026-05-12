@@ -32,11 +32,6 @@ type Props = {
   scrollThreshold?: number;
   cursorVariant?: CursorVariant;
   cursorVariantScrolled?: CursorVariant;
-  /** Legacy — no longer affects rendering; kept for prop-API compat. */
-  logoColor?: string;
-  logoColorScrolled?: string;
-  burgerBg?: string;
-  burgerLine?: string;
   logoNoClick?: boolean;
   burgerClassName?: string;
 };
@@ -48,8 +43,6 @@ export default function AppShell({
   scrollThreshold = 200,
   cursorVariant = "light",
   cursorVariantScrolled,
-  burgerBg = "rgba(149, 174, 181, 0.25)",
-  burgerLine = "#F5F9FA",
   logoNoClick = false,
   burgerClassName = "",
 }: Props) {
@@ -92,8 +85,6 @@ export default function AppShell({
       <Burger
         open={menuOpen}
         onClick={() => setMenuOpen((v) => !v)}
-        bgColor={burgerBg}
-        lineColor={burgerLine}
         className={burgerClassName}
       />
       <MenuPopup open={menuOpen} onClose={() => setMenuOpen(false)} />

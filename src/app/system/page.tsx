@@ -45,7 +45,6 @@ const COLORS: { name: string; token: string; hex: string; note: string }[] = [
   { name: "Foreground — strong", token: "--shell-fg-strong", hex: "auto / #fff in popup", note: "Auto-themed; popup forces white" },
   { name: "Foreground — soft", token: "--shell-fg-soft", hex: "auto / rgba(255,255,255,.55)", note: "Hairlines, idle underlines" },
   { name: "Burger frosted-glass fill", token: "—", hex: "rgba(0,0,0,0.32)", note: "+ blur(14px) + 1px white-18% outline" },
-  { name: "HomeToggle pill outline", token: "—", hex: "#ffffff (3px)", note: "Frames the whole toggle as one block" },
   { name: "ScrollProgress fill", token: "—", hex: "rgba(255,255,255,0.7)", note: "Walls bottom track" },
 ];
 
@@ -84,7 +83,6 @@ const COMPONENTS = [
   { path: "components/Menu", purpose: "Inner nav list (vertical / column), used by popup" },
   { path: "components/TopNav", purpose: "Desktop bottom-right nav, mix-blend difference" },
   { path: "components/HomeSlider", purpose: "GridDistortion-driven hero, 7s autoplay + progress dots" },
-  { path: "components/HomeToggle", purpose: "Hobby/work pill (currently parked off-page)" },
   { path: "components/Socials", purpose: "tg / inst icons, mask-image themed via shell-fg-strong" },
   { path: "components/WallsGallery", purpose: "42-card grid + tone/category filters + zoom modal" },
   { path: "components/GallerySlider", purpose: "/nature & /city horizontal Swiper + zoom modal" },
