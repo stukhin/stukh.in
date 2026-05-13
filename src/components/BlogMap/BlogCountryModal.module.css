@@ -47,10 +47,28 @@
 
 @media (max-width: 597px) {
   .backdrop {
-    /* Mobile: panel covers most of the screen but leaves a thin
-       sliver on the left so the user can dismiss by tapping the
-       map. */
-    width: 88vw;
+    /* Mobile: full-screen popup. The map is non-interactive
+       underneath while this is open; the X button is the only
+       dismiss path (tapping outside isn't useful when there's
+       no outside). Slide up from the bottom — feels native for
+       a full-screen card and signals a different mode than the
+       desktop side panel. */
+    width: 100vw;
+    left: 0;
+    animation: panelInMobile 0.4s cubic-bezier(0.5, 0, 0.4, 1) both;
+    box-shadow: none;
+    border-left: none;
+  }
+}
+
+@keyframes panelInMobile {
+  from {
+    transform: translateY(100%);
+    opacity: 0.4;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
   }
 }
 

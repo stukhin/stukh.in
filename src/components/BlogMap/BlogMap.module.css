@@ -403,6 +403,18 @@
     transform: translate3d(var(--pan-x, 0px), var(--pan-y, 0px), 0)
       scale(var(--zoom, 1));
   }
+  /* Mobile: the country detail modal covers the full screen, so the
+     desktop focus-mode glide (country zooms to centre between left
+     edge and right-side panel) is meaningless — and the default
+     --focus-* values would snap the map to identity, blowing away
+     the user's current pan/zoom. Keep the regular drag-pan / pinch-
+     zoom transform regardless of focused / closing state. */
+  .mapWrap.focused,
+  .mapWrap.closing {
+    transform: translate3d(var(--pan-x, 0px), var(--pan-y, 0px), 0)
+      scale(var(--zoom, 1));
+    transition: none;
+  }
   .visitedVisual {
     transition: fill 0.22s ease;
   }

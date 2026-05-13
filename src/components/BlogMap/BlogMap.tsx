@@ -276,52 +276,90 @@ export default function BlogMap() {
     };
   }, []);
 
-  // Wheel-zoom + drag-to-pan, imperative so high-frequency events
-  // don't trigger React re-renders. Pan is clamped so the map's
-  // bounding box always covers the viewport — at the baseline zoom
-  // (1.0) the map already fills vertically and only the horizontal
-  // overflow is pannable; zooming in opens up vertical pan room as
-  // well. Parallax was dropped on /blog because it conflicted with
-  // the strict "Antarctica touches the bottom edge" requirement.
+  // Wheel-zoom + cursor-driven pan on desktop; drag-to-pan + pinch-
+  // zoom on touch devices. All paths are imperative (no React state)
+  // so high-frequency events don't re-render. Pan is clamped so the
+  // map's bounding box always covers the viewport — at zoom 1.0 the
+  // map fills vertically with only horizontal overflow pannable;
+  // zooming in opens up vertical pan room too. Parallax was dropped
+  // on /blog because it conflicted with the strict "Antarctica
+  // touches the bottom edge" requirement.
   useEffect(() => {
     const wrap = wrapRef.current;
     if (!wrap) return;
     if (typeof window === "undefined") return;
+
+    const isTouch = window.matchMedia("(hover: none)").matches;
 
     wrap.style.setProperty("--zoom", String(ZOOM_INITIAL));
     wrap.style.setProperty("--pan-x", "0px");
     wrap.style.setProperty("--pan-y", "0px");
 
     /**
-     * Recompute pan from cursor position + current zoom. The map's
-     * baseline height = wrap height (CSS height: 100% on the SVG);
-     * width = height × mapAspect. Multiplying both by zoom gives
-     * the visible map dims, and the half of (visible − viewport)
-     * is the maximum slack on each axis.
-     *
-     *   pan_x = (1 − 2·cx) · maxPan_X
-     *
-     * cx = 0   → pan_x = +maxPan_X (map shifted right → see LEFT)
-     * cx = 1   → pan_x = −maxPan_X (map shifted left  → see RIGHT)
-     * cx = 0.5 → pan_x = 0          (map centred)
-     *
-     * At zoom 1 there's no slack on either axis (baseline = wrap),
-     * so cursor movement leaves the map perfectly centred.
+     * Compute max pan slack at the current zoom. The map's baseline
+     * height = wrap height (CSS height: 100% on the SVG); width =
+     * height × mapAspect. Multiplying both by zoom gives the visible
+     * map dims, and the half of (visible − viewport) is the maximum
+     * slack on each axis. At zoom 1 slack is 0 (baseline = wrap), so
+     * the map stays perfectly centred.
      */
-    const recomputePan = () => {
+    const maxPan = () => {
       const wrapH = wrap.clientHeight;
       const wrapW = wrap.clientWidth;
       const baselineH = wrapH;
       const baselineW = baselineH * mapAspect;
       const z = zoomRef.current;
-      const maxPanX = Math.max(0, (baselineW * z - wrapW) / 2);
-      const maxPanY = Math.max(0, (baselineH * z - wrapH) / 2);
-      const panX = (1 - 2 * cursorRef.current.mx) * maxPanX;
-      const panY = (1 - 2 * cursorRef.current.my) * maxPanY;
+      return {
+        x: Math.max(0, (baselineW * z - wrapW) / 2),
+        y: Math.max(0, (baselineH * z - wrapH) / 2),
+      };
+    };
+
+    /**
+     * Desktop cursor-driven pan:
+     *   pan_x = (1 − 2·cx) · maxPan_X
+     *   cx = 0   → +maxPan_X (map shifted right → see LEFT)
+     *   cx = 1   → −maxPan_X (map shifted left  → see RIGHT)
+     *   cx = 0.5 → 0          (centred)
+     */
+    const recomputePan = () => {
+      const m = maxPan();
+      const panX = (1 - 2 * cursorRef.current.mx) * m.x;
+      const panY = (1 - 2 * cursorRef.current.my) * m.y;
       wrap.style.setProperty("--pan-x", `${panX}px`);
       wrap.style.setProperty("--pan-y", `${panY}px`);
     };
     recomputePanRef.current = recomputePan;
+
+    /**
+     * Touch pan: explicit drag delta. Refs hold the current pan
+     * absolute (panXRef / panYRef) plus the gesture's baseline
+     * (touch x/y + pan x/y at gesture start) so onTouchMove can
+     * compute newPan = base + delta and applyPan can clamp it
+     * against the current maxPan.
+     */
+    let panXAbs = 0;
+    let panYAbs = 0;
+    type TouchMode = "idle" | "pan" | "pinch";
+    let mode: TouchMode = "idle";
+    let panBaseX = 0;
+    let panBaseY = 0;
+    let touchStartX = 0;
+    let touchStartY = 0;
+    let pinchStartDist = 0;
+    let pinchStartZoom = 1;
+    let dragExceededTapSlop = false;
+
+    const applyPan = () => {
+      const m = maxPan();
+      panXAbs = Math.max(-m.x, Math.min(m.x, panXAbs));
+      panYAbs = Math.max(-m.y, Math.min(m.y, panYAbs));
+      wrap.style.setProperty("--pan-x", `${panXAbs}px`);
+      wrap.style.setProperty("--pan-y", `${panYAbs}px`);
+    };
+
+    const touchDist = (a: Touch, b: Touch) =>
+      Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY);
 
     let raf: number | null = null;
     const flush = () => {
@@ -364,21 +402,119 @@ export default function BlogMap() {
       recomputePan();
     };
 
-    const onResize = () => recomputePan();
+    const onTouchStart = (e: TouchEvent) => {
+      if (!wrap.contains(e.target as Node)) return;
+      if (e.touches.length === 2) {
+        // Two-finger pinch: block the native page-zoom gesture and
+        // start tracking the distance between fingers.
+        e.preventDefault();
+        mode = "pinch";
+        pinchStartDist = touchDist(e.touches[0], e.touches[1]);
+        pinchStartZoom = zoomRef.current;
+        dragExceededTapSlop = true;
+      } else if (e.touches.length === 1) {
+        // Single-finger gesture: start in pan mode, but DON'T
+        // preventDefault — a small finger movement should still
+        // resolve to a click (country tap → modal). Only when the
+        // drag exceeds the tap slop do we suppress the synthetic
+        // click and start panning.
+        mode = "pan";
+        touchStartX = e.touches[0].clientX;
+        touchStartY = e.touches[0].clientY;
+        panBaseX = panXAbs;
+        panBaseY = panYAbs;
+        dragExceededTapSlop = false;
+      }
+    };
 
-    // Initial pan computed from default cursor (centred) + initial
-    // zoom — gets the pan vars set before first paint.
-    recomputePan();
+    const TAP_SLOP_PX = 6;
 
-    window.addEventListener("mousemove", onMove);
+    const onTouchMove = (e: TouchEvent) => {
+      if (mode === "idle") return;
+      if (mode === "pinch" && e.touches.length >= 2) {
+        e.preventDefault();
+        if (pinchStartDist <= 0) return;
+        const d = touchDist(e.touches[0], e.touches[1]);
+        const next = Math.max(
+          ZOOM_MIN,
+          Math.min(ZOOM_MAX, pinchStartZoom * (d / pinchStartDist))
+        );
+        if (next !== zoomRef.current) {
+          zoomRef.current = next;
+          wrap.style.setProperty("--zoom", String(next));
+          applyPan();
+        }
+        return;
+      }
+      if (mode === "pan" && e.touches.length === 1) {
+        const dx = e.touches[0].clientX - touchStartX;
+        const dy = e.touches[0].clientY - touchStartY;
+        if (
+          !dragExceededTapSlop &&
+          Math.abs(dx) < TAP_SLOP_PX &&
+          Math.abs(dy) < TAP_SLOP_PX
+        ) {
+          // Still within tap slop — let the touch resolve to a
+          // click (country tap → modal) and don't preventDefault.
+          return;
+        }
+        // Past slop: this is a drag, not a tap. preventDefault to
+        // (a) stop the page from scrolling and (b) suppress the
+        // synthetic click that would otherwise fire on touchend.
+        e.preventDefault();
+        dragExceededTapSlop = true;
+        panXAbs = panBaseX + dx;
+        panYAbs = panBaseY + dy;
+        applyPan();
+      }
+    };
+
+    const onTouchEnd = (e: TouchEvent) => {
+      if (e.touches.length === 0) {
+        mode = "idle";
+      } else if (e.touches.length === 1 && mode === "pinch") {
+        // User lifted one finger mid-pinch — drop to pan mode
+        // picking up from the remaining finger as the new baseline.
+        mode = "pan";
+        touchStartX = e.touches[0].clientX;
+        touchStartY = e.touches[0].clientY;
+        panBaseX = panXAbs;
+        panBaseY = panYAbs;
+        dragExceededTapSlop = true;
+      }
+    };
+
+    const onResize = () => {
+      if (isTouch) applyPan();
+      else recomputePan();
+    };
+
+    // Initial pan: cursor model on desktop, identity on touch.
+    if (!isTouch) recomputePan();
+
+    if (isTouch) {
+      wrap.addEventListener("touchstart", onTouchStart, { passive: false });
+      wrap.addEventListener("touchmove", onTouchMove, { passive: false });
+      wrap.addEventListener("touchend", onTouchEnd, { passive: true });
+      wrap.addEventListener("touchcancel", onTouchEnd, { passive: true });
+    } else {
+      window.addEventListener("mousemove", onMove);
+      wrap.addEventListener("wheel", onWheel, { passive: false });
+    }
     window.addEventListener("resize", onResize);
-    wrap.addEventListener("wheel", onWheel, { passive: false });
 
     return () => {
-      window.removeEventListener("mousemove", onMove);
       window.removeEventListener("resize", onResize);
-      wrap.removeEventListener("wheel", onWheel);
-      if (raf !== null) cancelAnimationFrame(raf);
+      if (isTouch) {
+        wrap.removeEventListener("touchstart", onTouchStart);
+        wrap.removeEventListener("touchmove", onTouchMove);
+        wrap.removeEventListener("touchend", onTouchEnd);
+        wrap.removeEventListener("touchcancel", onTouchEnd);
+      } else {
+        window.removeEventListener("mousemove", onMove);
+        wrap.removeEventListener("wheel", onWheel);
+        if (raf !== null) cancelAnimationFrame(raf);
+      }
     };
   }, [mapAspect]);
 
@@ -499,6 +635,18 @@ export default function BlogMap() {
     if (!VISIT_BY_ISO.has(iso)) return;
     setHover(null);
     setSelectedIso(iso);
+
+    // Mobile: skip the map-glide-and-scale animation entirely. The
+    // detail panel covers the whole viewport on touch so centring
+    // the country in the empty space is pointless — and the
+    // .mapWrap.focused transform would just stash a default
+    // identity matrix on top of the user's current pan/zoom.
+    if (
+      typeof window !== "undefined" &&
+      window.matchMedia("(hover: none)").matches
+    ) {
+      return;
+    }
 
     const wrap = wrapRef.current;
     const pathEl = visitedPathRefs.current[iso];

@@ -1,8 +1,9 @@
 /**
- * Visual stand-ins for each entry in PAGE_ORDER. Used by ChainBridge
- * (the slide overlay) and by useVerticalPageSwipe (the touch-drag
- * preview) so a finger drag and a click-driven nav share the same
- * "what does the next page look like" snapshot.
+ * Visual stand-ins for each entry in PAGE_ORDER. Painted by
+ * ChainBridge as the cross-page slide overlay — every transition
+ * (desktop wheel + mobile swipe) goes through the same animation
+ * now, so this table is the single source of truth for "what does
+ * route X look like during a transition."
  */
 export type PageVisual = {
   /** Optional URL for a full-bleed bg image. */
@@ -38,6 +39,3 @@ export const PAGE_VISUALS: Record<string, PageVisual> = {
   },
 };
 
-export function pageVisualFor(href: string): PageVisual {
-  return PAGE_VISUALS[href] || { color: "#0a0a0c" };
-}
