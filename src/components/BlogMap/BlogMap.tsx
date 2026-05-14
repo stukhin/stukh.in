@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  useCallback,
   useEffect,
   useMemo,
   useRef,
@@ -227,7 +228,13 @@ export default function BlogMap() {
   // top + bottom edges. Combined with CSS height: 100% on the SVG,
   // this is what lets Antarctica's coastline sit flush with the
   // viewport bottom.
-  const { paths, viewBoxStr, mapAspect, vb } = useMemo(() => {
+  //
+  // The projection is RETURNED from this memo (rather than stashed
+  // in a ref as a render-time side effect) so dotMarkers below can
+  // depend on it cleanly — the previous shape risked the dotMarkers
+  // memo running before the projection ref was set on the very
+  // first render.
+  const { paths, viewBoxStr, mapAspect, vb, projection } = useMemo(() => {
     const topology = worldRaw as unknown as Topology;
     const featureCollection = feature(
       topology,
@@ -238,7 +245,6 @@ export default function BlogMap() {
       [FIT_W, FIT_H],
       featureCollection
     );
-    projectionRef.current = projection;
     const pathGen = geoPath(projection);
 
     // True bounds of the projected world — fitSize gives us the
@@ -273,8 +279,15 @@ export default function BlogMap() {
       viewBoxStr: `${vbX} ${vbY} ${vbW} ${vbH}`,
       mapAspect: vbW / vbH,
       vb: { x: vbX, y: vbY, w: vbW, h: vbH },
+      projection,
     };
   }, []);
+
+  // Keep the ref in sync for the imperative lat/long flush below
+  // (which can't capture `projection` from the render scope without
+  // re-creating its listener every render). Writing a ref during
+  // render is fine: refs are mutable and don't drive React updates.
+  projectionRef.current = projection;
 
   // Wheel-zoom + cursor-driven pan on desktop; drag-to-pan + pinch-
   // zoom on touch devices. All paths are imperative (no React state)
@@ -403,7 +416,11 @@ export default function BlogMap() {
     };
 
     const onTouchStart = (e: TouchEvent) => {
-      if (!wrap.contains(e.target as Node)) return;
+      // Skip if the detail modal is open — its own touches stay
+      // inside the panel (pointer-events: auto on .backdrop) and
+      // shouldn't drive map pan/zoom. Window-level registration
+      // means the event still fires here; gate explicitly.
+      if (selectedIsoRef.current) return;
       if (e.touches.length === 2) {
         // Two-finger pinch: block the native page-zoom gesture and
         // start tracking the distance between fingers.
@@ -493,10 +510,20 @@ export default function BlogMap() {
     if (!isTouch) recomputePan();
 
     if (isTouch) {
-      wrap.addEventListener("touchstart", onTouchStart, { passive: false });
-      wrap.addEventListener("touchmove", onTouchMove, { passive: false });
-      wrap.addEventListener("touchend", onTouchEnd, { passive: true });
-      wrap.addEventListener("touchcancel", onTouchEnd, { passive: true });
+      // Touch listeners on `window`, not `wrap`. .root + .mapWrap +
+      // .map all carry `pointer-events: none` so EdgeNav clicks fall
+      // through on cream-paper areas; if we register on wrap, only
+      // touches that land directly on a visited country path
+      // (pointer-events: fill) bubble up to it. Touches on cream
+      // paper would never fire the handlers — that's what caused the
+      // "map sometimes pans, sometimes doesn't" feel on mobile.
+      // Window catches every touch regardless of hit target; we gate
+      // at the handler level on selectedIsoRef so the modal owns its
+      // own touches.
+      window.addEventListener("touchstart", onTouchStart, { passive: false });
+      window.addEventListener("touchmove", onTouchMove, { passive: false });
+      window.addEventListener("touchend", onTouchEnd, { passive: true });
+      window.addEventListener("touchcancel", onTouchEnd, { passive: true });
     } else {
       window.addEventListener("mousemove", onMove);
       wrap.addEventListener("wheel", onWheel, { passive: false });
@@ -506,10 +533,10 @@ export default function BlogMap() {
     return () => {
       window.removeEventListener("resize", onResize);
       if (isTouch) {
-        wrap.removeEventListener("touchstart", onTouchStart);
-        wrap.removeEventListener("touchmove", onTouchMove);
-        wrap.removeEventListener("touchend", onTouchEnd);
-        wrap.removeEventListener("touchcancel", onTouchEnd);
+        window.removeEventListener("touchstart", onTouchStart);
+        window.removeEventListener("touchmove", onTouchMove);
+        window.removeEventListener("touchend", onTouchEnd);
+        window.removeEventListener("touchcancel", onTouchEnd);
       } else {
         window.removeEventListener("mousemove", onMove);
         wrap.removeEventListener("wheel", onWheel);
@@ -701,7 +728,7 @@ export default function BlogMap() {
     wrap.style.setProperty("--focus-scale", `${newScale}`);
   };
 
-  const exitFocus = () => {
+  const exitFocus = useCallback(() => {
     setSelectedIso(null);
     setClosing(true);
     if (closingTimerRef.current !== null) {
@@ -718,7 +745,7 @@ export default function BlogMap() {
         wrap.style.removeProperty("--focus-scale");
       }
     }, 1400);
-  };
+  }, []);
 
   // Document-level click outside the right panel exits focus mode.
   // The panel marks itself with [data-blog-country-panel]; clicks
@@ -738,9 +765,7 @@ export default function BlogMap() {
     document.addEventListener("pointerdown", onPointerDown);
     return () =>
       document.removeEventListener("pointerdown", onPointerDown);
-    // exitFocus is stable for our purposes.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedIso]);
+  }, [selectedIso, exitFocus]);
 
   const selectedVisit = selectedIso
     ? VISIT_BY_ISO.get(selectedIso) ?? null
@@ -781,10 +806,7 @@ export default function BlogMap() {
    */
   const visitedCountryISOs = new Set(visited.map((p) => p.id));
   const dotMarkers = useMemo(() => {
-    const projection = projectionRef.current;
-    if (!projection) return [];
-    const visits = Array.from(VISIT_BY_ISO.values());
-    return visits
+    return Array.from(VISIT_BY_ISO.values())
       .filter((v) => v.coords)
       .map((v) => {
         const projected = projection(v.coords as [number, number]);
@@ -799,7 +821,7 @@ export default function BlogMap() {
       .filter((m): m is { iso: string; name: string; x: number; y: number } =>
         m !== null
       );
-  }, [paths]);
+  }, [projection]);
 
   return (
     <div

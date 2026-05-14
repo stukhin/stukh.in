@@ -10,6 +10,13 @@
   background-color: #f5f4f1;
   overflow: hidden;
   color: #1a1a1a;
+  /* Disable native scroll / pinch-zoom on the whole /blog page —
+     BlogMap's JS owns all gestures (drag-pan + pinch-zoom). Without
+     this the iOS rubber-band scroll fires before our preventDefault
+     can land, producing the "screen jumps up and down while I'm
+     trying to pan the map" feel. Tap-to-click on country paths is
+     unaffected — touch-action only governs default gestures. */
+  touch-action: none;
 }
 
 /* Subtle paper texture: a faint grain washed over the page so the

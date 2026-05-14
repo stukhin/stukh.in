@@ -12,7 +12,7 @@ export type PageVisual = {
   color: string;
 };
 
-export const PAGE_VISUALS: Record<string, PageVisual> = {
+export const PAGE_VISUALS: Readonly<Record<string, PageVisual>> = {
   "/": {
     bg: "/images/gallery/main/desktop/1.webp",
     color: "#0d1117",
@@ -38,4 +38,29 @@ export const PAGE_VISUALS: Record<string, PageVisual> = {
     color: "#f5f4f1",
   },
 };
+
+/**
+ * Runtime overrides for `PAGE_VISUALS[route].bg`. Currently the only
+ * mover is HomeSlider, which rotates between four hero photos — when
+ * the user navigates away from /, ChainBridge needs to paint the
+ * CURRENT slide as the /-route bg, not the static slide-1 default.
+ *
+ * Earlier this was done by directly mutating PAGE_VISUALS["/"].bg
+ * from a useEffect. Module-level mutation from React effects is a
+ * race-prone pattern under StrictMode (the double-invocation can
+ * leave the override and the React state momentarily out of sync)
+ * and concurrent rendering (a paused render might read the new
+ * value, restart, then read the old one). Routing through this
+ * Map keeps PAGE_VISUALS literally `Readonly` and gives a single
+ * intent-revealing call site for changes.
+ */
+const routeBgOverrides = new Map<string, string>();
+
+export function setRouteBg(route: string, bg: string): void {
+  routeBgOverrides.set(route, bg);
+}
+
+export function getRouteBg(route: string): string | undefined {
+  return routeBgOverrides.get(route) ?? PAGE_VISUALS[route]?.bg;
+}
 

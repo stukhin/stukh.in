@@ -1,5 +1,5 @@
 import AppShell from "@/components/AppShell/AppShell";
-import BlogMap from "@/components/BlogMap/BlogMap";
+import BlogMapClient from "./BlogMapClient";
 import styles from "./blog.module.css";
 
 export const metadata = {
@@ -19,7 +19,7 @@ export const metadata = {
 export default function BlogPage() {
   return (
     <div className={styles.page}>
-      <BlogMap />
+      <BlogMapClient />
       <AppShell theme="light" cursorVariant="dark">
         <></>
       </AppShell>

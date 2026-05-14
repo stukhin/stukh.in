@@ -252,7 +252,10 @@
 }
 
 /* Bottom-left zoom controls. Two stacked square buttons in the same
-   minimal-outlined style as the under-construction stamp. */
+   minimal-outlined style as the under-construction stamp. z-index
+   sits above EdgeNav (z 7) — without that lift the buttons live
+   inside EdgeNav's bottom 30 % click zone and a tap there would
+   trigger the "go to previous page" arrow instead of the +/− press. */
 .zoomControls {
   position: absolute;
   bottom: 32px;
@@ -260,7 +263,7 @@
   display: flex;
   flex-direction: column;
   gap: 4px;
-  z-index: 5;
+  z-index: 8;
 }
 
 .zoomBtn {

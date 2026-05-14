@@ -3,7 +3,7 @@
 import { CSSProperties, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { PAGE_ORDER } from "@/lib/pageOrder";
-import { PAGE_VISUALS } from "@/lib/pageVisuals";
+import { PAGE_VISUALS, getRouteBg } from "@/lib/pageVisuals";
 import styles from "./ChainBridge.module.css";
 
 const BASE_DURATION = 800;
@@ -152,15 +152,16 @@ export default function ChainBridge() {
       // is the only one GridDistortion has ever rendered live as
       // a WebGL texture, which warmed Chrome's render-pipeline
       // image cache for that URL. Slides 2/3/4 sit only in the
-      // <link rel="preload"> + off-screen <img> caches, which
-      // browsers will lazy-decode when the resource isn't
-      // visibly painted yet, so the bridge's first paint
-      // showed only the bg-color fallback (#0d1117 dark) for a
-      // frame and read as a black flash. Forcing img.decode()
-      // synchronously here guarantees the URL is in the
-      // rendering cache before we fade the bridge in.
-      const fromVisual = PAGE_VISUALS[e.detail.from];
-      const fromBg = fromVisual?.bg;
+      // <link rel="preload"> cache, which browsers will lazy-
+      // decode when the resource isn't visibly painted yet, so
+      // the bridge's first paint showed only the bg-color
+      // fallback (#0d1117 dark) for a frame and read as a black
+      // flash. Forcing img.decode() synchronously here guarantees
+      // the URL is in the rendering cache before we fade the
+      // bridge in. Use getRouteBg so the live home slide (2/3/4
+      // if the user rotated past slide 1) decodes — not the
+      // static default.
+      const fromBg = getRouteBg(e.detail.from);
       if (fromBg && typeof Image !== "undefined") {
         const img = new Image();
         img.src = fromBg;
@@ -178,22 +179,6 @@ export default function ChainBridge() {
     };
   }, [router]);
 
-  // Build the union of every URL the bridge could ever paint as a
-  // slide bg — static PAGE_VISUALS values + the four home slides
-  // (PAGE_VISUALS["/"].bg flips between them as the user rotates).
-  // We render these as off-screen <img> tags below, ALWAYS mounted,
-  // so the browser keeps them decoded in the HTML image-decode
-  // cache from app boot and a CSS background-image: url() on the
-  // bridge slide can paint them on the very first frame instead of
-  // briefly showing only the bg-color fallback.
-  const preloadSrcs = new Set<string>();
-  Object.values(PAGE_VISUALS).forEach((v) => {
-    if (v.bg) preloadSrcs.add(v.bg);
-  });
-  for (let i = 1; i <= 4; i++) {
-    preloadSrcs.add(`/images/gallery/main/desktop/${i}.webp`);
-  }
-
   const style: CSSProperties = {
     "--bridge-from": `${-fromIdx * 100}vh`,
     "--bridge-to": `${-toIdx * 100}vh`,
@@ -210,26 +195,16 @@ export default function ChainBridge() {
     .filter(Boolean)
     .join(" ");
 
-  if (!active) {
-    // Even when no chain is in flight, keep the preload rack mounted
-    // so the slide bg images stay in the browser's image-decode
-    // cache. Cheap (~6 invisible <img> tags).
-    return (
-      <div className={styles.preloadRack} aria-hidden="true">
-        {Array.from(preloadSrcs).map((src) => (
-          <img key={src} src={src} alt="" />
-        ))}
-      </div>
-    );
-  }
+  // Off-screen <img> rack used to live here as a third preload
+  // mechanism on top of the <link rel="preload"> useEffect above and
+  // the Preloader component. Dropped: link-preload is the spec-
+  // blessed path and the explicit img.decode() in `startFade` is
+  // what actually guarantees the from-route bg is in the render
+  // cache before the fade-in. The rack was redundant work.
+  if (!active) return null;
 
   return (
     <>
-      <div className={styles.preloadRack} aria-hidden="true">
-        {Array.from(preloadSrcs).map((src) => (
-          <img key={src} src={src} alt="" />
-        ))}
-      </div>
       <div className={bridgeClasses} style={style} aria-hidden="true">
       <div className={`${styles.strip} ${animating ? styles.animating : ""}`}>
         {PAGE_ORDER.map((href) => {
@@ -251,8 +226,11 @@ export default function ChainBridge() {
           // overlay. The user explicitly wanted to keep the
           // background textures (bg_nature / bg_city) visible during
           // the slide; the skeleton just marks where elements will
-          // land without dominating the visual.
-          const showBgImage = Boolean(v.bg);
+          // land without dominating the visual. Read via getRouteBg
+          // so the live home slide (HomeSlider rotates between four)
+          // paints, not the static default.
+          const liveBg = getRouteBg(href);
+          const showBgImage = Boolean(liveBg);
           // Skeleton fill: very low alpha (~5 %) per user spec —
           // "еле-еле, чуть-чуть виднелись". Dark routes get a
           // white-translucent veil; cream /city gets dark.
@@ -278,7 +256,7 @@ export default function ChainBridge() {
                 /* Real <img> rather than CSS background-image:url()
                    so the image element handles decode + paint. */
                 <img
-                  src={v.bg!}
+                  src={liveBg!}
                   alt=""
                   loading="eager"
                   decoding="sync"

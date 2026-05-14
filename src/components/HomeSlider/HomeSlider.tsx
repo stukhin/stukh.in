@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import GridDistortion from "../GridDistortion/GridDistortion";
 import { useVerticalPageSwipe } from "@/lib/useVerticalPageSwipe";
-import { PAGE_VISUALS } from "@/lib/pageVisuals";
+import { setRouteBg } from "@/lib/pageVisuals";
 import styles from "./HomeSlider.module.css";
 
 const slides = [
@@ -62,7 +62,7 @@ export default function HomeSlider() {
     try {
       sessionStorage.setItem(HOME_SLIDE_KEY, String(active));
     } catch {}
-    PAGE_VISUALS["/"].bg = slides[active];
+    setRouteBg("/", slides[active]);
   }, [active]);
 
   const next = () => {
