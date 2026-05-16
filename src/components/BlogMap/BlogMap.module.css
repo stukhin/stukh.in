@@ -192,12 +192,11 @@
   transition: fill 0.22s ease;
 }
 
-/* Stroke-trace overlay: invisible by default; on hover the white
-   1 px outline draws around the country's perimeter. stroke-
-   dasharray and stroke-dashoffset are written inline + animated
-   via rAF in <CountryStroke> (CSS transitions on dashoffset were
-   bailing short on multi-subpath geometries — JS guarantees the
-   trace reaches 100 %). Off-state opacity fade is still CSS. */
+/* Stroke-trace overlay: invisible by default; on hover the 1 px
+   outline draws around the country's perimeter. dasharray + dashoffset
+   are set imperatively in <CountryStroke> from getTotalLength(); WAAPI
+   animates dashoffset between 0 (drawn) and total (hidden). Off-state
+   opacity fade is still CSS. */
 .visitedStroke {
   fill: none;
   /* Match the page's cream-paper background so the trace reads as a
@@ -208,11 +207,10 @@
   /* Lock the stroke at 1 px regardless of the map's CSS scale.
      When focus mode zooms the country to 60 % vh, the country
      fill scales with the wrap; the stroke MUST NOT scale or it
-     reads as a chunky border on the focused country. We can use
-     non-scaling-stroke now because motion.path handles dasharray
-     internally — the bug it caused with the earlier rAF/SMIL
-     approaches isn't an issue with motion.path's pathLength
-     normalisation. */
+     reads as a chunky border on the focused country. The dash
+     pattern still scales with geometry (SVG can't help that)
+     but the FINAL dashoffset=0 state draws every subpath
+     fully, so the in-focus terminal frame is clean. */
   vector-effect: non-scaling-stroke;
   /* Round caps + joins fill any micro-seam where the dash pattern
      terminates between two sub-paths so the trace reads

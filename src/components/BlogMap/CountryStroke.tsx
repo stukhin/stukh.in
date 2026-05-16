@@ -1,45 +1,104 @@
 "use client";
 
-import { motion } from "motion/react";
+import { useEffect, useRef } from "react";
 import styles from "./BlogMap.module.css";
 
 /**
- * Stroke-trace overlay for a single visited country. Uses Framer
- * Motion's motion.path + pathLength animation, which under the hood
- * applies stroke-dasharray + stroke-dashoffset normalised against
- * the path's real length and renders via Web Animations API. Three
- * earlier approaches (CSS transition on dashoffset, JS rAF +
- * imperative inline-style, SVG <animate> SMIL) each had a different
- * failure mode (incomplete close on multi-subpath, compositor
- * dropping inline style during LiquidEther repaint, partial
- * disappear after freeze). motion.path is well-tested across
- * browsers for exactly this "draw an SVG outline" effect.
+ * Stroke-trace overlay for a single visited country. Drives the
+ * draw-the-outline animation imperatively via the Web Animations
+ * API on stroke-dashoffset, with stroke-dasharray fixed to the
+ * path's total length.
+ *
+ * Why not motion.path / pathLength? Earlier attempts:
+ *
+ *  1. CSS transition on stroke-dashoffset — incomplete close on
+ *     multi-subpath countries (Greece + islands, USA + Alaska).
+ *  2. rAF + inline style writes per frame — the compositor would
+ *     occasionally drop the inline style during a LiquidEther
+ *     repaint pass, leaving the trace half-drawn.
+ *  3. SVG <animate> SMIL with fill="freeze" — same partial-freeze
+ *     symptom on a subset of countries.
+ *  4. motion.path with `pathLength: 0 → 1` — worked for a while,
+ *     then regressed for 50m TopoJSON paths (the user saw country
+ *     outlines that never finished closing). Likely the
+ *     pathLength SVG attribute motion sets under the hood
+ *     interacts badly with some compound subpath geometries.
+ *
+ * Current approach: getTotalLength() once per path, set dasharray
+ * to that value (single-value shorthand → repeats as dash/gap of
+ * the same length). SVG resets the dash pattern at the start of
+ * each subpath, and any subpath is shorter than the sum-of-all
+ * length, so when dashoffset hits 0 every subpath is fully inside
+ * its first "dash" period — full perimeter drawn for ALL subpaths.
+ * WAAPI runs the animation on the compositor without writing
+ * inline style each frame, so LiquidEther repaints don't disturb
+ * it.
  */
 const STROKE_TRACE_MS = 1500;
 
-export default function CountryStroke({
-  d,
-  active,
-}: {
+type Props = {
   d: string;
   active: boolean;
-}) {
+};
+
+export default function CountryStroke({ d, active }: Props) {
+  const pathRef = useRef<SVGPathElement | null>(null);
+  const totalLengthRef = useRef(0);
+  const animationRef = useRef<Animation | null>(null);
+
+  // Measure the path's total length once per `d`. getTotalLength()
+  // sums every subpath, so multi-subpath countries get a length
+  // that covers every island. dasharray=total + dashoffset=total
+  // is the "fully hidden" initial state.
+  useEffect(() => {
+    const path = pathRef.current;
+    if (!path) return;
+    const total = path.getTotalLength();
+    if (!Number.isFinite(total) || total === 0) return;
+    totalLengthRef.current = total;
+    path.style.strokeDasharray = `${total}`;
+    path.style.strokeDashoffset = active ? "0" : `${total}`;
+  }, [d, active]);
+
+  // Active toggled: cancel any in-flight animation and run a new
+  // one from the path's CURRENT computed dashoffset to the target
+  // (0 = drawn, total = hidden). Starting from the live computed
+  // value lets a quick hover-in / hover-out reverse smoothly
+  // mid-way instead of snapping.
+  useEffect(() => {
+    const path = pathRef.current;
+    const total = totalLengthRef.current;
+    if (!path || !total) return;
+
+    animationRef.current?.cancel();
+    const from =
+      parseFloat(getComputedStyle(path).strokeDashoffset || `${total}`) || 0;
+    const to = active ? 0 : total;
+
+    const animation = path.animate(
+      [
+        { strokeDashoffset: `${from}` },
+        { strokeDashoffset: `${to}` },
+      ],
+      {
+        duration: STROKE_TRACE_MS,
+        easing: "linear",
+        fill: "forwards",
+      }
+    );
+    animationRef.current = animation;
+    return () => {
+      animation.cancel();
+    };
+  }, [active]);
+
   return (
-    <motion.path
+    <path
+      ref={pathRef}
       d={d}
       className={`${styles.visitedStroke} ${
         active ? styles.visitedStrokeActive : ""
       }`}
-      // pathLength: 0 = nothing drawn; 1 = full perimeter drawn.
-      // motion handles the stroke-dasharray math internally, including
-      // multi-subpath geometries (the close-point seam that broke
-      // every previous approach).
-      initial={false}
-      animate={{ pathLength: active ? 1 : 0 }}
-      transition={{
-        duration: STROKE_TRACE_MS / 1000,
-        ease: "linear",
-      }}
     />
   );
 }

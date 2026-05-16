@@ -25,7 +25,7 @@ type Props = {
  * SVG country geometry, painted in three z-stacked layers per
  * visited country:
  *   1. visual fill (colour-only on hover, no scale)
- *   2. stroke trace (motion.path animating perimeter outline)
+ *   2. stroke trace (WAAPI-driven dashoffset animating perimeter)
  *   3. hit area (transparent, captures pointer events)
  * Unvisited countries render as a single fill layer with no events.
  *
