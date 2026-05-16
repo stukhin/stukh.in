@@ -4,6 +4,17 @@ import { useEffect, useRef } from "react";
 import * as THREE from "three";
 import styles from "./GridDistortion.module.css";
 
+type GridDistortionUniforms = {
+  time: { value: number };
+  resolution: { value: THREE.Vector4 };
+  uTexture: { value: THREE.Texture | null };
+  uTexture2: { value: THREE.Texture | null };
+  uDataTexture: { value: THREE.DataTexture | null };
+  uProgress: { value: number };
+  uDispIntensity: { value: number };
+  uAxisFlip: { value: number };
+};
+
 type Props = {
   imageSrc: string;
   /**
@@ -167,8 +178,11 @@ export default function GridDistortion({
   className = "",
 }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const uniformsRef = useRef<any>(null);
+  // Uniforms shape mirrors the GLSL fragment shader — each entry is
+  // a Three.js `{ value }` envelope. Typed explicitly so the texture-
+  // loader effect can write `uniforms.uTexture.value = newTexture`
+  // without the `any` escape hatch the earlier port relied on.
+  const uniformsRef = useRef<GridDistortionUniforms | null>(null);
   const imageAspectRef = useRef(1);
   const handleResizeRef = useRef<(() => void) | null>(null);
   const transitionRafRef = useRef<number | null>(null);
