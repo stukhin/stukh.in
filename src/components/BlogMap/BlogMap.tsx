@@ -8,31 +8,16 @@ import {
   useState,
   type CSSProperties,
 } from "react";
-import { motion } from "motion/react";
-import { feature } from "topojson-client";
-import { geoEqualEarth, geoPath } from "d3-geo";
-// 50m TopoJSON instead of 110m — significantly smoother country
-// outlines when scaled up by focus mode (110m's coarse polygons
-// looked pixelated/jagged at the 60 % vh focus size). Adds ~300 KB
-// gzipped to the bundle but only on /blog where the map renders.
-import worldRaw from "world-atlas/countries-50m.json";
-import type { Feature, Geometry, FeatureCollection } from "geojson";
-import type { Topology, GeometryCollection } from "topojson-specification";
 import LiquidEther from "../LiquidEther/LiquidEther";
 import BlogCountryPlate, {
   type CountryHoverState,
 } from "./BlogCountryPlate";
 import BlogCountryModal from "./BlogCountryModal";
+import CountryLayer, { CountryStrokesAndHits } from "./CountryLayer";
+import DotLayer, { DotHits } from "./DotLayer";
+import { buildMapProjection, type Projection } from "./mapProjection";
 import { VISIT_BY_ISO } from "./visits";
 import styles from "./BlogMap.module.css";
-
-// SVG viewBox dimensions used to fit the projection. Equal Earth
-// has an intrinsic ratio of ~2.05; we pick 1000 × 488 so fitSize
-// produces clean numbers. The viewBox we actually render with is
-// recomputed from the projected feature bounds after fitting, so the
-// map fills the SVG edge-to-edge with no internal margin.
-const FIT_W = 1000;
-const FIT_H = 488;
 
 // Zoom. Floor at 1.0 = the map sized to fill the viewport
 // vertically with no parallax slack. Default ZOOM_INITIAL is 1.2
@@ -59,71 +44,6 @@ const LEAVE_DEBOUNCE_MS = 80;
 // background and the visited country's accent fill.
 const LIQUID_COLORS = ["#c14a3a", "#f08a5d", "#ffd2b3"];
 
-type CountryFeature = Feature<Geometry, { name?: string }>;
-
-/**
- * Per-path explode vector. Same input → same output, so each
- * country always flies the same way every time the user enters
- * focus mode (deterministic feels intentional; truly random feels
- * jittery). Distance is in viewport pixels — large enough to clear
- * the screen even if the country starts at the far edge.
- */
-function explodeStyleFor(id: string | number): CSSProperties {
-  let seed = 0;
-  if (typeof id === "string") {
-    for (let i = 0; i < id.length; i++) seed = seed * 31 + id.charCodeAt(i);
-  } else {
-    seed = id;
-  }
-  // Hash through a few rounds so neighbouring IDs (which are
-  // adjacent country numbers in the topology) don't fly in similar
-  // directions.
-  seed = Math.abs((seed * 2654435761) >>> 0);
-  const angle = (seed % 360) * (Math.PI / 180);
-  const distance = 900 + ((seed >> 8) % 700);
-  const rotation = (((seed >> 16) % 720) - 360) * 0.6;
-  return {
-    "--explode-x": `${Math.cos(angle) * distance}px`,
-    "--explode-y": `${Math.sin(angle) * distance}px`,
-    "--explode-rot": `${rotation}deg`,
-  } as CSSProperties;
-}
-
-/**
- * Stroke-trace overlay for a single visited country. Uses Framer
- * Motion's motion.path + pathLength animation, which under the hood
- * applies stroke-dasharray + stroke-dashoffset normalised against
- * the path's real length and renders via Web Animations API. Three
- * earlier approaches (CSS transition on dashoffset, JS rAF +
- * imperative inline-style, SVG <animate> SMIL) each had a different
- * failure mode (incomplete close on multi-subpath, compositor
- * dropping inline style during LiquidEther repaint, partial
- * disappear after freeze). motion.path is well-tested across
- * browsers for exactly this "draw an SVG outline" effect.
- */
-const STROKE_TRACE_MS = 1500;
-
-function CountryStroke({ d, active }: { d: string; active: boolean }) {
-  return (
-    <motion.path
-      d={d}
-      className={`${styles.visitedStroke} ${
-        active ? styles.visitedStrokeActive : ""
-      }`}
-      // pathLength: 0 = nothing drawn; 1 = full perimeter drawn.
-      // motion handles the stroke-dasharray math internally, including
-      // multi-subpath geometries (the close-point seam that broke
-      // every previous approach).
-      initial={false}
-      animate={{ pathLength: active ? 1 : 0 }}
-      transition={{
-        duration: STROKE_TRACE_MS / 1000,
-        ease: "linear",
-      }}
-    />
-  );
-}
-
 /**
  * /blog world map. Renders Natural Earth's 110m country dataset
  * (~80 KB TopoJSON, served via the `world-atlas` npm package) as
@@ -148,7 +68,7 @@ export default function BlogMap() {
   /** d3-geo projection — also kept in a ref so the cursor lat/long
    *  overlay can call projection.invert() at the same coords used
    *  by the path generator. */
-  const projectionRef = useRef<ReturnType<typeof geoEqualEarth> | null>(null);
+  const projectionRef = useRef<Projection | null>(null);
   const coordsRef = useRef<HTMLDivElement>(null);
   const zoomRef = useRef(ZOOM_INITIAL);
   /** Latest cursor position relative to the viewport, [0..1] on
@@ -222,66 +142,17 @@ export default function BlogMap() {
    */
   const visitedPathRefs = useRef<Record<string, SVGPathElement | null>>({});
 
-  // Project all country paths once on mount. The viewBox is then
-  // tightened to the projected feature bounds — no internal padding,
-  // so the northernmost / southernmost lands actually touch the SVG
-  // top + bottom edges. Combined with CSS height: 100% on the SVG,
-  // this is what lets Antarctica's coastline sit flush with the
-  // viewport bottom.
-  //
-  // The projection is RETURNED from this memo (rather than stashed
-  // in a ref as a render-time side effect) so dotMarkers below can
-  // depend on it cleanly — the previous shape risked the dotMarkers
-  // memo running before the projection ref was set on the very
-  // first render.
-  const { paths, viewBoxStr, mapAspect, vb, projection } = useMemo(() => {
-    const topology = worldRaw as unknown as Topology;
-    const featureCollection = feature(
-      topology,
-      topology.objects.countries as GeometryCollection
-    ) as FeatureCollection<Geometry, { name?: string }>;
-
-    const projection = geoEqualEarth().fitSize(
-      [FIT_W, FIT_H],
-      featureCollection
-    );
-    const pathGen = geoPath(projection);
-
-    // True bounds of the projected world — fitSize gives us the
-    // requested rect, but rounded edges of Equal Earth at extreme
-    // latitudes leave a sliver of unused space inside that rect, so
-    // we crop the viewBox down to the actual feature footprint.
-    const wb = pathGen.bounds(featureCollection);
-    const vbX = wb[0][0];
-    const vbY = wb[0][1];
-    const vbW = wb[1][0] - wb[0][0];
-    const vbH = wb[1][1] - wb[0][1];
-
-    const list = featureCollection.features.map((f: CountryFeature) => {
-      const d = pathGen(f) ?? "";
-      // Bbox centre per country (in projected SVG coords). Used as
-      // the transform origin when the visited <clipPath> pre-scales
-      // to match the visual's hover scale.
-      const bounds = pathGen.bounds(f);
-      const cx = (bounds[0][0] + bounds[1][0]) / 2;
-      const cy = (bounds[0][1] + bounds[1][1]) / 2;
-      return {
-        id: String(f.id ?? ""),
-        name: f.properties?.name ?? "",
-        d,
-        cx,
-        cy,
-      };
-    });
-
-    return {
-      paths: list,
-      viewBoxStr: `${vbX} ${vbY} ${vbW} ${vbH}`,
-      mapAspect: vbW / vbH,
-      vb: { x: vbX, y: vbY, w: vbW, h: vbH },
-      projection,
-    };
-  }, []);
+  // Project all country paths once on mount. The viewBox is
+  // tightened to the projected feature bounds (no internal padding)
+  // so the northernmost / southernmost lands touch the SVG top +
+  // bottom edges; combined with CSS height: 100% on the SVG, that
+  // lets Antarctica's coastline sit flush with the viewport bottom.
+  // Logic lives in mapProjection.ts — pure cartographic glue, no
+  // React state, kept out of this file to make the component read.
+  const { paths, viewBoxStr, mapAspect, vb, projection } = useMemo(
+    () => buildMapProjection(),
+    []
+  );
 
   // Keep the ref in sync for the imperative lat/long flush below
   // (which can't capture `projection` from the render scope without
@@ -856,64 +727,30 @@ export default function BlogMap() {
             ))}
           </defs>
 
-          {/* Default world: filled, no stroke, neighbours blur into
-              one continent silhouette. In focus mode (.root.focusing
-              applied) every unvisited country gets its inline
-              explode vector and the CSS rule below transforms /
-              fades it out. */}
-          {unvisited.map((p) => (
-            <path
-              key={p.id}
-              d={p.d}
-              className={styles.country}
-              style={explodeStyleFor(p.id)}
-            >
-              <title>{p.name}</title>
-            </path>
-          ))}
+          {/* Country geometry: unvisited fills + visited fills.
+              Visited stroke + hit areas render LATER, after the
+              LiquidEther layer below — SVG paint order = z-stacking,
+              and the stroke needs to draw on top of the fluid. */}
+          <CountryLayer
+            unvisited={unvisited}
+            visited={visited}
+            visitedSorted={visitedSorted}
+            hoveredIso={hover?.visit.iso ?? null}
+            selectedIso={selectedIso}
+            onEnter={onCountryEnter}
+            onLeave={onCountryLeave}
+            onClick={onCountryClick}
+            visitedPathRefs={visitedPathRefs}
+          />
 
-          {/* Visited countries: fill layer (only the colour swaps on
-              hover — no scale-up), the LiquidEther overlay for the
-              currently-hovered country (clipped to its path), then a
-              stroke-trace overlay that draws a 1px white outline
-              around the perimeter over 1.5s on hover, then the
-              hit-area path. */}
-          {visitedSorted.map((p) => {
-            const isActive = hover?.visit.iso === p.id;
-            const isSelected = selectedIso === p.id;
-            return (
-              <path
-                key={`visual-${p.id}`}
-                d={p.d}
-                className={`${styles.visitedVisual} ${
-                  isActive || isSelected ? styles.visitedVisualActive : ""
-                } ${isSelected ? styles.selected : ""}`}
-                style={isSelected ? undefined : explodeStyleFor(p.id)}
-              />
-            );
-          })}
-
-          {/* Dot markers for visits whose country isn't in the
-              110m TopoJSON (Seychelles + future small-island
-              entries). Same fill/scale-on-hover treatment as a
-              full country — just rendered as a small filled
-              circle at the projected lat/long. */}
-          {dotMarkers.map((m) => {
-            const isActive = hover?.visit.iso === m.iso;
-            const isSelected = selectedIso === m.iso;
-            return (
-              <circle
-                key={`dot-visual-${m.iso}`}
-                cx={m.x}
-                cy={m.y}
-                r={2.6}
-                className={`${styles.visitedDot} ${
-                  isActive || isSelected ? styles.visitedDotActive : ""
-                } ${isSelected ? styles.selected : ""}`}
-                style={isSelected ? undefined : explodeStyleFor(m.iso)}
-              />
-            );
-          })}
+          {/* Dot markers for tiny island visits (Seychelles, etc.) —
+              fill layer here, hit area renders last for click
+              capture above everything else. */}
+          <DotLayer
+            dotMarkers={dotMarkers}
+            hoveredIso={hover?.visit.iso ?? null}
+            selectedIso={selectedIso}
+          />
 
           {/* LiquidEther layer — single instance for the currently
               hovered country, clipped to its silhouette. Skipped
@@ -974,74 +811,28 @@ export default function BlogMap() {
             </g>
           )}
 
-          {/* Stroke-trace overlay — one path per visited country,
-              always rendered so the CSS transition runs between
-              states. CountryStroke measures the path's real length
-              and inlines dasharray + dashoffset so the trace
-              actually closes a full perimeter (the
-              pathLength="1" recipe was leaving subpath gaps). */}
-          {visited.map((p) => {
-            const isSelected = selectedIso === p.id;
-            return (
-              <CountryStroke
-                key={`stroke-${p.id}`}
-                d={p.d}
-                active={hover?.visit.iso === p.id || isSelected}
-              />
-            );
-          })}
+          {/* Stroke trace + hit areas, drawn ABOVE the fluid layer
+              so the trace reads as drawn over the bubbling colour
+              and pointer events land on the hit paths. */}
+          <CountryStrokesAndHits
+            visited={visited}
+            hoveredIso={hover?.visit.iso ?? null}
+            selectedIso={selectedIso}
+            onEnter={onCountryEnter}
+            onLeave={onCountryLeave}
+            onClick={onCountryClick}
+            visitedPathRefs={visitedPathRefs}
+          />
 
-          {/* Hit area on top — captures all mouse events for the
-              country. Transparent fill so it stays invisible. ref
-              keeps a live handle so onCountryClick can read the
-              path's screen rect and centre the map on it when
-              entering focus mode. */}
-          {visited.map((p) => {
-            const isSelected = selectedIso === p.id;
-            return (
-              <path
-                ref={(el) => {
-                  visitedPathRefs.current[p.id] = el;
-                }}
-                key={`hit-${p.id}`}
-                d={p.d}
-                className={`${styles.visitedHit} ${
-                  isSelected ? styles.selected : ""
-                }`}
-                style={isSelected ? undefined : explodeStyleFor(p.id)}
-                onMouseEnter={() => onCountryEnter(p.id)}
-                onMouseLeave={onCountryLeave}
-                onClick={() => onCountryClick(p.id)}
-                data-cursor="magnifier"
-                aria-label={p.name}
-              />
-            );
-          })}
-
-          {/* Hit areas for the dot markers — bigger transparent
-              circle around the visible 2.6r dot so the cursor can
-              actually land on it (the visual is too small to grab
-              by itself). */}
-          {dotMarkers.map((m) => {
-            const isSelected = selectedIso === m.iso;
-            return (
-              <circle
-                key={`dot-hit-${m.iso}`}
-                cx={m.x}
-                cy={m.y}
-                r={14}
-                className={`${styles.visitedDotHit} ${
-                  isSelected ? styles.selected : ""
-                }`}
-                style={isSelected ? undefined : explodeStyleFor(m.iso)}
-                onMouseEnter={() => onCountryEnter(m.iso)}
-                onMouseLeave={onCountryLeave}
-                onClick={() => onCountryClick(m.iso)}
-                data-cursor="magnifier"
-                aria-label={m.name}
-              />
-            );
-          })}
+          {/* Dot hit areas LAST — 14r transparent circle around the
+              2.6r visible dot so taps register on tiny islands. */}
+          <DotHits
+            dotMarkers={dotMarkers}
+            selectedIso={selectedIso}
+            onEnter={onCountryEnter}
+            onLeave={onCountryLeave}
+            onClick={onCountryClick}
+          />
         </svg>
       </div>
 
