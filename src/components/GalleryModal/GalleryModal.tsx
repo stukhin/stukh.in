@@ -1,6 +1,12 @@
 "use client";
 
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from "react";
 import type { GalleryItem } from "../GallerySlider/GallerySlider";
 import styles from "./GalleryModal.module.css";
 
@@ -170,7 +176,7 @@ export default function GalleryModal({
   // its centred position. We try this both when the modal mounts and
   // when the image finally finishes loading — whichever happens
   // second wins, but `flipRanRef` keeps it from playing twice.
-  const runFlipIn = () => {
+  const runFlipIn = useCallback(() => {
     if (!open || closing || !fromRect) return;
     if (flipRanRef.current) return;
     const target = zoomWrapRef.current;
@@ -194,12 +200,11 @@ export default function GalleryModal({
         fill: "forwards",
       }
     );
-  };
+  }, [open, closing, fromRect]);
 
   useLayoutEffect(() => {
     runFlipIn();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open, closing, fromRect, mounted]);
+  }, [open, closing, fromRect, mounted, runFlipIn]);
 
   // If the picture was still decoding when the modal mounted, the
   // initial useLayoutEffect found a zero-sized rect and bailed.
@@ -208,8 +213,7 @@ export default function GalleryModal({
   // case the user reported.
   useEffect(() => {
     if (imgLoaded) runFlipIn();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [imgLoaded]);
+  }, [imgLoaded, runFlipIn]);
 
   // Reset load + flip state whenever the displayed image changes
   // (index / orientation / category) and on close.

@@ -3,6 +3,7 @@
 import {
   CSSProperties,
   MouseEvent,
+  useCallback,
   useEffect,
   useLayoutEffect,
   useMemo,
@@ -191,7 +192,7 @@ export default function WallsGallery({ items }: Props) {
     setZoomed(w);
   };
 
-  const closeZoom = () => {
+  const closeZoom = useCallback(() => {
     if (!zoomed || zoomClosing) return;
     // Hide the Download button immediately as the photo starts
     // shrinking back — no chance to flash it during the close.
@@ -228,7 +229,7 @@ export default function WallsGallery({ items }: Props) {
       setZoomed(null);
       setZoomClosing(false);
     }, ZOOM_OUT_MS);
-  };
+  }, [zoomed, zoomClosing]);
 
   // Run the FLIP morph as soon as the modal img mounts. Use the
   // Web Animations API directly — more reliable than juggling CSS
@@ -278,8 +279,7 @@ export default function WallsGallery({ items }: Props) {
       document.documentElement.classList.remove("zoom-open");
       window.removeEventListener("keydown", onKey);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [zoomed]);
+  }, [zoomed, closeZoom]);
 
   return (
     <>

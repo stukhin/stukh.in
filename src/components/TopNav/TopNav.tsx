@@ -124,9 +124,15 @@ export default function TopNav({ className = "" }: Props) {
     }
     return null;
   });
+  // Mirror activePath into a ref so the effect below can read its
+  // latest value without making it a dependency — including it would
+  // re-trigger the effect every time setActivePath(pathname) commits,
+  // never converging.
+  const activePathRef = useRef(activePath);
+  activePathRef.current = activePath;
 
   useLayoutEffect(() => {
-    if (activePath !== pathname) {
+    if (activePathRef.current !== pathname) {
       // Mid-chain mount started with the OLD active path (or null).
       // Promote to the new pathname on the second paint frame so the
       // CSS transition has a clean from-state to interpolate from.
@@ -142,9 +148,6 @@ export default function TopNav({ className = "" }: Props) {
         cancelAnimationFrame(r2);
       };
     }
-    // Intentionally only depend on pathname — activePath changes
-    // shouldn't retrigger this effect.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pathname]);
 
   useLayoutEffect(() => {

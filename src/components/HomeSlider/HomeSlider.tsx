@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import GridDistortion from "../GridDistortion/GridDistortion";
 import { useVerticalPageSwipe } from "@/lib/useVerticalPageSwipe";
 import { setRouteBg } from "@/lib/pageVisuals";
@@ -65,14 +65,18 @@ export default function HomeSlider() {
     setRouteBg("/", slides[active]);
   }, [active]);
 
-  const next = () => {
+  // Stable refs to next/prev so the keyboard + touch effects below
+  // can list them in their deps without re-attaching listeners on
+  // every render. Both rely on the functional setState form, so
+  // there's nothing closed over that goes stale.
+  const next = useCallback(() => {
     setDirection("forward");
     setActive((i) => (i + 1) % slides.length);
-  };
-  const prev = () => {
+  }, []);
+  const prev = useCallback(() => {
     setDirection("backward");
     setActive((i) => (i - 1 + slides.length) % slides.length);
-  };
+  }, []);
 
   // Autoplay timer. Restarted on every `active` change so a manual
   // prev/next/dot click doesn't leave the previous interval still
@@ -96,7 +100,7 @@ export default function HomeSlider() {
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, []);
+  }, [prev, next]);
 
   // Touch (mobile only): swipe up/down navigates between PAGE_ORDER
   // blocks; swipe left/right cycles between hero photos. Vertical
@@ -147,7 +151,7 @@ export default function HomeSlider() {
       window.removeEventListener("touchstart", onTouchStart);
       window.removeEventListener("touchend", onTouchEnd);
     };
-  }, []);
+  }, [prev, next]);
 
   // Force the dark theme for the whole / route, regardless of the
   // active slide's luminance. Even on bright photos, we want the
