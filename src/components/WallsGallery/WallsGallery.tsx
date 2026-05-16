@@ -1,8 +1,6 @@
 "use client";
 
 import {
-  CSSProperties,
-  MouseEvent,
   useCallback,
   useEffect,
   useLayoutEffect,
@@ -10,15 +8,12 @@ import {
   useRef,
   useState,
 } from "react";
-import {
-  AnimatePresence,
-  motion,
-  useMotionValue,
-  useSpring,
-} from "motion/react";
+import { AnimatePresence } from "motion/react";
 import WallpaperHoverPlate, {
   type HoverState,
 } from "./WallpaperHoverPlate";
+import WallpaperCard from "./WallpaperCard";
+import FilterDropdown from "./FilterDropdown";
 import { useSmoothScroll } from "@/lib/useSmoothScroll";
 import styles from "./WallsGallery.module.css";
 
@@ -68,8 +63,6 @@ const ALL = "All";
 const ZOOM_IN_MS = 750;
 const ZOOM_OUT_MS = 550;
 const ZOOM_EASING = "cubic-bezier(0.65, 0, 0.25, 1)";
-const TILT_AMPLITUDE = 9;
-const SPRING = { damping: 30, stiffness: 100, mass: 1.4 };
 
 export default function WallsGallery({ items }: Props) {
   // Lerp wheel-driven scroll on /walls so paging through the
@@ -450,262 +443,5 @@ export default function WallsGallery({ items }: Props) {
         </div>
       )}
     </>
-  );
-}
-
-type CardProps = {
-  wallpaper: Wallpaper;
-  state: DownloadState;
-  isZoomed: boolean;
-  onZoom: (w: Wallpaper) => void;
-  onDownload: (w: Wallpaper) => void;
-  registerImg: (el: HTMLImageElement | null) => void;
-  /**
-   * Desktop hover-plate hooks. The card forwards mouseenter /
-   * mouseleave so the parent can render a frosted plate next to the
-   * cursor; the download button has its own enter/leave so the plate
-   * can swap to a "format hint" variant when the user is over it.
-   */
-  onCardEnter?: (w: Wallpaper) => void;
-  onCardLeave?: () => void;
-  onDownloadEnter?: () => void;
-  onDownloadLeave?: () => void;
-};
-
-function WallpaperCard({
-  wallpaper,
-  state,
-  isZoomed,
-  onZoom,
-  onDownload,
-  registerImg,
-  onCardEnter,
-  onCardLeave,
-  onDownloadEnter,
-  onDownloadLeave,
-}: CardProps) {
-  const ref = useRef<HTMLLIElement>(null);
-  const rotateX = useSpring(useMotionValue(0), SPRING);
-  const rotateY = useSpring(useMotionValue(0), SPRING);
-  const scale = useSpring(1, SPRING);
-
-  function handleMove(e: MouseEvent<HTMLLIElement>) {
-    const el = ref.current;
-    if (!el) return;
-    const rect = el.getBoundingClientRect();
-    const offsetX = e.clientX - rect.left - rect.width / 2;
-    const offsetY = e.clientY - rect.top - rect.height / 2;
-    rotateX.set((offsetY / (rect.height / 2)) * -TILT_AMPLITUDE);
-    rotateY.set((offsetX / (rect.width / 2)) * TILT_AMPLITUDE);
-  }
-
-  function handleEnter() {
-    scale.set(1.04);
-    onCardEnter?.(wallpaper);
-  }
-
-  function handleLeave() {
-    rotateX.set(0);
-    rotateY.set(0);
-    scale.set(1);
-    onCardLeave?.();
-  }
-
-  return (
-    <motion.li
-      ref={(el) => {
-        ref.current = el;
-      }}
-      layout
-      initial={{ opacity: 0, scale: 0.85 }}
-      animate={{ opacity: 1, scale: 1 }}
-      exit={{ opacity: 0, scale: 0.85 }}
-      transition={{ duration: 0.4, ease: [0.4, 0, 0.2, 1] }}
-      className={`${styles.card} ${isZoomed ? styles.cardZoomed : ""}`}
-      onMouseMove={handleMove}
-      onMouseEnter={handleEnter}
-      onMouseLeave={handleLeave}
-    >
-      <motion.div
-        className={styles.tilt}
-        style={{ rotateX, rotateY, scale, transformStyle: "preserve-3d" }}
-      >
-        <button
-          type="button"
-          className={styles.frame}
-          onClick={() => onZoom(wallpaper)}
-          aria-label={`Open ${wallpaper.title}`}
-          data-cursor="magnifier"
-        >
-          <img
-            ref={registerImg}
-            src={`/images/walls/${wallpaper.id}_thumb.webp`}
-            alt={wallpaper.title}
-            className={styles.thumb}
-            draggable={false}
-          />
-
-          {/* All on-card overlays (chunks, info, specs) were lifted
-              out into the cursor-following <WallpaperHoverPlate> on
-              desktop — keeps the photo clean and the metadata where
-              the eye already is. The loader / saved toast still need
-              to render on the card itself because they're per-card
-              progress feedback. */}
-          {state === "loading" && (
-            <span className={styles.loader} aria-hidden="true">
-              <span className={styles.bar} />
-            </span>
-          )}
-          {state === "done" && (
-            <span className={styles.toast} aria-hidden="true">
-              Saved
-            </span>
-          )}
-        </button>
-
-        <button
-          type="button"
-          className={styles.downloadBtn}
-          onClick={() => onDownload(wallpaper)}
-          onMouseEnter={onDownloadEnter}
-          onMouseLeave={onDownloadLeave}
-          disabled={state === "loading"}
-          aria-label={`Download ${wallpaper.title}`}
-          data-cursor="hover"
-        >
-          <svg
-            width="18"
-            height="18"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.6"
-          >
-            <path d="M12 4v12" strokeLinecap="round" />
-            <path
-              d="m6 11 6 6 6-6"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-            <path d="M5 20h14" strokeLinecap="round" />
-          </svg>
-        </button>
-      </motion.div>
-    </motion.li>
-  );
-}
-
-type FilterOption = {
-  value: string;
-  label: string;
-  /**
-   * Optional accent colour for the option — used by the tone list so
-   * "warm", "cool", etc. read in their tuned hue. Categories pass
-   * undefined and fall back to plain white.
-   */
-  color?: string;
-};
-
-type FilterDropdownProps = {
-  /** Tiny label rendered before the current value, e.g. "type:". */
-  label: string;
-  options: FilterOption[];
-  value: string;
-  onChange: (next: string) => void;
-};
-
-/**
- * Compact custom dropdown that replaces the old vertical sidebar
- * filter lists. Two of these (type + color) sit at the top of the
- * walls grid. Clicking the trigger opens a frosted menu below;
- * clicking outside the dropdown or pressing Escape closes it.
- *
- * Custom rather than native <select> because the page-wide custom
- * cursor doesn't reach into native control internals (the OS owns
- * the open/closed UI), and because we want the option text in the
- * same lowercase Inter weight 200 the rest of the filter chrome
- * uses, with per-option accent colours for the tone list.
- */
-function FilterDropdown({
-  label,
-  options,
-  value,
-  onChange,
-}: FilterDropdownProps) {
-  const [open, setOpen] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (!open) return;
-    const onMouseDown = (e: globalThis.MouseEvent) => {
-      if (!ref.current?.contains(e.target as Node)) setOpen(false);
-    };
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setOpen(false);
-    };
-    document.addEventListener("mousedown", onMouseDown);
-    document.addEventListener("keydown", onKey);
-    return () => {
-      document.removeEventListener("mousedown", onMouseDown);
-      document.removeEventListener("keydown", onKey);
-    };
-  }, [open]);
-
-  const current = options.find((o) => o.value === value);
-
-  return (
-    <div className={styles.dropdown} ref={ref}>
-      <button
-        type="button"
-        className={`${styles.dropdownTrigger} ${
-          open ? styles.dropdownTriggerOpen : ""
-        }`}
-        onClick={() => setOpen((v) => !v)}
-        aria-expanded={open}
-        aria-haspopup="listbox"
-        data-cursor="hover"
-        style={
-          current?.color
-            ? ({ "--opt-color": current.color } as CSSProperties)
-            : undefined
-        }
-      >
-        <span className={styles.dropdownLabel}>{label}:</span>
-        <span className={styles.dropdownValue}>
-          {current?.label ?? options[0]?.label ?? ""}
-        </span>
-        <span className={styles.dropdownChevron} aria-hidden="true">
-          ▾
-        </span>
-      </button>
-      {open && (
-        <ul className={styles.dropdownMenu} role="listbox">
-          {options.map((opt) => (
-            <li key={opt.value}>
-              <button
-                type="button"
-                className={`${styles.dropdownOption} ${
-                  opt.value === value ? styles.dropdownOptionActive : ""
-                }`}
-                role="option"
-                aria-selected={opt.value === value}
-                onClick={() => {
-                  onChange(opt.value);
-                  setOpen(false);
-                }}
-                data-cursor="hover"
-                style={
-                  opt.color
-                    ? ({ "--opt-color": opt.color } as CSSProperties)
-                    : undefined
-                }
-              >
-                {opt.label}
-              </button>
-            </li>
-          ))}
-        </ul>
-      )}
-    </div>
   );
 }
