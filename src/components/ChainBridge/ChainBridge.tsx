@@ -87,6 +87,19 @@ export default function ChainBridge() {
       const tIdx = PAGE_ORDER.indexOf(e.detail.to);
       if (fIdx === -1 || tIdx === -1 || fIdx === tIdx) return;
 
+      // prefers-reduced-motion: skip the slide animation entirely
+      // and hand off to plain router.push. The visual that the chain
+      // bridge paints is precisely the sustained translateY whoosh
+      // that vestibular-sensitive users opt out of — better to give
+      // them a clean instant route swap.
+      if (
+        typeof window !== "undefined" &&
+        window.matchMedia("(prefers-reduced-motion: reduce)").matches
+      ) {
+        router.push(e.detail.to);
+        return;
+      }
+
       const distance = Math.abs(tIdx - fIdx);
       const dur = BASE_DURATION + (distance - 1) * PER_EXTRA_STEP;
 

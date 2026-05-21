@@ -84,7 +84,17 @@ export default function HomeSlider() {
   // "I just clicked but the photo flipped half a second later" glitch.
   // setTimeout (single shot, scheduled fresh each render) cleanly
   // reflects "7 s after THIS slide became active".
+  //
+  // Honours `prefers-reduced-motion`: a 7-second auto-rotating hero
+  // is exactly the kind of motion that triggers vestibular issues,
+  // and the spec's intent is "no idle background animation." Manual
+  // prev/next (arrow keys, dot clicks, swipe) still work — the user
+  // can advance at their own pace.
   useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      return;
+    }
     const id = window.setTimeout(() => {
       setDirection("forward");
       setActive((i) => (i + 1) % slides.length);

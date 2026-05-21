@@ -95,6 +95,11 @@ export default function WallsGallery({ items }: Props) {
   const cardImgRefs = useRef<Record<string, HTMLImageElement | null>>({});
   const modalImgRef = useRef<HTMLImageElement>(null);
   const fromRectRef = useRef<DOMRect | null>(null);
+  /** Focus-trap anchors for the zoom modal. trigger = the card
+   *  button that opened the zoom (restored on close); dialog =
+   *  the modal root (focus pinned inside on Tab cycling). */
+  const zoomTriggerRef = useRef<Element | null>(null);
+  const zoomDialogRef = useRef<HTMLDivElement>(null);
 
   const categories = useMemo(() => {
     const set = new Set<string>();
@@ -263,14 +268,65 @@ export default function WallsGallery({ items }: Props) {
     if (!zoomed) return;
     document.body.classList.add("hidden");
     document.documentElement.classList.add("zoom-open");
+    // Snapshot whatever had focus when the zoom opened so we can
+    // return to it on close. Defer the in-modal focus by one frame
+    // so the FLIP entrance has the dialog laid out before we grab.
+    zoomTriggerRef.current = document.activeElement;
+    const focusTimer = window.setTimeout(() => {
+      const root = zoomDialogRef.current;
+      if (!root) return;
+      const firstBtn = root.querySelector<HTMLButtonElement>(
+        "button:not([disabled])"
+      );
+      firstBtn?.focus({ preventScroll: true });
+    }, 0);
+
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") closeZoom();
+      if (e.key === "Escape") {
+        e.preventDefault();
+        closeZoom();
+        return;
+      }
+      if (e.key !== "Tab") return;
+      const root = zoomDialogRef.current;
+      if (!root) return;
+      const list = Array.from(
+        root.querySelectorAll<HTMLElement>(
+          'button:not([disabled]), [href], input, [tabindex]:not([tabindex="-1"])'
+        )
+      );
+      if (list.length === 0) return;
+      const first = list[0];
+      const last = list[list.length - 1];
+      const active = document.activeElement as HTMLElement | null;
+      if (e.shiftKey) {
+        if (active === first || !root.contains(active)) {
+          e.preventDefault();
+          last.focus();
+        }
+      } else {
+        if (active === last || !root.contains(active)) {
+          e.preventDefault();
+          first.focus();
+        }
+      }
     };
     window.addEventListener("keydown", onKey);
     return () => {
       document.body.classList.remove("hidden");
       document.documentElement.classList.remove("zoom-open");
       window.removeEventListener("keydown", onKey);
+      window.clearTimeout(focusTimer);
+      const trigger = zoomTriggerRef.current as HTMLElement | null;
+      if (
+        trigger &&
+        typeof trigger.focus === "function" &&
+        document.contains(trigger) &&
+        document.activeElement !== trigger
+      ) {
+        trigger.focus({ preventScroll: true });
+      }
+      zoomTriggerRef.current = null;
     };
   }, [zoomed, closeZoom]);
 
@@ -335,6 +391,7 @@ export default function WallsGallery({ items }: Props) {
 
       {zoomed && (
         <div
+          ref={zoomDialogRef}
           className={`${styles.zoom} ${zoomClosing ? styles.zoomClosing : ""}`}
           role="dialog"
           aria-modal="true"

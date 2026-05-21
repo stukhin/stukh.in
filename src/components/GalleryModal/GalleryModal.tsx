@@ -98,6 +98,12 @@ export default function GalleryModal({
   const [pictureAspect, setPictureAspect] = useState<number>(3 / 4);
   const imgRef = useRef<HTMLImageElement>(null);
   const zoomWrapRef = useRef<HTMLDivElement>(null);
+  /** Focus-trap anchors: the element that opened the modal (so we
+   *  can return focus to it on close) and the close button (the
+   *  first focusable inside the modal, what we focus on open). */
+  const triggerRef = useRef<Element | null>(null);
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
+  const dialogRef = useRef<HTMLDivElement>(null);
   /**
    * Pending hover-zoom state, batched via requestAnimationFrame
    * so we apply at most one transform update per repaint. With a
@@ -238,13 +244,76 @@ export default function GalleryModal({
     };
   }, [open]);
 
+  // Modal keyboard plumbing: Escape closes, Tab cycles focus inside
+  // the dialog. The close button is the only required focus stop —
+  // the orientation toggle (when shown) and the picture aren't in
+  // the tab order, so the trap effectively pins focus on the close
+  // button. We still implement Tab handling explicitly so that if
+  // future controls are added the trap continues to wrap correctly.
+  // On open the trigger (whatever had focus when the modal opened)
+  // is stashed and focus moves to the close button; on close we
+  // return focus to the trigger.
   useEffect(() => {
     if (!open) return;
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
+    triggerRef.current = document.activeElement;
+    // Defer focus by one frame: the modal is in its FLIP entrance
+    // animation and grabbing focus mid-transition can scroll the
+    // page if the close button hasn't finished laying out yet.
+    const focusTimer = window.setTimeout(() => {
+      closeButtonRef.current?.focus({ preventScroll: true });
+    }, 0);
+
+    const focusables = (): HTMLElement[] => {
+      const root = dialogRef.current;
+      if (!root) return [];
+      const selector =
+        'button:not([disabled]), [href], input, select, textarea, [tabindex]:not([tabindex="-1"])';
+      return Array.from(root.querySelectorAll<HTMLElement>(selector));
     };
+
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        e.preventDefault();
+        onClose();
+        return;
+      }
+      if (e.key !== "Tab") return;
+      const list = focusables();
+      if (list.length === 0) return;
+      const first = list[0];
+      const last = list[list.length - 1];
+      const active = document.activeElement as HTMLElement | null;
+      if (e.shiftKey) {
+        if (active === first || !active || !dialogRef.current?.contains(active)) {
+          e.preventDefault();
+          last.focus();
+        }
+      } else {
+        if (active === last || !active || !dialogRef.current?.contains(active)) {
+          e.preventDefault();
+          first.focus();
+        }
+      }
+    };
+
     window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
+    return () => {
+      window.clearTimeout(focusTimer);
+      window.removeEventListener("keydown", onKey);
+      // Return focus to whatever opened us — but only if the trigger
+      // is still in the DOM and isn't already the active element
+      // (some setups re-focus on their own after close).
+      const trigger = triggerRef.current as HTMLElement | null;
+      if (
+        trigger &&
+        typeof trigger.focus === "function" &&
+        document.contains(trigger) &&
+        document.activeElement !== trigger
+      ) {
+        trigger.focus({ preventScroll: true });
+      }
+      triggerRef.current = null;
+    };
   }, [open, onClose]);
 
   // Hover-zoom: the visible picture's outer frame stays fixed at
@@ -380,11 +449,13 @@ export default function GalleryModal({
 
   return (
     <div
+      ref={dialogRef}
       className={`${styles.modal} ${open && !closing ? styles.open : ""} ${
         closing ? styles.closing : ""
       }`}
       role="dialog"
       aria-modal="true"
+      aria-label={item?.title ? `${item.title} — full screen` : "Photo viewer"}
       onClick={onClose}
     >
       {/* Container does NOT stopPropagation — only the picture itself
@@ -450,6 +521,7 @@ export default function GalleryModal({
       >
         <div className={styles.actionButtons}>
           <button
+            ref={closeButtonRef}
             className={`${styles.button} ${styles.close}`}
             type="button"
             onClick={onClose}

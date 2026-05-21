@@ -838,7 +838,11 @@ export default function BlogMap() {
         </svg>
       </div>
 
-      <div className={styles.zoomControls} aria-hidden="true">
+      {/* aria-hidden was here previously, but the children are
+          real `<button aria-label>` controls a screen reader user
+          should be able to discover. Wrapper just provides layout
+          — no aria-hidden = no inherited "ignore me" cascade. */}
+      <div className={styles.zoomControls}>
         <button
           type="button"
           className={styles.zoomBtn}
