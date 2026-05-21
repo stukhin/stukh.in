@@ -117,8 +117,7 @@ export default function TopNav({ className = "" }: Props) {
     if (!document.documentElement.classList.contains("chain-active")) {
       return pathname;
     }
-    type ChainWindow = Window & { __stukhinChainFrom?: string };
-    const fromPath = (window as unknown as ChainWindow).__stukhinChainFrom;
+    const fromPath = window.__stukhinChainFrom;
     if (typeof fromPath === "string" && fromPath !== pathname) {
       return fromPath;
     }

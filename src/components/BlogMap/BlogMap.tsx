@@ -8,6 +8,7 @@ import {
   useState,
   type CSSProperties,
 } from "react";
+import { MQ, useMediaQuery } from "@/lib/useMediaQuery";
 import LiquidEther from "../LiquidEther/LiquidEther";
 import BlogCountryPlate, {
   type CountryHoverState,
@@ -83,6 +84,10 @@ export default function BlogMap() {
    *  change without duplicating the math. */
   const recomputePanRef = useRef<(() => void) | null>(null);
   const leaveTimerRef = useRef<number | null>(null);
+  /** Reactive touch flag. Drives both the pan/zoom branch (mouse vs
+   *  touch gestures) and the country-tap path (mobile = open the
+   *  full-screen modal directly, skip the focus-mode glide). */
+  const isTouch = useMediaQuery(MQ.TOUCH);
   const [hover, setHover] = useState<CountryHoverState | null>(null);
   // Mirror of `hover` for the imperatively-updated coords readout.
   // The coords flush() runs in a useEffect closure and can't read
@@ -174,8 +179,6 @@ export default function BlogMap() {
     const wrap = wrapRef.current;
     if (!wrap) return;
     if (typeof window === "undefined") return;
-
-    const isTouch = window.matchMedia("(hover: none)").matches;
 
     wrap.style.setProperty("--zoom", String(ZOOM_INITIAL));
     wrap.style.setProperty("--pan-x", "0px");
@@ -416,7 +419,7 @@ export default function BlogMap() {
         if (raf !== null) cancelAnimationFrame(raf);
       }
     };
-  }, [mapAspect]);
+  }, [mapAspect, isTouch]);
 
   /**
    * Lat / long overlay. Window mousemove + the SVG's screen CTM
@@ -427,7 +430,7 @@ export default function BlogMap() {
    */
   useEffect(() => {
     if (typeof window === "undefined") return;
-    if (window.matchMedia("(hover: none)").matches) return;
+    if (isTouch) return;
 
     const fmt = (val: number, posLetter: string, negLetter: string) => {
       const dir = val >= 0 ? posLetter : negLetter;
@@ -488,7 +491,7 @@ export default function BlogMap() {
       window.removeEventListener("mousemove", onMove);
       if (raf !== null) cancelAnimationFrame(raf);
     };
-  }, []);
+  }, [isTouch]);
 
   const adjustZoom = (delta: number) => {
     const wrap = wrapRef.current;
@@ -541,10 +544,7 @@ export default function BlogMap() {
     // the country in the empty space is pointless — and the
     // .mapWrap.focused transform would just stash a default
     // identity matrix on top of the user's current pan/zoom.
-    if (
-      typeof window !== "undefined" &&
-      window.matchMedia("(hover: none)").matches
-    ) {
+    if (isTouch) {
       return;
     }
 

@@ -7,6 +7,7 @@ import {
   useRef,
   useState,
 } from "react";
+import { MQ, useMediaQuery } from "@/lib/useMediaQuery";
 import type { GalleryItem } from "../GallerySlider/GallerySlider";
 import styles from "./GalleryModal.module.css";
 
@@ -98,6 +99,7 @@ export default function GalleryModal({
   const [pictureAspect, setPictureAspect] = useState<number>(3 / 4);
   const imgRef = useRef<HTMLImageElement>(null);
   const zoomWrapRef = useRef<HTMLDivElement>(null);
+  const isTouch = useMediaQuery(MQ.TOUCH);
   /** Focus-trap anchors: the element that opened the modal (so we
    *  can return focus to it on close) and the close button (the
    *  first focusable inside the modal, what we focus on open). */
@@ -369,12 +371,7 @@ export default function GalleryModal({
     // photo stays at its natural fit-to-modal size; the user explicitly
     // asked for no cursor-tracking zoom on tablets / phones because
     // there's no meaningful "cursor" to follow there.
-    if (
-      typeof window !== "undefined" &&
-      window.matchMedia("(hover: none)").matches
-    ) {
-      return;
-    }
+    if (isTouch) return;
     const wrap = zoomWrapRef.current;
     if (!wrap) return;
     const rect = wrap.getBoundingClientRect();

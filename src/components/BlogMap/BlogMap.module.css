@@ -79,6 +79,12 @@
    is narrower (excess overflows and gets clipped by .root). */
 .map {
   height: 100%;
+  /* `dvh` is the right unit (tracks the live viewport without the
+     iOS Safari URL-bar dance), but Safari < 15.4 doesn't understand
+     it and the whole calc() collapses to 0. The preceding `100vh`
+     line is the spec-cascade fallback for those browsers — they
+     ignore the dvh line and keep the vh-based width. */
+  width: calc(100vh * var(--map-aspect, 2));
   width: calc(100dvh * var(--map-aspect, 2));
   flex-shrink: 0;
   display: block;

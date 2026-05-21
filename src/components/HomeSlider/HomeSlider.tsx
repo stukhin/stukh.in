@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import GridDistortion from "../GridDistortion/GridDistortion";
 import { useVerticalPageSwipe } from "@/lib/useVerticalPageSwipe";
+import { MQ, useMediaQuery } from "@/lib/useMediaQuery";
 import { setRouteBg } from "@/lib/pageVisuals";
 import styles from "./HomeSlider.module.css";
 
@@ -23,6 +24,9 @@ export default function HomeSlider() {
   // Initial state always 0 to match SSR; the saved slide is read in
   // a useEffect after mount to avoid hydration mismatch warnings.
   const [active, setActive] = useState(0);
+  const isTouch = useMediaQuery(MQ.TOUCH);
+  const reducedMotion = useMediaQuery(MQ.REDUCED_MOTION);
+  const isDesktopWide = useMediaQuery(MQ.DESKTOP_WIDE);
   // "forward" (autoplay / next) sweeps the photo crossfade right-
   // to-left; "backward" (prev arrow / left swipe) reverses to L-to-R
   // so the visual matches the navigation direction.
@@ -91,16 +95,13 @@ export default function HomeSlider() {
   // prev/next (arrow keys, dot clicks, swipe) still work — the user
   // can advance at their own pace.
   useEffect(() => {
-    if (typeof window === "undefined") return;
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-      return;
-    }
+    if (reducedMotion) return;
     const id = window.setTimeout(() => {
       setDirection("forward");
       setActive((i) => (i + 1) % slides.length);
     }, AUTOPLAY_MS);
     return () => window.clearTimeout(id);
-  }, [active]);
+  }, [active, reducedMotion]);
 
   // Keyboard arrows
   useEffect(() => {
@@ -119,8 +120,7 @@ export default function HomeSlider() {
   // component's prev/next.
   useVerticalPageSwipe();
   useEffect(() => {
-    if (typeof window === "undefined") return;
-    if (!window.matchMedia("(hover: none)").matches) return;
+    if (!isTouch) return;
 
     let start: { x: number; y: number; t: number } | null = null;
 
@@ -161,7 +161,7 @@ export default function HomeSlider() {
       window.removeEventListener("touchstart", onTouchStart);
       window.removeEventListener("touchend", onTouchEnd);
     };
-  }, [prev, next]);
+  }, [prev, next, isTouch]);
 
   // Force the dark theme for the whole / route, regardless of the
   // active slide's luminance. Even on bright photos, we want the
@@ -175,15 +175,10 @@ export default function HomeSlider() {
   // GridDistortion is desktop-only: it's a heavy WebGL effect and the
   // mouse-warp idea doesn't translate to touch input anyway. Below the
   // desktop breakpoint we fall back to a plain background-image div so
-  // the photo still shows correctly.
-  const [isDesktop, setIsDesktop] = useState(false);
-  useEffect(() => {
-    const mq = window.matchMedia("(min-width: 1280px)");
-    const update = () => setIsDesktop(mq.matches);
-    update();
-    mq.addEventListener("change", update);
-    return () => mq.removeEventListener("change", update);
-  }, []);
+  // the photo still shows correctly. `isDesktopWide` from the
+  // useMediaQuery hook reactively flips on resize / orientation
+  // change without the manual mql.addEventListener boilerplate.
+  const isDesktop = isDesktopWide;
 
   return (
     <div className={styles.wrap}>

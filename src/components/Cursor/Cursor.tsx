@@ -1,6 +1,7 @@
 "use client";
 
 import { CSSProperties, useEffect, useState } from "react";
+import { MQ, useMediaQuery } from "@/lib/useMediaQuery";
 import styles from "./Cursor.module.css";
 
 type CursorShape =
@@ -23,9 +24,9 @@ export default function Cursor({ variant = "light" }: Props) {
   const [pos, setPos] = useState({ x: -100, y: -100 });
   const [shape, setShape] = useState<CursorShape>("default");
   const [visible, setVisible] = useState(false);
+  const isTouch = useMediaQuery(MQ.TOUCH);
 
   useEffect(() => {
-    const isTouch = window.matchMedia("(hover: none)").matches;
     if (isTouch) return;
 
     setVisible(true);
@@ -73,7 +74,7 @@ export default function Cursor({ variant = "light" }: Props) {
       window.removeEventListener("mousemove", move);
       window.removeEventListener("mouseover", onOver);
     };
-  }, []);
+  }, [isTouch]);
 
   if (!visible) return null;
 

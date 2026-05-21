@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation";
+import { MQ, useMediaQuery } from "./useMediaQuery";
 import { PAGE_ORDER, navigateChained } from "./pageOrder";
 
 /**
@@ -26,10 +27,16 @@ const COOLDOWN_MS = 1200;
 export function useVerticalPageSwipe() {
   const router = useRouter();
   const pathname = usePathname();
+  // (hover: none) AND (pointer: coarse) so a Windows touchscreen
+  // laptop that reports both fine pointer (the trackpad) and touch
+  // (the screen) doesn't get this gesture handler in addition to
+  // useDesktopPageWheel — without the coarse gate both would fire
+  // on the same gesture.
+  const isTouch =
+    useMediaQuery(MQ.TOUCH) && useMediaQuery("(pointer: coarse)");
 
   useEffect(() => {
-    if (typeof window === "undefined") return;
-    if (!window.matchMedia("(hover: none)").matches) return;
+    if (!isTouch) return;
 
     let startY = 0;
     let startX = 0;
@@ -120,5 +127,5 @@ export function useVerticalPageSwipe() {
       window.removeEventListener("touchend", onTouchEnd);
       window.removeEventListener("touchcancel", onTouchCancel);
     };
-  }, [pathname, router]);
+  }, [pathname, router, isTouch]);
 }

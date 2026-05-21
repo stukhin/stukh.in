@@ -47,10 +47,9 @@ export function navigateChained(
     // then animate it back down while the NEW active rises — both
     // bars travel mirror-symmetrically instead of the leaving one
     // snapping. Cleared again by ChainBridge once the slide settles.
-    type ChainWindow = Window & {
-      __stukhinChainFrom?: string;
-    };
-    (window as unknown as ChainWindow).__stukhinChainFrom = from;
+    // Window is augmented in src/types/global.d.ts so the property
+    // is just there — no cast needed.
+    window.__stukhinChainFrom = from;
     window.dispatchEvent(
       new CustomEvent("chainNavigate", { detail: { from, to } })
     );

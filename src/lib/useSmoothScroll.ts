@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import { MQ, useMediaQuery } from "./useMediaQuery";
 
 /**
  * Lightweight smooth-scroll wrapper for routes whose body scrolls
@@ -32,10 +33,10 @@ type Options = {
 };
 
 export function useSmoothScroll({ lerp = 0.12 }: Options = {}) {
+  const isTouch = useMediaQuery(MQ.TOUCH);
+  const reducedMotion = useMediaQuery(MQ.REDUCED_MOTION);
   useEffect(() => {
-    if (typeof window === "undefined") return;
-    if (window.matchMedia("(hover: none)").matches) return;
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    if (isTouch || reducedMotion) return;
 
     let target = window.scrollY;
     let current = window.scrollY;
@@ -93,5 +94,5 @@ export function useSmoothScroll({ lerp = 0.12 }: Options = {}) {
       window.removeEventListener("scroll", onScroll);
       if (raf !== null) cancelAnimationFrame(raf);
     };
-  }, [lerp]);
+  }, [lerp, isTouch, reducedMotion]);
 }

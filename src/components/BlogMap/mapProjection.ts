@@ -16,10 +16,7 @@ import type {
   Geometry,
   FeatureCollection,
 } from "geojson";
-import type {
-  Topology,
-  GeometryCollection,
-} from "topojson-specification";
+import type { GeometryCollection, Topology } from "topojson-specification";
 
 // SVG viewBox dimensions used to fit the projection. Equal Earth
 // has an intrinsic ratio of ~2.05; we pick 1000 × 488 so fitSize
@@ -58,6 +55,12 @@ type CountryFeature = Feature<Geometry, { name?: string }>;
  * bottom.
  */
 export function buildMapProjection(): MapProjection {
+  // `resolveJsonModule` infers the JSON literal type for worldRaw,
+  // which is far narrower than the `Topology` shape `feature()`
+  // expects (notably `type: string` instead of `type: "Topology"`).
+  // The double-cast localised here is intentional — module-level
+  // `declare module "world-atlas/*.json"` doesn't override the
+  // inferred type when the JSON is co-resolved by tsc.
   const topology = worldRaw as unknown as Topology;
   const featureCollection = feature(
     topology,

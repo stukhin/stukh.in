@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import { useRouter, usePathname } from "next/navigation";
+import { MQ, useMediaQuery } from "./useMediaQuery";
 import { PAGE_ORDER, navigateChained } from "./pageOrder";
 
 /**
@@ -64,10 +65,10 @@ export function useDesktopPageWheel() {
    * boundary (>GESTURE_GAP_MS of silence).
    */
   const gestureConsumedRef = useRef(false);
+  const isTouch = useMediaQuery(MQ.TOUCH);
 
   useEffect(() => {
-    if (typeof window === "undefined") return;
-    if (window.matchMedia("(hover: none)").matches) return;
+    if (isTouch) return;
 
     let resetTimer: number | null = null;
 
@@ -156,5 +157,5 @@ export function useDesktopPageWheel() {
       window.removeEventListener("wheel", onWheel);
       if (resetTimer !== null) window.clearTimeout(resetTimer);
     };
-  }, [router]);
+  }, [router, isTouch]);
 }

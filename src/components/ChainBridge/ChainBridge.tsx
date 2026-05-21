@@ -2,6 +2,7 @@
 
 import { CSSProperties, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import { MQ } from "@/lib/useMediaQuery";
 import { PAGE_ORDER } from "@/lib/pageOrder";
 import { PAGE_VISUALS, getRouteBg } from "@/lib/pageVisuals";
 import styles from "./ChainBridge.module.css";
@@ -92,9 +93,13 @@ export default function ChainBridge() {
       // bridge paints is precisely the sustained translateY whoosh
       // that vestibular-sensitive users opt out of — better to give
       // them a clean instant route swap.
+      // Reading matchMedia synchronously inside the handler (not via
+      // the useMediaQuery hook) so we always see the current setting
+      // at the moment of the gesture — the user can flip the OS
+      // setting mid-session and the next chain transition picks it up.
       if (
         typeof window !== "undefined" &&
-        window.matchMedia("(prefers-reduced-motion: reduce)").matches
+        window.matchMedia(MQ.REDUCED_MOTION).matches
       ) {
         router.push(e.detail.to);
         return;
