@@ -6,7 +6,7 @@
  * declarations — keep them in lock-step.
  */
 
-import type * as THREE from "three";
+import type { DataTexture, Texture, Vector4 } from "three";
 
 export const vertexShader = `
 uniform float time;
@@ -99,10 +99,10 @@ void main() {
 
 export type GridDistortionUniforms = {
   time: { value: number };
-  resolution: { value: THREE.Vector4 };
-  uTexture: { value: THREE.Texture | null };
-  uTexture2: { value: THREE.Texture | null };
-  uDataTexture: { value: THREE.DataTexture | null };
+  resolution: { value: Vector4 };
+  uTexture: { value: Texture | null };
+  uTexture2: { value: Texture | null };
+  uDataTexture: { value: DataTexture | null };
   uProgress: { value: number };
   uDispIntensity: { value: number };
   uAxisFlip: { value: number };

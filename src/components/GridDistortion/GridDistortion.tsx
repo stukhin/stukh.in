@@ -1,7 +1,29 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import * as THREE from "three";
+// Named imports (not `import * as THREE`) so the production bundle
+// only pulls the dozen-or-so three.js classes this component actually
+// uses, rather than the whole library. The wildcard import was
+// tree-shake-resistant in our bundler — three's `*` re-export pulls
+// every module the package indexes — and the home route pays for
+// every kB three.js drags in.
+import {
+  ClampToEdgeWrapping,
+  DataTexture,
+  DoubleSide,
+  FloatType,
+  LinearFilter,
+  Mesh,
+  OrthographicCamera,
+  PlaneGeometry,
+  RGBAFormat,
+  Scene,
+  ShaderMaterial,
+  type Texture,
+  TextureLoader,
+  Vector4,
+  WebGLRenderer,
+} from "three";
 import {
   easeInOutCubic,
   fragmentShader,
@@ -96,9 +118,9 @@ export default function GridDistortion({
     const container = containerRef.current;
     if (!container) return;
 
-    const scene = new THREE.Scene();
+    const scene = new Scene();
 
-    const renderer = new THREE.WebGLRenderer({
+    const renderer = new WebGLRenderer({
       antialias: true,
       alpha: true,
       powerPreference: "high-performance",
@@ -108,18 +130,18 @@ export default function GridDistortion({
     container.innerHTML = "";
     container.appendChild(renderer.domElement);
 
-    const camera = new THREE.OrthographicCamera(0, 0, 0, 0, -1000, 1000);
+    const camera = new OrthographicCamera(0, 0, 0, 0, -1000, 1000);
     camera.position.z = 2;
 
     const uniforms = {
       time: { value: 0 },
-      resolution: { value: new THREE.Vector4() },
-      uTexture: { value: null as THREE.Texture | null },
+      resolution: { value: new Vector4() },
+      uTexture: { value: null as Texture | null },
       // Second texture slot used while a photo crossfade is in
       // flight. Points at the same texture as uTexture between
       // transitions so the shader's sample of t2 is always valid.
-      uTexture2: { value: null as THREE.Texture | null },
-      uDataTexture: { value: null as THREE.DataTexture | null },
+      uTexture2: { value: null as Texture | null },
+      uDataTexture: { value: null as DataTexture | null },
       uProgress: { value: 0 },
       uDispIntensity: { value: dispIntensity },
       uAxisFlip: { value: direction === "backward" ? 1 : 0 },
@@ -136,26 +158,26 @@ export default function GridDistortion({
     // designed; nothing visual is lost.
     const data = new Float32Array(4 * size * size);
 
-    const dataTexture = new THREE.DataTexture(
+    const dataTexture = new DataTexture(
       data,
       size,
       size,
-      THREE.RGBAFormat,
-      THREE.FloatType
+      RGBAFormat,
+      FloatType
     );
     dataTexture.needsUpdate = true;
     uniforms.uDataTexture.value = dataTexture;
 
-    const material = new THREE.ShaderMaterial({
-      side: THREE.DoubleSide,
+    const material = new ShaderMaterial({
+      side: DoubleSide,
       uniforms,
       vertexShader,
       fragmentShader,
       transparent: true,
     });
 
-    const geometry = new THREE.PlaneGeometry(1, 1, size - 1, size - 1);
-    const plane = new THREE.Mesh(geometry, material);
+    const geometry = new PlaneGeometry(1, 1, size - 1, size - 1);
+    const plane = new Mesh(geometry, material);
     scene.add(plane);
 
     const handleResize = () => {
@@ -401,16 +423,16 @@ export default function GridDistortion({
     const uniforms = uniformsRef.current;
     if (!uniforms) return;
     let disposed = false;
-    const loader = new THREE.TextureLoader();
+    const loader = new TextureLoader();
     loader.load(imageSrc, (texture) => {
       if (disposed) {
         texture.dispose();
         return;
       }
-      texture.minFilter = THREE.LinearFilter;
-      texture.magFilter = THREE.LinearFilter;
-      texture.wrapS = THREE.ClampToEdgeWrapping;
-      texture.wrapT = THREE.ClampToEdgeWrapping;
+      texture.minFilter = LinearFilter;
+      texture.magFilter = LinearFilter;
+      texture.wrapS = ClampToEdgeWrapping;
+      texture.wrapT = ClampToEdgeWrapping;
 
       // First load: no previous photo to fade from. Mirror the
       // texture into both slots so the shader's t2 sample is
@@ -431,7 +453,7 @@ export default function GridDistortion({
       if (transitionRafRef.current !== null) {
         cancelAnimationFrame(transitionRafRef.current);
         transitionRafRef.current = null;
-        const outer = uniforms.uTexture.value as THREE.Texture | null;
+        const outer = uniforms.uTexture.value as Texture | null;
         if (outer && outer !== uniforms.uTexture2.value) {
           outer.dispose();
         }
@@ -439,7 +461,7 @@ export default function GridDistortion({
         uniforms.uProgress.value = 0;
       }
 
-      const previousCurrent = uniforms.uTexture.value as THREE.Texture | null;
+      const previousCurrent = uniforms.uTexture.value as Texture | null;
       uniforms.uTexture2.value = texture;
       uniforms.uProgress.value = 0;
       imageAspectRef.current = texture.image.width / texture.image.height;
