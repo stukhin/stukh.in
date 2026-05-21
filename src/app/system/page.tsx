@@ -68,12 +68,15 @@ const BREAKPOINTS = [
 ];
 
 const MOTION = [
-  { name: "Per-page slide", value: "1.05s cubic-bezier(0.65,0,0.35,1)" },
-  { name: "ChainBridge hop", value: "560/720ms — first ease-in / mid linear / last ease-out" },
+  { name: "ChainBridge hop", value: "800ms base + 320ms per extra route step (+ 250ms fade-in / 280ms fade-out)" },
   { name: "Walls zoom FLIP", value: "750ms in / 550ms out, cubic-bezier(0.65,0,0.25,1)" },
-  { name: "Modal backdrop fade", value: "0.75s open / 0.55s close" },
-  { name: "Home slide autoplay", value: "7s linear progress fill" },
-  { name: "Home reveal (first visit)", value: "2.5s easeInOutQuad (B&W → colour)" },
+  { name: "GalleryModal entrance", value: "0.6s cubic-bezier(0.2,0.7,0.4,1), scale + translate locked together" },
+  { name: "GalleryModal backdrop", value: "0.85s open / 0.75s close, cubic-bezier(0.65,0,0.25,1)" },
+  { name: "BlogMap stroke trace", value: "1.5s linear (WAAPI dashoffset)" },
+  { name: "BlogMap focus glide", value: "1.4s cubic-bezier(0.5,0,0.4,1) (country → centre, panel slides in)" },
+  { name: "BlogCountryModal panel", value: "0.6s desktop (right-slide) / 0.4s mobile (bottom-up)" },
+  { name: "Home slide autoplay", value: "7s per slide, single setTimeout per active" },
+  { name: "Preloader fade-out", value: "400ms after a 250ms hold-at-full" },
 ];
 
 const COMPONENTS = [

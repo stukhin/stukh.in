@@ -73,7 +73,7 @@ table {
 
 /* Base */
 html, body {
-  font-family: "Rubik", sans-serif !important;
+  font-family: "Rubik", sans-serif;
   background-color: #fff;
   color: #000;
   min-height: 100%;

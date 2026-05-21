@@ -9,14 +9,12 @@ const FADE_MS = 400;
 /** How long to hold the "100%" frame before fading the loader out. */
 const HOLD_AT_FULL_MS = 250;
 
-// Same key is read+set by HomeSlider so the develop reveal also only
-// plays once per session.
-export const HOME_INTRO_KEY = "stukhin.home.intro";
-/** Fired on `window` when the preloader has finished its hide
- *  animation and is about to unmount. HomeSlider listens for this to
- *  start its TV-style reveal animation, so the photo "opens" out of
- *  a thin line right as the loader fades out. */
-export const PRELOADER_DONE_EVENT = "stukhin:preloader-done";
+// sessionStorage gate so the loader only shows on the very first
+// page hit per tab. The done-event that used to fire when the
+// loader started its hide-fade is gone too — HomeSlider's TV-reveal
+// listener got removed when the reveal animation was dropped, and
+// nothing else subscribed.
+const HOME_INTRO_KEY = "stukhin.home.intro";
 
 /**
  * Critical preload: things the very first painted screen needs (the
@@ -111,16 +109,7 @@ export default function Preloader() {
       timers.push(
         window.setTimeout(() => {
           setPhase("hiding");
-          // Fire as we START fading out, not at the end. The home
-          // reveal animation is timed to overlap with this fade so
-          // the loader bar visually "morphs" into the photo: while
-          // the white preloader ramps to 0 opacity, the photo
-          // emerges from a clip-path matching the bar's rect and
-          // expands outward. Firing at the end of the fade would
-          // leave a beat where neither the preloader nor the photo
-          // is present.
           window.sessionStorage.setItem(HOME_INTRO_KEY, "1");
-          window.dispatchEvent(new CustomEvent(PRELOADER_DONE_EVENT));
           timers.push(
             window.setTimeout(() => {
               setPhase("gone");

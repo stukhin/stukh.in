@@ -22,7 +22,10 @@
   pointer-events: none;
   transition: width 0.15s ease, height 0.15s ease,
     border-radius 0.15s ease, box-shadow 0.15s ease;
-  z-index: 9999;
+  /* Stays above every other shell layer (Burger z:60, Logo z:45,
+     WallsGallery zoom z:100) — picked 200 to give explicit headroom
+     while keeping every z-index in the codebase under three digits. */
+  z-index: 200;
   will-change: transform;
 }
 

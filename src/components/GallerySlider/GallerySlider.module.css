@@ -91,6 +91,10 @@
   cursor: none;
 }
 
+/* !important on width is the only way to override Swiper's inline
+   `width: <pixels>px` it writes on every slide via JS — without it,
+   Swiper's auto-sizing wins and the slides collapse to image
+   intrinsic width. Height stays normal CSS; Swiper doesn't touch it. */
 .slide {
   position: relative;
   width: 370px !important;

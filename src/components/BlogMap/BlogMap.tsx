@@ -45,9 +45,11 @@ const LEAVE_DEBOUNCE_MS = 80;
 const LIQUID_COLORS = ["#c14a3a", "#f08a5d", "#ffd2b3"];
 
 /**
- * /blog world map. Renders Natural Earth's 110m country dataset
- * (~80 KB TopoJSON, served via the `world-atlas` npm package) as
- * SVG paths through a d3-geo Equal Earth projection.
+ * /blog world map. Renders Natural Earth's 50m country dataset
+ * (~300 KB TopoJSON, served via the `world-atlas` npm package) as
+ * SVG paths through a d3-geo Equal Earth projection. 50m gives
+ * much smoother coastlines when focus mode scales a country to
+ * 60 % vh than 110m's coarse polygons did.
  *
  * The map fills the page as a parallax background. Country borders
  * are dropped on the rest-of-world so each continent reads as one

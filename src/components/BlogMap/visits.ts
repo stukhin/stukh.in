@@ -1,7 +1,7 @@
 /**
  * Visited countries — the data driving /blog. Each entry is keyed by
  * its ISO 3166-1 numeric code (matching the `id` field in
- * world-atlas/countries-110m.json) so the map's path renderer can
+ * world-atlas/countries-50m.json) so the map's path renderer can
  * look the visit up directly off the geometry it just drew.
  *
  * v0 holds three sample countries (Spain, Korea, Chile) with mocked
@@ -30,11 +30,12 @@ export type Visit = {
   description?: string;
   /** Bullet recommendations for the modal. */
   recommendations?: string[];
-  /** Fallback geographic coordinates [lon, lat] for visits whose
-   *  country is too small to appear in the 110m TopoJSON (small
-   *  island nations like Seychelles, etc.). When set, the map
-   *  renders this visit as a small dot rather than a country
-   *  silhouette — same hover plate / click-to-modal behaviour. */
+  /** Fallback geographic coordinates [lon, lat] for tiny visits
+   *  where the country's TopoJSON silhouette is too small to grab
+   *  with a cursor even at the 50m resolution (Seychelles, Maldives,
+   *  etc.). When set, the map renders this visit as a small dot
+   *  overlay on top of (or instead of) the country polygon — same
+   *  hover plate / click-to-modal behaviour. */
   coords?: [number, number];
 };
 
@@ -173,9 +174,10 @@ export const VISITS: Visit[] = [
       "Vallée de Mai morning walk",
       "Bicycle La Digue end to end",
     ],
-    /* Seychelles isn't in the 110m TopoJSON, so we render it as
-       a marker dot at the archipelago's approximate centre
-       (Mahé, ≈ 55.45 °E / -4.68 °N). */
+    /* Seychelles has a polygon in the 50m TopoJSON but the islands
+       are so tiny on a world map that the silhouette is essentially
+       unclickable. Marker dot at the archipelago's approximate
+       centre (Mahé, ≈ 55.45 °E / -4.68 °N) gives a real hit target. */
     coords: [55.45, -4.68],
   },
   {

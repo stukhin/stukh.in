@@ -371,10 +371,15 @@
     transform: none;
     animation: none;
     pointer-events: auto;
-    width: 32px;
-    height: 32px;
-    bottom: 10px;
-    right: 10px;
+    /* 44 × 44 = WCAG 2.5.5 minimum touch target. The visible chrome
+       (border + icon) sits inside a 32 × 32 footprint via padding so
+       the button still reads "small affordance" while every pixel
+       inside the 44-square box dispatches the tap. */
+    width: 44px;
+    height: 44px;
+    padding: 6px;
+    bottom: 8px;
+    right: 8px;
     background: rgba(0, 0, 0, 0.35);
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
