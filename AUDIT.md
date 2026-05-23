@@ -13,18 +13,37 @@ Use this alongside [PROJECT.md](./PROJECT.md) at session start.
 
 ## What's actually open
 
-### 🔴 LiquidEther port to ogl
-`src/components/LiquidEther/LiquidEther.tsx` is the only remaining
-`three.js` consumer in the codebase — 1175 lines, 39 `new THREE.*`
-call sites. Porting it lets us drop the `three` package entirely.
-Expected savings: ~140–200 KB minified gzipped on `/blog`. Sized
-for its own session. Lessons from the FloatingLines saga (below)
-suggest the port should: declare every attribute / uniform / varying
-explicitly in the shader source (ogl doesn't auto-prepend three's
-preamble), avoid GLSL ES 1.00 reserved words as identifiers
-(`packed` was a real landmine), wrap render() in try/catch, and
-verify with DevTools open before shipping — `npm run build` does
-not catch runtime WebGL failures.
+### 🔴 GridDistortion + LiquidEther — both still on three.js
+Both home-hero `GridDistortion` and `/blog`'s `LiquidEther` still
+import from `three`. Porting LiquidEther (1175 lines, 39
+`new THREE.*` sites) is alone enough to drop the package; porting
+GridDistortion would shave a bit more bundle and unify the WebGL
+stack with `LightRays`.
+
+GridDistortion has a previous failed ogl porting attempt
+(commits `a07b551` → `ca5d2f4`+ → reverted in `748f3af` after a
+laggier replacement was abandoned). Lessons for the next try
+(documented in PROJECT.md "Known footguns" too):
+
+- Declare every attribute / uniform / varying explicitly in the
+  shader source. ogl, unlike three.js, does not auto-prepend
+  `attribute vec3 position; attribute vec2 uv; uniform mat4
+  projectionMatrix; uniform mat4 modelViewMatrix;` — the shader
+  silently fails to compile, the program never links, and using
+  an unlinked program killed Chrome's renderer process.
+- Avoid GLSL ES 1.00 reserved words as identifiers — `packed`
+  was the bug that took half a session to find. Also reserved
+  for future use: `sample`, `cast`, `interface`, `template`,
+  `super`.
+- Wrap `renderer.render()` in try/catch so compile errors don't
+  cascade into React render errors (we hit a `Minified React #311`
+  this way).
+- Float-format textures (`RGBA32F` + `FLOAT`) are fine on Chrome
+  desktop. A short detour to `RGBA8` to sidestep imagined driver
+  issues introduced visible mouse-track quantisation jitter (one
+  float-unit = 2.55 byte-steps of resolution).
+- Verify with **DevTools console open** before shipping. `npm run
+  build` does not catch runtime WebGL failures.
 
 ### 🟡 Smaller items worth picking up
 
@@ -88,11 +107,7 @@ Grouped by area:
 **Component bloat & dead code**
 - ✅ WallsGallery split — `WallpaperCard` + `FilterDropdown` lifted
   to siblings (`01fb183`).
-- ✅ GridDistortion swapped for FloatingLines as the home hero
-  effect after multiple failed ogl porting attempts. GridDistortion
-  folder deleted; FloatingLines is a TS port of the React Bits
-  three.js component, overlaid on the slide photo with
-  mix-blend-mode: screen.
+- ✅ GridDistortion shaders extracted to `gridShaders.ts` (`c588c88`).
 - ✅ ChainBridge `<img>` rack removed; `<link rel="preload">` is the
   single preload path now (`cf83ad0`).
 
@@ -114,7 +129,7 @@ Grouped by area:
   (`c9a9c3f`). Zero `eslint-disable` left in `src/`.
 
 **TypeScript**
-- ✅ `LightRays` / (former) `GridDistortion` `any` on uniforms / renderer /
+- ✅ `LightRays` / `GridDistortion` `any` on uniforms / renderer /
   mesh refs — typed properly (`7d7a335`).
 - ✅ `Window` augmentation in `src/types/global.d.ts` —
   `__stukhinChainFrom` is a regular property now, no per-callsite
@@ -130,15 +145,13 @@ Grouped by area:
 - ✅ WallpaperCard IntersectionObserver gate — off-screen cards
   render as plain `<li>`, upgrade to motion + springs at 400 px
   rootMargin (`da8ac34`). Was 120+ idle springs on `/walls` mount.
-- ⚠️ GridDistortion port to ogl attempted twice (`a07b551`,
-  `ca5d2f4` + `05904a0` + `1e43e60` + `04249ee` + `859f83d`) and
-  reverted / ultimately replaced. Root cause of the crashes:
-  ogl, unlike three.js, does not auto-prepend `attribute vec3
-  position;` etc. to vertex shaders, and the GLSL ES 1.00 reserved
-  word `packed` was used as an identifier. The fixes shipped but
-  perf still wasn't great and the mouse-warp visual didn't carry
-  the same wow, so the user opted to swap the effect entirely.
-  See "GridDistortion → FloatingLines" below.
+- ⚠️ GridDistortion port to ogl attempted multiple times
+  (`a07b551`, `ca5d2f4` + `05904a0` + `1e43e60` + `04249ee` +
+  `859f83d`), then briefly replaced with a FloatingLines overlay
+  before the user clarified they wanted the cursor-bend-on-photo
+  visual, not decorative lines + colours. Restored to the original
+  three.js implementation. Root causes of the ogl crashes are
+  captured under the 🔴 entry above as lessons for the next try.
 - ✅ `useMediaQuery` hook + `MQ` constants replace 10+ inline
   `matchMedia` reads (`2d6c052`). Reactive — flips on dock-switch.
 

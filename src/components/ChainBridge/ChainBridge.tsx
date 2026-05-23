@@ -40,14 +40,11 @@ export default function ChainBridge() {
   // unlike off-screen <img> tags it isn't subject to browsers
   // skipping decode for elements outside the visible viewport.
   // The earlier off-screen <img> rack was failing for slides 2-4 on
-  // / because the browser would lazy-decode images that weren't yet
-  // painted to the screen. With link-preload the browser eagerly
-  // fetches + decodes regardless of viewport. (Historical note:
-  // slide 1 used to be the only one always-decoded because
-  // GridDistortion uploaded it as a live WebGL texture — that
-  // component is gone now, replaced by FloatingLines which is an
-  // overlay and doesn't touch the photos at all, so every slide
-  // hits the same lazy-decode path without link-preload.)
+  // / specifically because slide 1 is the only one rendered live
+  // by GridDistortion (which forces a decode through its WebGL
+  // texture upload); 2-4 only existed in the off-screen rack and
+  // browsers were lazy-decoding them. With link-preload the
+  // browser eagerly fetches + decodes regardless of viewport.
   useEffect(() => {
     const sources = new Set<string>();
     Object.values(PAGE_VISUALS).forEach((v) => {
@@ -168,14 +165,20 @@ export default function ChainBridge() {
       // Critical: explicitly decode the FROM-route's bg image
       // (whatever the bridge slide for that route will paint as
       // its background-image) BEFORE letting the fade-in start.
-      // Browsers lazy-decode images sitting only in the
-      // <link rel="preload"> cache when the resource isn't visibly
-      // painted yet, and the bridge's first paint would otherwise
-      // show only the bg-color fallback (#0d1117 dark) for a frame
-      // and read as a black flash. Forcing img.decode() here
-      // guarantees the URL is in the rendering cache before fade-in.
-      // getRouteBg so the live home slide (whichever HomeSlider
-      // is currently displaying) decodes — not the static default.
+      // The user's specific clue — flash exists on home slides
+      // 2/3/4 but never on slide 1 — was the smoking gun: slide 1
+      // is the only one GridDistortion has ever rendered live as
+      // a WebGL texture, which warmed Chrome's render-pipeline
+      // image cache for that URL. Slides 2/3/4 sit only in the
+      // <link rel="preload"> cache, which browsers will lazy-
+      // decode when the resource isn't visibly painted yet, so
+      // the bridge's first paint showed only the bg-color
+      // fallback (#0d1117 dark) for a frame and read as a black
+      // flash. Forcing img.decode() synchronously here guarantees
+      // the URL is in the rendering cache before we fade the
+      // bridge in. Use getRouteBg so the live home slide (2/3/4
+      // if the user rotated past slide 1) decodes — not the
+      // static default.
       const fromBg = getRouteBg(e.detail.from);
       if (fromBg && typeof Image !== "undefined") {
         const img = new Image();

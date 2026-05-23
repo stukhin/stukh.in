@@ -20,10 +20,10 @@ them here, link out.
   and per-card tilt springs (gated on IntersectionObserver — see
   `WallpaperCard`).
 - **ogl** for `LightRays` (/nature, /city).
-- **three** for `FloatingLines` (home hero overlay) and
-  `LiquidEther` (/blog fluid sim). AUDIT.md tracks the LiquidEther
-  → ogl port as the only remaining 🔴 — porting it would let us
-  drop the `three` package entirely.
+- **three** for `GridDistortion` (home hero photo warp) and
+  `LiquidEther` (/blog fluid sim). AUDIT.md tracks ogl ports for
+  both — porting LiquidEther alone is enough to drop the `three`
+  package since GridDistortion's ogl attempt has been rolled back.
 - **d3-geo** + **topojson-client** + **world-atlas** for the /blog
   world map (50m TopoJSON).
 - CSS Modules for everything; one global stylesheet at
@@ -144,11 +144,8 @@ pages set it once via `AppShell`'s `theme` / `themeScrolled` props.
 
 - 4-photo loop in `src/components/HomeSlider/HomeSlider.tsx` (slides
   `/images/gallery/main/desktop/{1..4}.webp`).
-- Photo paints as a plain `background-image` div on every viewport.
-  Desktop (≥ 1280 px AND non-touch) layers `FloatingLines` on top
-  via `mix-blend-mode: screen` — three.js shader that draws
-  noise-driven wave lines, reacts to the cursor (bend on hover,
-  parallax on slow movement), and animates by itself.
+- Desktop: `GridDistortion` WebGL displacement effect cycling the
+  photos. Mobile: plain `background-image` div fallback.
 - Dot indicators at the bottom that double as a 7s slide-progress
   bar; tinted via `--shell-fg-strong/soft` so they flip dark/light
   with the slide's theme.
@@ -397,11 +394,11 @@ calmest possible entrance.
   (`useRef<HTMLDivElement>`); no `any` outside vendored code.
 - **Vendored React Bits components** were brought in-tree and
   rewritten as first-class site components: `LiquidEther`
-  (`/blog`) and `FloatingLines` (home hero) are `.tsx` with
-  typed props, uniforms, and refs. Both run on three.js; AUDIT.md
-  tracks the LiquidEther → ogl port as the last remaining `three`
-  consumer. Don't refer back to upstream React Bits parity — the
-  in-tree versions are the canonical source.
+  (`/blog`), `LightRays` (`/nature`, `/city`), and `GridDistortion`
+  (home hero) are `.tsx` with typed props, uniforms, and refs.
+  LightRays runs on ogl; the other two on three.js. AUDIT.md
+  tracks ogl ports for both. Don't refer back to upstream React
+  Bits parity — the in-tree versions are the canonical source.
 - **Animations** prefer GPU-friendly properties (`transform`,
   `opacity`). For the few places we use the **individual
   transform properties** (`scale`, `translate`, `rotate`), each
