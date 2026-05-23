@@ -32,8 +32,16 @@ export function useVerticalPageSwipe() {
   // (the screen) doesn't get this gesture handler in addition to
   // useDesktopPageWheel — without the coarse gate both would fire
   // on the same gesture.
-  const isTouch =
-    useMediaQuery(MQ.TOUCH) && useMediaQuery("(pointer: coarse)");
+  //
+  // BOTH hooks are called unconditionally, then combined with `&&`.
+  // Calling them as `useMediaQuery(A) && useMediaQuery(B)` triggers
+  // short-circuit evaluation: when the left returns false, the right
+  // useMediaQuery never runs — its useState/useEffect aren't called
+  // and React detects a hook count mismatch on the next render
+  // (Minified React error #311). Classic conditional-hook bug.
+  const hoverNone = useMediaQuery(MQ.TOUCH);
+  const pointerCoarse = useMediaQuery("(pointer: coarse)");
+  const isTouch = hoverNone && pointerCoarse;
 
   useEffect(() => {
     if (!isTouch) return;
