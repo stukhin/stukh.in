@@ -47,6 +47,7 @@ export default function EdgeNav() {
           onClick={goPrev}
           aria-label={`Go to previous section (${prevHref})`}
           data-cursor="arrow-up"
+          data-spark="nav"
         />
       )}
       {nextHref && (
@@ -56,6 +57,7 @@ export default function EdgeNav() {
           onClick={goNext}
           aria-label={`Go to next section (${nextHref})`}
           data-cursor="arrow-down"
+          data-spark="nav"
         />
       )}
     </>

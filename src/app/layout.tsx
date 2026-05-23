@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import ChainBridge from "@/components/ChainBridge/ChainBridge";
+import ClickSpark from "@/components/ClickSpark/ClickSpark";
 import Preloader from "@/components/Preloader/Preloader";
 import "./globals.css";
 
@@ -36,6 +37,11 @@ export default function RootLayout({
         <Preloader />
         {children}
         <ChainBridge />
+        {/* Click-spark overlay — fires only on clicks that lead to
+            a new page (any `<a href>` to a same-tab destination, or
+            EdgeNav buttons via `data-spark="nav"`). Sits at z:100,
+            below the custom cursor (z:200). */}
+        <ClickSpark />
       </body>
     </html>
   );
