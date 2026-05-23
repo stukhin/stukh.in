@@ -1,14 +1,33 @@
 /**
  * GLSL shaders + uniform shape for <GridDistortion>. Pulled out of
  * the component to keep the render lifecycle file focused on React +
- * THREE plumbing rather than scrolling through ~80 lines of shader
+ * WebGL plumbing rather than scrolling through ~80 lines of shader
  * source. The uniforms type mirrors the fragment shader's `uniform`
  * declarations — keep them in lock-step.
+ *
+ * Shader source is GLSL ES 1.00 (texture2D / varying), runs unchanged
+ * on ogl's WebGL1 path and WebGL2's GLSL 3.00 compatibility layer.
+ * ogl auto-injects `attribute vec2 uv;` / `attribute vec3 position;`
+ * / `mat4 projectionMatrix;` / `mat4 modelViewMatrix;` for the Plane
+ * geometry, so the vertex shader can reference them directly. BOTH
+ * shaders declare `precision highp float;` explicitly; the previous
+ * port left this off the vertex shader and was suspected as one of
+ * the contributors to a Chrome renderer crash.
+ *
+ * Displacement texture is RGBA8 (uint8 per channel, 0..255), NOT
+ * float32 / RGBA32F. The first ogl attempt used RGBA32F to match the
+ * three.js DataTexture(FloatType) original; that's the most exotic
+ * texture format on WebGL and the suspected crash cause. Uint8 has
+ * universal driver support. Encoding: JS stores `(value + 50) * 2.55`
+ * clamped to [0, 255] (centre 128 = no displacement). Shader decodes
+ * via `(sampled.rg - 0.5) * 100.0` back to the [-50, 50] range the
+ * three.js port used directly.
  */
 
-import type { DataTexture, Texture, Vector4 } from "three";
+import type { Texture, Vec4 } from "ogl";
 
-export const vertexShader = `
+export const vertexShader = `precision highp float;
+
 uniform float time;
 varying vec2 vUv;
 varying vec3 vPosition;
@@ -27,7 +46,8 @@ void main() {
 // (1 - vUv.x) so the new image enters from the right edge and the
 // wave-front travels leftward. fbm jitter on the threshold per
 // pixel keeps the leading edge organic instead of a hard line.
-export const fragmentShader = `
+export const fragmentShader = `precision highp float;
+
 uniform sampler2D uDataTexture;
 uniform sampler2D uTexture;
 uniform sampler2D uTexture2;
@@ -66,8 +86,12 @@ float fbm(vec2 p) {
 
 void main() {
   vec2 uv = vUv;
-  vec4 offset = texture2D(uDataTexture, vUv);
-  vec2 uvDistorted = uv - 0.02 * offset.rg;
+  // uDataTexture is RGBA8 with 128 centre = no displacement. Decode
+  // back to the [-50, 50] range the original three.js DataTexture
+  // held in float channels: (sampled.rg - 0.5) * 100.0.
+  vec4 packed = texture2D(uDataTexture, vUv);
+  vec2 offset = (packed.rg - 0.5) * 100.0;
+  vec2 uvDistorted = uv - 0.02 * offset;
 
   vec4 t1 = texture2D(uTexture, uvDistorted);
   vec4 t2 = texture2D(uTexture2, uvDistorted);
@@ -99,10 +123,10 @@ void main() {
 
 export type GridDistortionUniforms = {
   time: { value: number };
-  resolution: { value: Vector4 };
-  uTexture: { value: Texture | null };
-  uTexture2: { value: Texture | null };
-  uDataTexture: { value: DataTexture | null };
+  resolution: { value: Vec4 };
+  uTexture: { value: Texture };
+  uTexture2: { value: Texture };
+  uDataTexture: { value: Texture };
   uProgress: { value: number };
   uDispIntensity: { value: number };
   uAxisFlip: { value: number };
