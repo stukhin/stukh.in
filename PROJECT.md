@@ -19,11 +19,13 @@ them here, link out.
 - **motion** (Framer Motion) for the /walls grid layout animations
   and per-card tilt springs (gated on IntersectionObserver — see
   `WallpaperCard`).
-- **ogl** for `GridDistortion` (home hero) and `LightRays`
-  (/nature, /city). The site's standard WebGL stack.
-- **three** for `LiquidEther` only — the vendored React Bits fluid
-  sim on /blog. Last remaining `three` consumer; AUDIT.md flags an
-  open port to ogl that would let us drop the dependency.
+- **ogl** for `LightRays` (/nature, /city). Intended as the site's
+  standard WebGL stack — a first attempt at porting `GridDistortion`
+  off three.js (commit `a07b551`) shipped but crashed Chrome's
+  renderer on the home route and was reverted. See AUDIT.md.
+- **three** for `GridDistortion` (home hero) and `LiquidEther`
+  (/blog fluid sim). Both currently three.js; both candidates for
+  the ogl move once the GridDistortion port is debugged.
 - **d3-geo** + **topojson-client** + **world-atlas** for the /blog
   world map (50m TopoJSON).
 - CSS Modules for everything; one global stylesheet at
@@ -396,9 +398,9 @@ calmest possible entrance.
   rewritten to match the rest of the codebase: `LiquidEther` is
   `.tsx` with typed uniforms, `GridDistortion` is split between
   the renderer (`GridDistortion.tsx`) and shader source +
-  uniforms type (`gridShaders.ts`), and `GridDistortion` runs on
-  ogl instead of the upstream three.js. Don't refer back to
-  upstream parity — these are now first-class site components.
+  uniforms type (`gridShaders.ts`). Both still run on three.js
+  for now; AUDIT.md tracks the ogl port for both. Don't refer
+  back to upstream parity — these are first-class site components.
 - **Animations** prefer GPU-friendly properties (`transform`,
   `opacity`). For the few places we use the **individual
   transform properties** (`scale`, `translate`, `rotate`), each

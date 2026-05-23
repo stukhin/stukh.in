@@ -13,15 +13,36 @@ Use this alongside [PROJECT.md](./PROJECT.md) at session start.
 
 ## What's actually open
 
+### 🔴 GridDistortion port to ogl — debug + redo
+First attempt (commit `a07b551`) shipped but crashed Chrome's
+renderer on macOS — the home route went black with a "This page
+couldn't load" tab error. Reverted in `748f3af`. The exact failure
+mode wasn't caught by `npm run build` (compiles + prerenders fine)
+and wasn't obvious from re-reading the diff. Theories worth probing
+before the next attempt:
+- Vertex shader has no `precision` directive — works on three's
+  preamble-injected shaders, may compile differently raw.
+- Float32 RGBA32F texture init via `new Texture(gl, { image: data,
+  type: gl.FLOAT, format: gl.RGBA, internalFormat: RGBA32F })` —
+  ogl's `texImage2D` call path might differ from three's in a way
+  the driver rejects.
+- `WEBGL_lose_context` in the cleanup path could race with the
+  async `image.decode()` for the slide texture.
+- React StrictMode double-mount in dev exposing context-loss /
+  texture-leak issues that only show in prod once the first
+  GridDistortion instance is properly cleaned.
+
+Next attempt: open DevTools, get the actual console error, then
+reach for a fix. Don't ship blind.
+
 ### 🔴 LiquidEther port to ogl
 `src/components/LiquidEther/LiquidEther.tsx` is the last `three.js`
 consumer in the codebase — 1175 lines, 39 `new THREE.*` call sites.
-GridDistortion already moved to ogl (commit `a07b551`), so porting
-this one lets us drop the `three` package entirely. Expected savings:
-~140–200 KB minified gzipped on `/blog`, and a uniform WebGL stack
-(ogl powers LightRays + GridDistortion already). Big enough to
-warrant its own session — visual parity needs careful frame-by-frame
-checking against the current fluid sim.
+Porting it lets us drop the `three` package entirely. Expected
+savings: ~140–200 KB minified gzipped on `/blog`. Should follow the
+GridDistortion port (above) so we learn from one before tackling
+the much larger fluid sim. Big enough to warrant its own session
+either way.
 
 ### 🟡 Smaller items worth picking up
 
@@ -131,8 +152,9 @@ Grouped by area:
 - ✅ `import * as THREE` → named imports in GridDistortion
   (`da8ac34`). Turbopack was already tree-shaking the wildcard, so
   bundle delta was zero; cleaner code anyway.
-- ✅ GridDistortion fully ported to ogl (`a07b551`). `three` no
-  longer loads on `/`.
+- ⚠️ GridDistortion port to ogl attempted (`a07b551`) and reverted
+  (`748f3af`) — Chrome on macOS crashed the renderer process on
+  the home route. Listed as an open 🔴 above for the next attempt.
 - ✅ `useMediaQuery` hook + `MQ` constants replace 10+ inline
   `matchMedia` reads (`2d6c052`). Reactive — flips on dock-switch.
 
