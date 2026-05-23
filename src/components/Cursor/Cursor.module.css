@@ -31,13 +31,21 @@
   will-change: transform;
 }
 
-/* ClickSpark dissolves the cursor while a navigation spark
-   animation is on screen. Class is added by ClickSpark.tsx on
-   spark spawn and removed when the last spark finishes. The
-   `opacity 0.2s ease` transition above handles the fade out / in
-   smoothly; users see the cursor melt as sparks fly outward and
-   re-form once they settle. */
-:global(html.click-spark-active) .cursor {
+/* Cursor "dissolves" during a navigation: ClickSpark adds
+   `click-spark-active` on the nav click (covers the spark burst
+   itself + any non-chain off-strip navigation), and ChainBridge
+   adds `chain-active` while the slide animation runs then
+   `chain-settling` during the fade-out. Treating all three as
+   the same hide-cursor signal means: click fires sparks → cursor
+   fades while sparks fly → ChainBridge takes over and keeps the
+   cursor invisible through the slide + settle → after the new
+   page is mounted and the bridge is gone, cursor fades back in.
+   For off-strip navigation (`/order`, `/system`, `/trips`, 404),
+   only `click-spark-active` fires so the cursor returns once the
+   500 ms spark burst ends — there's no slide to wait for. */
+:global(html.click-spark-active) .cursor,
+:global(html.chain-active) .cursor,
+:global(html.chain-settling) .cursor {
   opacity: 0;
 }
 
