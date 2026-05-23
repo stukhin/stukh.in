@@ -1,19 +1,12 @@
 /**
  * GLSL shaders + uniform shape for <GridDistortion>. Pulled out of
  * the component to keep the render lifecycle file focused on React +
- * WebGL plumbing rather than scrolling through ~80 lines of shader
+ * THREE plumbing rather than scrolling through ~80 lines of shader
  * source. The uniforms type mirrors the fragment shader's `uniform`
  * declarations — keep them in lock-step.
- *
- * Shader source is GLSL ES 1.00 (texture2D / varying) so it runs
- * unchanged against ogl's WebGL1 fallback and WebGL2's GLSL 3.00
- * compatibility layer. ogl auto-injects `attribute vec2 uv;` /
- * `attribute vec3 position;` / `mat4 projectionMatrix;` /
- * `mat4 modelViewMatrix;` based on the Plane geometry, so the
- * vertex shader can reference them directly.
  */
 
-import type { Texture, Vec4 } from "ogl";
+import type { DataTexture, Texture, Vector4 } from "three";
 
 export const vertexShader = `
 uniform float time;
@@ -35,8 +28,6 @@ void main() {
 // wave-front travels leftward. fbm jitter on the threshold per
 // pixel keeps the leading edge organic instead of a hard line.
 export const fragmentShader = `
-precision highp float;
-
 uniform sampler2D uDataTexture;
 uniform sampler2D uTexture;
 uniform sampler2D uTexture2;
@@ -108,10 +99,10 @@ void main() {
 
 export type GridDistortionUniforms = {
   time: { value: number };
-  resolution: { value: Vec4 };
-  uTexture: { value: Texture };
-  uTexture2: { value: Texture };
-  uDataTexture: { value: Texture };
+  resolution: { value: Vector4 };
+  uTexture: { value: Texture | null };
+  uTexture2: { value: Texture | null };
+  uDataTexture: { value: DataTexture | null };
   uProgress: { value: number };
   uDispIntensity: { value: number };
   uAxisFlip: { value: number };

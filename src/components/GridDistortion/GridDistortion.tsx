@@ -1,24 +1,29 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-// Ported from three.js → ogl in commit (TBD). three was tree-shaking
-// to ~140 KB minified on the home route just to draw a plane, a
-// data texture, and an image texture; ogl is already on the page
-// (LiquidEther on /blog, LightRays on /nature & /city) so this
-// removes the second WebGL library entirely. Visual output is
-// pixel-for-pixel the same — the displacement math, mouse handling,
-// and crossfade timing live untouched in the same shader source.
+// Named imports (not `import * as THREE`) so the production bundle
+// only pulls the dozen-or-so three.js classes this component actually
+// uses, rather than the whole library. The wildcard import was
+// tree-shake-resistant in our bundler — three's `*` re-export pulls
+// every module the package indexes — and the home route pays for
+// every kB three.js drags in.
 import {
-  Camera,
+  ClampToEdgeWrapping,
+  DataTexture,
+  DoubleSide,
+  FloatType,
+  LinearFilter,
   Mesh,
-  type OGLRenderingContext,
-  Plane,
-  Program,
-  Renderer,
-  Texture,
-  Transform,
-  Vec4,
-} from "ogl";
+  OrthographicCamera,
+  PlaneGeometry,
+  RGBAFormat,
+  Scene,
+  ShaderMaterial,
+  type Texture,
+  TextureLoader,
+  Vector4,
+  WebGLRenderer,
+} from "three";
 import {
   easeInOutCubic,
   fragmentShader,
@@ -71,8 +76,7 @@ type Props = {
 };
 
 /**
- * Grid-distortion image effect (port of the React Bits component,
- * since rewritten on ogl).
+ * Grid-distortion image effect (port of the React Bits component).
  *
  * Splits the rendered image into a `grid × grid` displacement texture
  * and pushes cells around the cursor as it moves over the canvas; the
@@ -83,6 +87,10 @@ type Props = {
  * doesn't tear down the renderer/scene/animation loop — only the
  * uniform's texture is reassigned. That makes it cheap to feed in a
  * cycling slider.
+ *
+ * Shader sources and the matching `GridDistortionUniforms` type live
+ * in `./gridShaders.ts` so this file stays focused on the React +
+ * THREE plumbing.
  */
 export default function GridDistortion({
   imageSrc,
@@ -96,17 +104,11 @@ export default function GridDistortion({
   className = "",
 }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
+  // Uniforms shape mirrors the GLSL fragment shader — each entry is
+  // a Three.js `{ value }` envelope. Typed explicitly so the texture-
+  // loader effect can write `uniforms.uTexture.value = newTexture`
+  // without the `any` escape hatch the earlier port relied on.
   const uniformsRef = useRef<GridDistortionUniforms | null>(null);
-  /** Mutable backing for the displacement DataTexture — we mutate
-   *  this Float32Array directly each frame and call texture.update()
-   *  to push the new bytes to the GPU. Kept in a ref so the texture-
-   *  loader effect can read it for clearData. */
-  const dataArrRef = useRef<Float32Array | null>(null);
-  const dataTextureRef = useRef<Texture | null>(null);
-  /** The ogl-augmented WebGL context. Captured by the renderer effect
-   *  so the texture-loading effect (separate lifecycle) can construct
-   *  Texture instances without re-creating the renderer. */
-  const glRef = useRef<OGLRenderingContext | null>(null);
   const imageAspectRef = useRef(1);
   const handleResizeRef = useRef<(() => void) | null>(null);
   const transitionRafRef = useRef<number | null>(null);
@@ -116,21 +118,35 @@ export default function GridDistortion({
     const container = containerRef.current;
     if (!container) return;
 
-    const renderer = new Renderer({
-      alpha: true,
+    const scene = new Scene();
+
+    const renderer = new WebGLRenderer({
       antialias: true,
-      dpr: Math.min(window.devicePixelRatio, 2),
+      alpha: true,
       powerPreference: "high-performance",
     });
-    const gl = renderer.gl;
-    glRef.current = gl;
-    gl.clearColor(0, 0, 0, 0);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.setClearColor(0x000000, 0);
     container.innerHTML = "";
-    container.appendChild(gl.canvas);
+    container.appendChild(renderer.domElement);
 
-    const scene = new Transform();
-    const camera = new Camera(gl);
+    const camera = new OrthographicCamera(0, 0, 0, 0, -1000, 1000);
     camera.position.z = 2;
+
+    const uniforms = {
+      time: { value: 0 },
+      resolution: { value: new Vector4() },
+      uTexture: { value: null as Texture | null },
+      // Second texture slot used while a photo crossfade is in
+      // flight. Points at the same texture as uTexture between
+      // transitions so the shader's sample of t2 is always valid.
+      uTexture2: { value: null as Texture | null },
+      uDataTexture: { value: null as DataTexture | null },
+      uProgress: { value: 0 },
+      uDispIntensity: { value: dispIntensity },
+      uAxisFlip: { value: direction === "backward" ? 1 : 0 },
+    };
+    uniformsRef.current = uniforms;
 
     const size = grid;
     // Zero-init the displacement texture. The original port seeded
@@ -141,74 +157,28 @@ export default function GridDistortion({
     // frame — cursor movement then introduces displacement as
     // designed; nothing visual is lost.
     const data = new Float32Array(4 * size * size);
-    dataArrRef.current = data;
 
-    // Float-typed RGBA texture for the displacement field. On WebGL2
-    // (default for ogl when supported) the internalFormat must be a
-    // sized format (RGBA32F) for FLOAT data; on WebGL1 the linear
-    // format works with the OES_texture_float extension which ogl's
-    // Renderer auto-enables. NEAREST filtering on this texture so
-    // each cell's offset reads exact (no inter-cell bleed).
-    const isWebGL2 = (gl as WebGL2RenderingContext).RGBA32F !== undefined;
-    const dataTexture = new Texture(gl, {
-      image: data,
-      width: size,
-      height: size,
-      type: gl.FLOAT,
-      format: gl.RGBA,
-      internalFormat: isWebGL2
-        ? (gl as WebGL2RenderingContext).RGBA32F
-        : gl.RGBA,
-      generateMipmaps: false,
-      flipY: false,
-      minFilter: gl.NEAREST,
-      magFilter: gl.NEAREST,
-      wrapS: gl.CLAMP_TO_EDGE,
-      wrapT: gl.CLAMP_TO_EDGE,
-    });
-    dataTextureRef.current = dataTexture;
+    const dataTexture = new DataTexture(
+      data,
+      size,
+      size,
+      RGBAFormat,
+      FloatType
+    );
+    dataTexture.needsUpdate = true;
+    uniforms.uDataTexture.value = dataTexture;
 
-    // Placeholder textures so the program has something to bind on
-    // the very first frame — `imageSrc`-loading replaces these once
-    // the photo decodes. A 1×1 transparent works fine; the shader
-    // never sees it for more than one frame.
-    const placeholder = new Texture(gl);
-
-    const uniforms: GridDistortionUniforms = {
-      time: { value: 0 },
-      resolution: { value: new Vec4() },
-      uTexture: { value: placeholder },
-      // Second texture slot used while a photo crossfade is in
-      // flight. Points at the same texture as uTexture between
-      // transitions so the shader's sample of t2 is always valid.
-      uTexture2: { value: placeholder },
-      uDataTexture: { value: dataTexture },
-      uProgress: { value: 0 },
-      uDispIntensity: { value: dispIntensity },
-      uAxisFlip: { value: direction === "backward" ? 1 : 0 },
-    };
-    uniformsRef.current = uniforms;
-
-    const program = new Program(gl, {
-      vertex: vertexShader,
-      fragment: fragmentShader,
+    const material = new ShaderMaterial({
+      side: DoubleSide,
       uniforms,
+      vertexShader,
+      fragmentShader,
       transparent: true,
-      // `cullFace: null` mirrors three's DoubleSide — both sides of
-      // the plane render, which matters here because the orthographic
-      // camera can in principle look at either side depending on
-      // future tweaks. No back-face culling overhead either.
-      cullFace: null,
     });
 
-    const geometry = new Plane(gl, {
-      width: 1,
-      height: 1,
-      widthSegments: size - 1,
-      heightSegments: size - 1,
-    });
-    const plane = new Mesh(gl, { geometry, program });
-    plane.setParent(scene);
+    const geometry = new PlaneGeometry(1, 1, size - 1, size - 1);
+    const plane = new Mesh(geometry, material);
+    scene.add(plane);
 
     const handleResize = () => {
       const rect = container.getBoundingClientRect();
@@ -221,22 +191,29 @@ export default function GridDistortion({
 
       // Cover-fit: scale plane up by the larger of (containerAspect,
       // imageAspect) so the image fills the container without ever
-      // showing transparent edges.
+      // showing transparent edges. Default texture-loader sets the
+      // aspect via imageAspectRef once a texture is in.
       const imageAspect = imageAspectRef.current;
+      let planeW = containerAspect;
+      let planeH = 1;
+      if (containerAspect / imageAspect > 1) {
+        planeH = containerAspect / imageAspect;
+      } else {
+        planeW = imageAspect * (1 / (containerAspect / imageAspect));
+      }
+      // Simpler cover formula: take the max of width-driven and
+      // height-driven scales.
       const sx = Math.max(containerAspect, imageAspect);
       const sy = sx / imageAspect;
       plane.scale.set(sx, sy, 1);
 
       const frustumHeight = 1;
       const frustumWidth = frustumHeight * containerAspect;
-      camera.orthographic({
-        left: -frustumWidth / 2,
-        right: frustumWidth / 2,
-        top: frustumHeight / 2,
-        bottom: -frustumHeight / 2,
-        near: -1000,
-        far: 1000,
-      });
+      camera.left = -frustumWidth / 2;
+      camera.right = frustumWidth / 2;
+      camera.top = frustumHeight / 2;
+      camera.bottom = -frustumHeight / 2;
+      camera.updateProjectionMatrix();
 
       uniforms.resolution.value.set(width, height, 1, 1);
     };
@@ -283,7 +260,8 @@ export default function GridDistortion({
     };
 
     const clearData = () => {
-      for (let i = 0; i < data.length; i++) data[i] = 0;
+      const arr = dataTexture.image.data as unknown as Float32Array;
+      for (let i = 0; i < arr.length; i++) arr[i] = 0;
       dataTexture.needsUpdate = true;
     };
 
@@ -352,17 +330,18 @@ export default function GridDistortion({
       lastFrame = now;
       const decay = Math.pow(relaxation, dt);
 
+      const arr = dataTexture.image.data as unknown as Float32Array;
       for (let i = 0; i < size * size; i++) {
-        let a = data[i * 4] * decay;
-        let b = data[i * 4 + 1] * decay;
+        let a = arr[i * 4] * decay;
+        let b = arr[i * 4 + 1] * decay;
         // Clamp absolute value — a runaway accumulation here is what
         // produces the dark-grid glitch the user reported.
         if (a > MAX_OFFSET) a = MAX_OFFSET;
         else if (a < -MAX_OFFSET) a = -MAX_OFFSET;
         if (b > MAX_OFFSET) b = MAX_OFFSET;
         else if (b < -MAX_OFFSET) b = -MAX_OFFSET;
-        data[i * 4] = a;
-        data[i * 4 + 1] = b;
+        arr[i * 4] = a;
+        arr[i * 4 + 1] = b;
       }
 
       const gridMouseX = size * mouseState.x;
@@ -376,17 +355,14 @@ export default function GridDistortion({
           if (distSq < maxDist * maxDist) {
             const index = 4 * (i + size * j);
             const power = Math.min(maxDist / Math.sqrt(distSq), 10);
-            data[index] += strength * 100 * mouseState.vX * power;
-            data[index + 1] -= strength * 100 * mouseState.vY * power;
+            arr[index] += strength * 100 * mouseState.vX * power;
+            arr[index + 1] -= strength * 100 * mouseState.vY * power;
           }
         }
       }
 
-      // Push the mutated displacement buffer to the GPU. ogl's
-      // `needsUpdate = true` re-uploads the underlying `image` to
-      // the same texture handle on the next render pass.
       dataTexture.needsUpdate = true;
-      renderer.render({ scene, camera });
+      renderer.render(scene, camera);
     };
     animate(performance.now());
 
@@ -403,21 +379,28 @@ export default function GridDistortion({
       window.removeEventListener("blur", handleBlur);
       container.removeEventListener("mouseleave", handleMouseLeave);
 
-      // ogl has no .dispose() per object — drop refs and tear down
-      // the WebGL context via the standard extension. The browser
-      // GCs the textures + buffers attached to the now-dead context.
-      const loseCtx = gl.getExtension("WEBGL_lose_context");
-      loseCtx?.loseContext();
-      if (container.contains(gl.canvas)) {
-        container.removeChild(gl.canvas);
+      renderer.dispose();
+      renderer.forceContextLoss();
+      if (container.contains(renderer.domElement)) {
+        container.removeChild(renderer.domElement);
+      }
+      geometry.dispose();
+      material.dispose();
+      dataTexture.dispose();
+      if (uniforms.uTexture.value) uniforms.uTexture.value.dispose();
+      // uTexture2 holds the same texture as uTexture between
+      // transitions; only dispose the in-flight incoming texture if
+      // it differs (mid-transition unmount).
+      if (
+        uniforms.uTexture2.value &&
+        uniforms.uTexture2.value !== uniforms.uTexture.value
+      ) {
+        uniforms.uTexture2.value.dispose();
       }
       uniformsRef.current = null;
-      dataArrRef.current = null;
-      dataTextureRef.current = null;
-      glRef.current = null;
       handleResizeRef.current = null;
     };
-  }, [grid, mouse, strength, relaxation, dispIntensity, direction]);
+  }, [grid, mouse, strength, relaxation, dispIntensity]);
 
   // Direction prop drives a single uniform — no need to rebuild the
   // renderer / scene just to flip the sweep axis.
@@ -432,64 +415,56 @@ export default function GridDistortion({
   // the second texture slot, and animate uProgress 0 → 1 so the
   // shader's right-to-left noise reveal sweeps the new photo in
   // over `transitionMs`. After the animation settles the new
-  // texture is moved to the primary slot; the old one is just
-  // dereferenced (ogl has no .dispose(), browser GCs it).
-  // If a fresh imageSrc arrives mid-transition we snap-finish
-  // whatever was already in flight before kicking off the next
-  // (rare — autoplay is 7 s, transition 1.2 s).
+  // texture is moved to the primary slot and the old one is
+  // disposed; if a fresh imageSrc arrives mid-transition we snap-
+  // finish whatever was already in flight before kicking off the
+  // next one (rare in practice — autoplay is 7 s, transition 1.2 s).
   useEffect(() => {
     const uniforms = uniformsRef.current;
     if (!uniforms) return;
-    const container = containerRef.current;
-    if (!container) return;
     let disposed = false;
-
-    const img = new window.Image();
-    img.crossOrigin = "anonymous";
-    img.decoding = "async";
-
-    img.onload = () => {
-      if (disposed) return;
-      const gl = glRef.current;
-      if (!gl) return;
-      const texture = new Texture(gl, {
-        image: img,
-        generateMipmaps: false,
-        minFilter: gl.LINEAR,
-        magFilter: gl.LINEAR,
-        wrapS: gl.CLAMP_TO_EDGE,
-        wrapT: gl.CLAMP_TO_EDGE,
-      });
-      texture.needsUpdate = true;
+    const loader = new TextureLoader();
+    loader.load(imageSrc, (texture) => {
+      if (disposed) {
+        texture.dispose();
+        return;
+      }
+      texture.minFilter = LinearFilter;
+      texture.magFilter = LinearFilter;
+      texture.wrapS = ClampToEdgeWrapping;
+      texture.wrapT = ClampToEdgeWrapping;
 
       // First load: no previous photo to fade from. Mirror the
       // texture into both slots so the shader's t2 sample is
       // valid before the first transition kicks in.
-      const placeholderStillBound =
-        uniforms.uTexture.value === uniforms.uTexture2.value &&
-        !uniforms.uTexture.value.image;
-      if (placeholderStillBound) {
+      if (!uniforms.uTexture.value) {
         uniforms.uTexture.value = texture;
         uniforms.uTexture2.value = texture;
         uniforms.uProgress.value = 0;
-        imageAspectRef.current = img.naturalWidth / img.naturalHeight;
+        imageAspectRef.current = texture.image.width / texture.image.height;
         handleResizeRef.current?.();
         return;
       }
 
       // Snap-finish any in-flight transition before starting the
       // next one: settle uTexture := uTexture2 (the partially-
-      // revealed incoming photo), reset progress.
+      // revealed incoming photo), reset progress, dispose the
+      // outer texture that's no longer referenced.
       if (transitionRafRef.current !== null) {
         cancelAnimationFrame(transitionRafRef.current);
         transitionRafRef.current = null;
+        const outer = uniforms.uTexture.value as Texture | null;
+        if (outer && outer !== uniforms.uTexture2.value) {
+          outer.dispose();
+        }
         uniforms.uTexture.value = uniforms.uTexture2.value;
         uniforms.uProgress.value = 0;
       }
 
+      const previousCurrent = uniforms.uTexture.value as Texture | null;
       uniforms.uTexture2.value = texture;
       uniforms.uProgress.value = 0;
-      imageAspectRef.current = img.naturalWidth / img.naturalHeight;
+      imageAspectRef.current = texture.image.width / texture.image.height;
       handleResizeRef.current?.();
 
       const t0 = performance.now();
@@ -502,12 +477,13 @@ export default function GridDistortion({
           transitionRafRef.current = null;
           uniforms.uTexture.value = uniforms.uTexture2.value;
           uniforms.uProgress.value = 0;
+          if (previousCurrent && previousCurrent !== uniforms.uTexture.value) {
+            previousCurrent.dispose();
+          }
         }
       };
       transitionRafRef.current = requestAnimationFrame(tick);
-    };
-    img.src = imageSrc;
-
+    });
     return () => {
       disposed = true;
     };
