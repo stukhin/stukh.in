@@ -97,8 +97,11 @@ void main() {
   // uDataTexture is RGBA8 with 128 centre = no displacement. Decode
   // back to the [-50, 50] range the original three.js DataTexture
   // held in float channels: (sampled.rg - 0.5) * 100.0.
-  vec4 packed = texture2D(uDataTexture, vUv);
-  vec2 offset = (packed.rg - 0.5) * 100.0;
+  // Variable name 'disp' not 'packed' — 'packed' is a reserved word
+  // in GLSL ES 1.00 (held for future versions) and the shader fails
+  // to compile if used as an identifier.
+  vec4 disp = texture2D(uDataTexture, vUv);
+  vec2 offset = (disp.rg - 0.5) * 100.0;
   vec2 uvDistorted = uv - 0.02 * offset;
 
   vec4 t1 = texture2D(uTexture, uvDistorted);
