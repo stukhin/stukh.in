@@ -345,48 +345,59 @@ export default function GridDistortion({
       lastFrame = now;
       const decay = Math.pow(relaxation, dt);
 
-      // Decay floats with clamp.
-      for (let i = 0; i < size * size; i++) {
-        let a = data[i * 4] * decay;
-        let b = data[i * 4 + 1] * decay;
-        if (a > MAX_OFFSET) a = MAX_OFFSET;
-        else if (a < -MAX_OFFSET) a = -MAX_OFFSET;
-        if (b > MAX_OFFSET) b = MAX_OFFSET;
-        else if (b < -MAX_OFFSET) b = -MAX_OFFSET;
-        data[i * 4] = a;
-        data[i * 4 + 1] = b;
-      }
-
+      // Single combined pass per cell: decay → mouse push → clamp →
+      // float store → uint8 encode store. The previous three-pass
+      // version iterated the grid three times per frame (decay, mouse,
+      // encode); for grid=18 that was 972 ops/frame just for grid
+      // maintenance, and the user saw visible mouse-tracking jank on
+      // a slower Mac. One pass does the same in ~324 ops + the inner
+      // mouse-radius check.
       const gridMouseX = size * mouseState.x;
       const gridMouseY = size * mouseState.y;
       const maxDist = size * mouse;
+      const maxDistSq = maxDist * maxDist;
+      const pushScale = strength * 100;
+      const pushX = pushScale * mouseState.vX;
+      const pushY = pushScale * mouseState.vY;
 
-      for (let i = 0; i < size; i++) {
-        for (let j = 0; j < size; j++) {
-          const distSq =
-            Math.pow(gridMouseX - i, 2) + Math.pow(gridMouseY - j, 2);
-          if (distSq < maxDist * maxDist) {
-            const index = 4 * (i + size * j);
+      for (let j = 0; j < size; j++) {
+        const dyMouse = gridMouseY - j;
+        const dyMouseSq = dyMouse * dyMouse;
+        for (let i = 0; i < size; i++) {
+          const idx = 4 * (i + size * j);
+          let a = data[idx] * decay;
+          let b = data[idx + 1] * decay;
+
+          const dxMouse = gridMouseX - i;
+          const distSq = dxMouse * dxMouse + dyMouseSq;
+          if (distSq < maxDistSq) {
+            // Math.sqrt is the only sqrt we still pay for, and only
+            // inside the mouse radius (typically a small fraction of
+            // the grid). For grid=18 with mouse=0.1 that's ~1-2 cells
+            // hit per frame.
             const power = Math.min(maxDist / Math.sqrt(distSq), 10);
-            data[index] += strength * 100 * mouseState.vX * power;
-            data[index + 1] -= strength * 100 * mouseState.vY * power;
+            a += pushX * power;
+            b -= pushY * power;
           }
-        }
-      }
 
-      // Encode floats → uint8 with 128 centre. (v + DISP_RANGE) * scale,
-      // clamped to [0, 255].
-      for (let i = 0; i < size * size; i++) {
-        const fx = data[i * 4];
-        const fy = data[i * 4 + 1];
-        let bx = (fx + DISP_RANGE) * DISP_SCALE;
-        let by = (fy + DISP_RANGE) * DISP_SCALE;
-        if (bx < 0) bx = 0;
-        else if (bx > 255) bx = 255;
-        if (by < 0) by = 0;
-        else if (by > 255) by = 255;
-        dataBytes[i * 4] = bx | 0;
-        dataBytes[i * 4 + 1] = by | 0;
+          if (a > MAX_OFFSET) a = MAX_OFFSET;
+          else if (a < -MAX_OFFSET) a = -MAX_OFFSET;
+          if (b > MAX_OFFSET) b = MAX_OFFSET;
+          else if (b < -MAX_OFFSET) b = -MAX_OFFSET;
+          data[idx] = a;
+          data[idx + 1] = b;
+
+          // Encode to uint8 with 128 centre = "no displacement".
+          // `| 0` truncates float → int faster than Math.floor.
+          let bx = (a + DISP_RANGE) * DISP_SCALE;
+          let by = (b + DISP_RANGE) * DISP_SCALE;
+          if (bx < 0) bx = 0;
+          else if (bx > 255) bx = 255;
+          if (by < 0) by = 0;
+          else if (by > 255) by = 255;
+          dataBytes[idx] = bx | 0;
+          dataBytes[idx + 1] = by | 0;
+        }
       }
 
       dataTexture.needsUpdate = true;
