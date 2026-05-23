@@ -7,12 +7,16 @@
  *
  * Shader source is GLSL ES 1.00 (texture2D / varying), runs unchanged
  * on ogl's WebGL1 path and WebGL2's GLSL 3.00 compatibility layer.
- * ogl auto-injects `attribute vec2 uv;` / `attribute vec3 position;`
- * / `mat4 projectionMatrix;` / `mat4 modelViewMatrix;` for the Plane
- * geometry, so the vertex shader can reference them directly. BOTH
- * shaders declare `precision highp float;` explicitly; the previous
- * port left this off the vertex shader and was suspected as one of
- * the contributors to a Chrome renderer crash.
+ * Unlike three.js, ogl does NOT auto-prepend attribute / uniform
+ * declarations — the shader is shipped raw to gl.shaderSource. That
+ * means `attribute vec3 position;` / `attribute vec2 uv;` /
+ * `uniform mat4 projectionMatrix;` / `uniform mat4 modelViewMatrix;`
+ * MUST be declared explicitly here. Missing them was the bug that
+ * crashed the previous port — the vertex shader silently failed to
+ * compile, the program never linked, and using an unlinked program
+ * killed Chrome's renderer.
+ *
+ * BOTH shaders declare `precision highp float;` explicitly.
  *
  * Displacement texture is RGBA8 (uint8 per channel, 0..255), NOT
  * float32 / RGBA32F. The first ogl attempt used RGBA32F to match the
@@ -28,6 +32,10 @@ import type { Texture, Vec4 } from "ogl";
 
 export const vertexShader = `precision highp float;
 
+attribute vec3 position;
+attribute vec2 uv;
+uniform mat4 projectionMatrix;
+uniform mat4 modelViewMatrix;
 uniform float time;
 varying vec2 vUv;
 varying vec3 vPosition;
