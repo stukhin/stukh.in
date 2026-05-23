@@ -31,21 +31,23 @@
   will-change: transform;
 }
 
-/* Cursor "dissolves" during a navigation: ClickSpark adds
-   `click-spark-active` on the nav click (covers the spark burst
-   itself + any non-chain off-strip navigation), and ChainBridge
-   adds `chain-active` while the slide animation runs then
-   `chain-settling` during the fade-out. Treating all three as
-   the same hide-cursor signal means: click fires sparks → cursor
-   fades while sparks fly → ChainBridge takes over and keeps the
-   cursor invisible through the slide + settle → after the new
-   page is mounted and the bridge is gone, cursor fades back in.
-   For off-strip navigation (`/order`, `/system`, `/trips`, 404),
-   only `click-spark-active` fires so the cursor returns once the
-   500 ms spark burst ends — there's no slide to wait for. */
+/* Cursor "dissolves" during a navigation. Two signal classes:
+   - `click-spark-active` — ClickSpark adds on nav click; covers
+     the 500 ms spark burst (and any off-strip navigation that
+     doesn't fire ChainBridge at all).
+   - `chain-pending` — ChainBridge adds synchronously on chainNavigate
+     event receipt and keeps until the entire slide + fade-out
+     timeline finishes (~1.5 s for a single-hop). The gap between
+     click and ChainBridge's `chain-active` is variable (img.decode()
+     delay), so a separate "I'm in flight from this moment" class
+     is needed — earlier we tried using `chain-active` /
+     `chain-settling` and saw a brief cursor flash when decode
+     stretched the gap past 500 ms.
+   Both classes signal the same "fade the cursor to 0." For
+   off-strip navigation (`/order`, `/system`, `/trips`, 404), only
+   `click-spark-active` fires — cursor comes back at t=500 ms. */
 :global(html.click-spark-active) .cursor,
-:global(html.chain-active) .cursor,
-:global(html.chain-settling) .cursor {
+:global(html.chain-pending) .cursor {
   opacity: 0;
 }
 

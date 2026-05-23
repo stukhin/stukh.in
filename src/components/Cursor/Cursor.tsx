@@ -1,6 +1,10 @@
 "use client";
 
 import { CSSProperties, useEffect, useState } from "react";
+import {
+  getLastMousePosition,
+  setLastMousePosition,
+} from "@/lib/mousePosition";
 import { MQ, useMediaQuery } from "@/lib/useMediaQuery";
 import styles from "./Cursor.module.css";
 
@@ -21,7 +25,15 @@ type Props = {
 };
 
 export default function Cursor({ variant = "light" }: Props) {
-  const [pos, setPos] = useState({ x: -100, y: -100 });
+  // Initial position read from the module-level store so the cursor
+  // re-mounts at the last known location after a page transition.
+  // Without this it would re-init at (-100, -100) and only snap to
+  // the real cursor position on the next mousemove — meaning after
+  // a chain-bridge fade-out finishes the cursor would "appear
+  // abruptly" only when the user nudged the mouse, which the user
+  // explicitly flagged. Lazy initializer so the read happens once
+  // at mount, not every render.
+  const [pos, setPos] = useState(() => getLastMousePosition());
   const [shape, setShape] = useState<CursorShape>("default");
   const [visible, setVisible] = useState(false);
   const isTouch = useMediaQuery(MQ.TOUCH);
@@ -31,7 +43,12 @@ export default function Cursor({ variant = "light" }: Props) {
 
     setVisible(true);
 
-    const move = (e: MouseEvent) => setPos({ x: e.clientX, y: e.clientY });
+    const move = (e: MouseEvent) => {
+      setPos({ x: e.clientX, y: e.clientY });
+      // Mirror to module storage so the next Cursor instance (after
+      // a route change) can pick up where we left off.
+      setLastMousePosition(e.clientX, e.clientY);
+    };
 
     // Precedence for determining cursor shape:
     //   1. data-cursor="arrow-left|arrow-right|picture" (explicit)

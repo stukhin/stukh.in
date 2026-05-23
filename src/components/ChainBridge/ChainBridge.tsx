@@ -77,6 +77,7 @@ export default function ChainBridge() {
 
     const clearShellClasses = () => {
       document.documentElement.classList.remove(
+        "chain-pending",
         "chain-active",
         "chain-settling"
       );
@@ -110,6 +111,15 @@ export default function ChainBridge() {
 
       clearTimers();
       clearShellClasses();
+      // `chain-pending` marks a chain transition is in flight from
+      // the synchronous moment the event arrives. `chain-active` /
+      // `chain-settling` only land later (after img.decode() resolves
+      // and the FADE_IN_MS + ROUTE_HANDOFF_BUFFER timer fires) — the
+      // gap between an outside listener seeing the click and
+      // chain-active being set is variable, and observers that
+      // hide chrome through the slide need a class set NOW. Removed
+      // in the same final cleanup setTimeout that drops chain-settling.
+      document.documentElement.classList.add("chain-pending");
       setFromIdx(fIdx);
       setToIdx(tIdx);
       setDuration(dur);
@@ -158,6 +168,7 @@ export default function ChainBridge() {
             setAnimating(false);
             setFading(false);
             document.documentElement.classList.remove("chain-settling");
+            document.documentElement.classList.remove("chain-pending");
           }, handoffAt + dur + FADE_OUT_MS)
         );
       };
