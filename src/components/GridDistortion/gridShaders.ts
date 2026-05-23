@@ -18,14 +18,16 @@
  *
  * BOTH shaders declare `precision highp float;` explicitly.
  *
- * Displacement texture is RGBA8 (uint8 per channel, 0..255), NOT
- * float32 / RGBA32F. The first ogl attempt used RGBA32F to match the
- * three.js DataTexture(FloatType) original; that's the most exotic
- * texture format on WebGL and the suspected crash cause. Uint8 has
- * universal driver support. Encoding: JS stores `(value + 50) * 2.55`
- * clamped to [0, 255] (centre 128 = no displacement). Shader decodes
- * via `(sampled.rg - 0.5) * 100.0` back to the [-50, 50] range the
- * three.js port used directly.
+ * Displacement texture is RGBA32F on WebGL2 (with FLOAT type), or
+ * RGBA + OES_texture_float on WebGL1. JS writes displacement floats
+ * directly into the texture; the shader reads them raw. A short-
+ * lived RGBA8 detour tried to sidestep float-format driver issues
+ * but produced visible mouse-track jitter (one float-unit of
+ * displacement only got 2.55 byte-steps of resolution, so fine
+ * cursor motion below the quantisation threshold produced no visible
+ * response). Back on float; the original crash was actually the
+ * missing attribute / matrix declarations above, not the texture
+ * format.
  */
 
 import type { Texture, Vec4 } from "ogl";
@@ -94,15 +96,14 @@ float fbm(vec2 p) {
 
 void main() {
   vec2 uv = vUv;
-  // uDataTexture is RGBA8 with 128 centre = no displacement. Decode
-  // back to the [-50, 50] range the original three.js DataTexture
-  // held in float channels: (sampled.rg - 0.5) * 100.0.
-  // Variable name 'disp' not 'packed' — 'packed' is a reserved word
-  // in GLSL ES 1.00 (held for future versions) and the shader fails
-  // to compile if used as an identifier.
+  // uDataTexture is RGBA32F on WebGL2 / RGBA+FLOAT+OES_texture_float
+  // on WebGL1 — the JS side stores displacement values directly in
+  // the float channels with no encoding. Variable name 'disp' not
+  // 'packed' — 'packed' is reserved in GLSL ES 1.00 (held for future
+  // versions) and the shader fails to compile if used as an
+  // identifier.
   vec4 disp = texture2D(uDataTexture, vUv);
-  vec2 offset = (disp.rg - 0.5) * 100.0;
-  vec2 uvDistorted = uv - 0.02 * offset;
+  vec2 uvDistorted = uv - 0.02 * disp.rg;
 
   vec4 t1 = texture2D(uTexture, uvDistorted);
   vec4 t2 = texture2D(uTexture2, uvDistorted);

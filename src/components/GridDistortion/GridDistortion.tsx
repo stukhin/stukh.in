@@ -67,14 +67,6 @@ type Props = {
   className?: string;
 };
 
-/** Encoding scale for the RGBA8 displacement texture.
- *  Displacement values live in roughly [-50, 50] (clamped by
- *  MAX_OFFSET below); the texture stores them as bytes with 128
- *  meaning "no displacement." Encoding: (v + 50) * 2.55 → [0, 255].
- *  Shader decodes via (sampled - 0.5) * 100.0. */
-const DISP_RANGE = 50;
-const DISP_SCALE = 255 / (DISP_RANGE * 2);
-
 /**
  * Grid-distortion image effect (port of the React Bits component,
  * since rewritten on ogl).
@@ -103,14 +95,9 @@ export default function GridDistortion({
   const uniformsRef = useRef<GridDistortionUniforms | null>(null);
   const glRef = useRef<OGLRenderingContext | null>(null);
   /** Float backing array for displacement values (in [-50, 50]).
-   *  Each frame's decay + cursor-push math mutates this; the
-   *  per-frame encode step copies it into `dataBytes` (uint8) for
-   *  GPU upload. Keeping floats here means we don't lose precision
-   *  across decay iterations. */
+   *  Uploaded directly to the GPU as an RGBA32F texture each frame
+   *  via `dataTexture.needsUpdate = true`. */
   const dataArrRef = useRef<Float32Array | null>(null);
-  /** Uint8 bytes uploaded to the displacement texture. Re-encoded
-   *  from `dataArr` each frame before texture.needsUpdate fires. */
-  const dataBytesRef = useRef<Uint8Array | null>(null);
   const dataTextureRef = useRef<Texture | null>(null);
   const imageAspectRef = useRef(1);
   const handleResizeRef = useRef<(() => void) | null>(null);
@@ -150,31 +137,24 @@ export default function GridDistortion({
     camera.position.z = 2;
 
     const size = grid;
-    // Zero-init the displacement state. 128 in encoded bytes = "no
-    // displacement" (since (128/255 - 0.5) * 100 ≈ 0). Float backing
-    // starts at literal 0.
+    // Zero-init: no displacement everywhere on first frame.
     const data = new Float32Array(4 * size * size);
-    const dataBytes = new Uint8Array(4 * size * size);
-    dataBytes.fill(0);
-    for (let i = 0; i < size * size; i++) {
-      dataBytes[i * 4] = 128;
-      dataBytes[i * 4 + 1] = 128;
-      dataBytes[i * 4 + 2] = 128;
-      dataBytes[i * 4 + 3] = 255;
-    }
     dataArrRef.current = data;
-    dataBytesRef.current = dataBytes;
 
-    // RGBA8 displacement texture. NEAREST filtering so each cell
-    // reads exact (no inter-cell blend), CLAMP_TO_EDGE so cells at
-    // the texture border don't wrap.
+    // RGBA32F displacement texture (WebGL2 sized format). On WebGL1
+    // ogl falls back to RGBA + FLOAT with OES_texture_float (auto-
+    // enabled by the Renderer for WebGL1 contexts). NEAREST so each
+    // cell reads exact, CLAMP_TO_EDGE so border cells don't wrap.
+    const isWebGL2 = (gl as WebGL2RenderingContext).RGBA32F !== undefined;
     const dataTexture = new Texture(gl, {
-      image: dataBytes,
+      image: data,
       width: size,
       height: size,
-      type: gl.UNSIGNED_BYTE,
+      type: gl.FLOAT,
       format: gl.RGBA,
-      internalFormat: gl.RGBA,
+      internalFormat: isWebGL2
+        ? (gl as WebGL2RenderingContext).RGBA32F
+        : gl.RGBA,
       generateMipmaps: false,
       flipY: false,
       minFilter: gl.NEAREST,
@@ -280,11 +260,6 @@ export default function GridDistortion({
 
     const clearData = () => {
       for (let i = 0; i < data.length; i++) data[i] = 0;
-      for (let i = 0; i < size * size; i++) {
-        dataBytes[i * 4] = 128;
-        dataBytes[i * 4 + 1] = 128;
-        dataBytes[i * 4 + 2] = 128;
-      }
       dataTexture.needsUpdate = true;
     };
 
@@ -335,7 +310,7 @@ export default function GridDistortion({
 
     let lastFrame = performance.now();
     const animate = (now: number) => {
-      if (disposed || !renderer || !dataArrRef.current || !dataBytesRef.current) {
+      if (disposed || !renderer || !dataArrRef.current) {
         return;
       }
       raf = requestAnimationFrame(animate);
@@ -346,12 +321,9 @@ export default function GridDistortion({
       const decay = Math.pow(relaxation, dt);
 
       // Single combined pass per cell: decay → mouse push → clamp →
-      // float store → uint8 encode store. The previous three-pass
-      // version iterated the grid three times per frame (decay, mouse,
-      // encode); for grid=18 that was 972 ops/frame just for grid
-      // maintenance, and the user saw visible mouse-tracking jank on
-      // a slower Mac. One pass does the same in ~324 ops + the inner
-      // mouse-radius check.
+      // store. Three.js had two passes (decay then mouse); we merge
+      // them. With the float-texture path back the encoding pass is
+      // gone too — the texture stores raw floats directly.
       const gridMouseX = size * mouseState.x;
       const gridMouseY = size * mouseState.y;
       const maxDist = size * mouse;
@@ -371,10 +343,9 @@ export default function GridDistortion({
           const dxMouse = gridMouseX - i;
           const distSq = dxMouse * dxMouse + dyMouseSq;
           if (distSq < maxDistSq) {
-            // Math.sqrt is the only sqrt we still pay for, and only
-            // inside the mouse radius (typically a small fraction of
-            // the grid). For grid=18 with mouse=0.1 that's ~1-2 cells
-            // hit per frame.
+            // Math.sqrt is the only sqrt we pay for, and only inside
+            // the mouse radius. For grid=18 with mouse=0.1 that's
+            // ~1-2 cells per frame.
             const power = Math.min(maxDist / Math.sqrt(distSq), 10);
             a += pushX * power;
             b -= pushY * power;
@@ -386,17 +357,6 @@ export default function GridDistortion({
           else if (b < -MAX_OFFSET) b = -MAX_OFFSET;
           data[idx] = a;
           data[idx + 1] = b;
-
-          // Encode to uint8 with 128 centre = "no displacement".
-          // `| 0` truncates float → int faster than Math.floor.
-          let bx = (a + DISP_RANGE) * DISP_SCALE;
-          let by = (b + DISP_RANGE) * DISP_SCALE;
-          if (bx < 0) bx = 0;
-          else if (bx > 255) bx = 255;
-          if (by < 0) by = 0;
-          else if (by > 255) by = 255;
-          dataBytes[idx] = bx | 0;
-          dataBytes[idx + 1] = by | 0;
         }
       }
 
@@ -438,7 +398,6 @@ export default function GridDistortion({
       }
       uniformsRef.current = null;
       dataArrRef.current = null;
-      dataBytesRef.current = null;
       dataTextureRef.current = null;
       glRef.current = null;
       handleResizeRef.current = null;
