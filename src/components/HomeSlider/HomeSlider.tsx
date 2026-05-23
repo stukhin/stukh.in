@@ -26,7 +26,7 @@ export default function HomeSlider() {
   const [active, setActive] = useState(0);
   const isTouch = useMediaQuery(MQ.TOUCH);
   const reducedMotion = useMediaQuery(MQ.REDUCED_MOTION);
-  const isDesktopWide = useMediaQuery(MQ.DESKTOP_WIDE);
+  const isDesktop = useMediaQuery(MQ.DESKTOP_WIDE);
   // "forward" (autoplay / next) sweeps the photo crossfade right-
   // to-left; "backward" (prev arrow / left swipe) reverses to L-to-R
   // so the visual matches the navigation direction.
@@ -175,10 +175,8 @@ export default function HomeSlider() {
   // GridDistortion is desktop-only: it's a heavy WebGL effect and the
   // mouse-warp idea doesn't translate to touch input anyway. Below the
   // desktop breakpoint we fall back to a plain background-image div so
-  // the photo still shows correctly. `isDesktopWide` from the
-  // useMediaQuery hook reactively flips on resize / orientation
-  // change without the manual mql.addEventListener boilerplate.
-  const isDesktop = isDesktopWide;
+  // the photo still shows correctly. `isDesktop` (above) reactively
+  // flips on resize / orientation change via useMediaQuery.
 
   return (
     <div className={styles.wrap}>

@@ -14,16 +14,24 @@ them here, link out.
 ## Stack
 
 - **Next.js 16.2.x (App Router, Turbopack)** + **React 19.2.x**.
-- **TypeScript** (strict). `.tsx` everywhere except `LiquidEther.jsx`
-  (vendored from React Bits, kept as JS for parity with upstream).
+- **TypeScript** (strict). `.tsx` everywhere — no `allowJs` flag.
 - **Swiper 11** for the horizontal photo carousels on /nature, /city.
-- **motion** (Framer Motion) for the /walls grid layout animations.
-- **three** for `LiquidEther` and `GridDistortion` WebGL effects.
+- **motion** (Framer Motion) for the /walls grid layout animations
+  and per-card tilt springs (gated on IntersectionObserver — see
+  `WallpaperCard`).
+- **ogl** for `GridDistortion` (home hero) and `LightRays`
+  (/nature, /city). The site's standard WebGL stack.
+- **three** for `LiquidEther` only — the vendored React Bits fluid
+  sim on /blog. Last remaining `three` consumer; AUDIT.md flags an
+  open port to ogl that would let us drop the dependency.
 - **d3-geo** + **topojson-client** + **world-atlas** for the /blog
-  world map.
+  world map (50m TopoJSON).
 - CSS Modules for everything; one global stylesheet at
-  `src/app/globals.css` (resets + `* { cursor: none }` rule + the
-  `--shell-fg-strong` / `--shell-fg-soft` theme tokens).
+  `src/app/globals.css` (resets + `* { cursor: none }` rule +
+  `:focus-visible` ring + `--shell-fg-strong` / `--shell-fg-soft`
+  theme tokens).
+- Ambient types in `src/types/global.d.ts` (currently just the
+  `Window.__stukhinChainFrom` augmentation).
 
 Build: `npm run build`. Dev: `npm run dev`.
 
@@ -44,9 +52,13 @@ treated as forward transitions and don't slide.
 Two paging gestures land on the same chained-slide animation:
 
 - **Mobile / touch:** vertical swipe (`useVerticalPageSwipe`,
-  `src/lib/useVerticalPageSwipe.ts`). A live preview of the next /
-  previous page tracks the finger 1:1 via `translateY`; release
-  past 22% of the viewport commits, otherwise springs back.
+  `src/lib/useVerticalPageSwipe.ts`). Threshold-only — past 22% of
+  viewport height in the dominant axis, commit. NO live preview
+  overlay; the gesture detection just dispatches `chainNavigate`
+  and ChainBridge owns the visual. Mirrors the desktop wheel UX
+  exactly. Gated on `(hover: none) AND (pointer: coarse)` so
+  Windows touchscreen laptops don't get both this AND the wheel
+  hook.
 - **Desktop / wheel:** wheel + trackpad delta accumulates;
   `useDesktopPageWheel` (`src/lib/useDesktopPageWheel.ts`). 600 px
   threshold, 2.5 s cooldown, `passive: true`. Mounted in `AppShell`
@@ -195,46 +207,92 @@ auto-snaps `modalOrientation` to the available one.
 
 ### Blog (`/blog`, `BlogMap`)
 
-Full-bleed world map as the page background.
+Full-bleed world map as the page background. BlogMap is split into
+`mapProjection.ts` (pure d3-geo plumbing), `CountryStroke.tsx`
+(stroke-trace animator), `CountryLayer.tsx` (unvisited + visited
+fill paths + hit areas), `DotLayer.tsx` (island markers), and the
+React composition in `BlogMap.tsx`. The route mounts via
+`src/app/blog/BlogMapClient.tsx`, a thin Client wrapper that
+`dynamic()`-imports BlogMap with `ssr: false` so the 300 KB TopoJSON
++ d3-geo + ogl bundle doesn't ship until /blog is on screen.
 
-- **Topology:** `world-atlas/countries-110m.json` (≈ 105 KB). 50m
-  is 7× heavier so we stay on 110m and use a per-visit `coords`
-  fallback for islands too small to appear (Seychelles, etc.) —
-  rendered as a small filled-circle marker instead of a country
-  silhouette.
+- **Topology:** `world-atlas/countries-50m.json` (≈ 300 KB raw /
+  ≈ 80 KB gzip). 50m gives clean coastlines when focus mode scales
+  a country up. Tiny island nations whose 50m polygons are still
+  effectively unclickable use a `coords` fallback (Seychelles,
+  Maldives) — rendered as a small filled-circle marker on top of
+  (or instead of) the country polygon.
 - **Projection:** `geoEqualEarth().fitSize([1000, 488], features)`,
-  then `pathGen.bounds(features)` is used to tighten the SVG
-  viewBox to the actual world footprint (Equal Earth's curved
-  edges leave unused corners at the extremes).
-- **Sizing:** the SVG is `width: calc(100dvh × var(--map-aspect))`
+  then `pathGen.bounds(features)` tightens the SVG viewBox to the
+  actual world footprint (Equal Earth's curved edges leave unused
+  corners at the extremes). Projection is returned from the same
+  `useMemo` that builds the path strings so dotMarkers can depend
+  on it directly.
+- **Sizing:** SVG is `width: calc(100dvh × var(--map-aspect))`
   + `height: 100%` + `flex-shrink: 0`, with `overflow: hidden` on
-  the root. Top + bottom of the projected world always touch the
-  viewport edges; horizontal overflow gets clipped on tall layouts.
-- **Default zoom:** 1.2×. `ZOOM_MIN: 1.0`, `ZOOM_MAX: 3.2`. Wheel
-  + bottom-left ± buttons. No drag — the map pans **by cursor
-  position** (window mousemove → `(0..1)` along each axis →
-  `pan = (1 − 2c) × maxPanFromZoom`). At zoom 1 there's no slack
-  so cursor movement does nothing.
+  the root. A `100vh` predecessor sits before the `100dvh` line so
+  Safari < 15.4 falls back gracefully.
+- **Default zoom:** 1.2×. `ZOOM_MIN: 1.0`, `ZOOM_MAX: 2.0`.
+- **Pan + zoom — desktop:** cursor-position parallax (window
+  mousemove → `(0..1)` along each axis → `pan = (1 − 2c) ×
+  maxPanFromZoom`). Wheel + bottom-left ± buttons drive zoom; the
+  ± buttons sit at `z-index: 8` to stay above EdgeNav (z 7).
+- **Pan + zoom — touch:** completely separate path gated on
+  `(hover: none)`. One-finger drag = delta-based pan (NOT
+  parallax — the map follows the finger), two-finger pinch = zoom
+  with ratio tracking. 6 px tap slop so a tap-with-jitter still
+  resolves to `onClick`. `touch-action: none` on the `/blog`
+  wrapper kills iOS rubber-band scroll so the map doesn't fight
+  the OS for the gesture. Listeners attach to `window` (not the
+  map wrap) because `pointer-events: none` on the map root means
+  cream-paper touches wouldn't bubble through a wrap-scoped
+  listener.
 - **Visited countries:** in `src/components/BlogMap/visits.ts`,
   keyed by ISO 3166-1 numeric. Each carries flag emoji, dates,
   cities, description, recommendations, optional `coords`
   fallback. Currently 11 entries.
-- **Hover:** the country scales 1.15×, fill goes
-  `#1a1a1a → #c14a3a`, and a `LiquidEther` (vendored React Bits
-  WebGL fluid sim) renders inside it via `<foreignObject>`
-  wrapped in a `<g clip-path="url(#country-clip-XXX)">` — direct
-  clip-path on foreignObject + WebGL canvas was unreliable
-  cross-browser, the wrapping `<g>` is the documented fix. The
-  hovered country path is rendered LAST in the visited list so
-  it paints on top of any clustered neighbours.
+- **Stroke trace:** when hovering or selecting a visited country,
+  a 1px cream-coloured outline draws around its perimeter over
+  1.5 s. Implemented in `CountryStroke.tsx` via imperative WAAPI:
+  `path.getTotalLength()` once at mount, `stroke-dasharray` =
+  total, animate `stroke-dashoffset` from total → 0 via
+  `Element.animate()`. SVG resets the dash pattern at every
+  subpath start, and no individual subpath is longer than total,
+  so all subpaths fully draw at offset 0 — survives multi-subpath
+  countries (USA + Alaska, Greece + islands). Four earlier
+  approaches (CSS transition on dashoffset, rAF + inline-style,
+  SMIL `<animate>`, Framer Motion's `motion.path`) each regressed
+  on different geometries.
+- **Hover (desktop):** fill goes `#1a1a1a → #c14a3a` (no scale
+  change — the stroke trace carries the hover affordance instead),
+  and a `LiquidEther` fluid sim renders inside the country via
+  `<foreignObject>` wrapped in a `<g clip-path="url(#country-
+  clip-XXX)">` — direct clip-path on a foreignObject + WebGL
+  canvas was unreliable cross-browser, the wrapping `<g>` is the
+  documented fix. The hovered country path is reordered LAST in
+  the visited list so it paints on top of any clustered
+  neighbours.
 - **Cursor follow:** a `BlogCountryPlate` (frosted dark plate
   with country name + flag, dates, cities, three 3:4 thumb
-  slots) pinned to the cursor while hovered. Click on a country
-  → `BlogCountryModal` opens with the long-form story.
-- **Lat/long readout:** small fixed div anchored to the cursor;
-  formatted as `40°25′N    3°42′W`. Works by inverting
-  `svg.getScreenCTM()` then `projection.invert([x, y])`.
-  Hidden when the inverse falls outside the projected world.
+  slots) pinned to the cursor while hovered.
+- **Click — desktop:** enters **focus mode**. The map glides over
+  1.4 s so the selected country fills ~60 % vh, ≤ 80 % of the
+  width remaining to the left of the right-side detail panel.
+  The rest of the world fades to a faint neutral gray + explodes
+  outward (per-path `--explode-{x,y,rot}` deterministic vector,
+  hashed from the country ID so each one always flies the same
+  way). `BlogCountryModal` slides in from the right at
+  `clamp(360px, 60vw, 880px)`. Close: X button, Escape, or click
+  outside the panel.
+- **Tap — mobile:** skips the focus-mode glide entirely (the
+  modal covers the whole screen on touch — centring the country
+  in non-existent empty space is pointless). `BlogCountryModal`
+  switches to a bottom-up full-screen variant on `≤ 597 px`.
+- **Lat/long readout:** small fixed div anchored to the cursor
+  (desktop only); formatted as `40°25′N    3°42′W`. Works by
+  inverting `svg.getScreenCTM()` then `projection.invert([x, y])`.
+  Hidden when the inverse falls outside the projected world OR
+  when a country is hovered / in focus mode.
 - **Page status:** "UNDER CONSTRUCTION" stamp pinned in the
   centre of the page.
 
@@ -308,9 +366,11 @@ was dark and the live page was cream); always keep them aligned.
 `src/components/Preloader` is mounted in the **root layout** so
 it runs on the first hard load of any route, not just `/`.
 Loads a curated list of critical images, ticks a percentage above
-a 1px-thick progress bar, fades out (400 ms) and dispatches
-`stukhin:preloader-done` on completion. Subsequent in-tab visits
-are skipped via `sessionStorage["stukhin.home.intro"]`.
+a 1px-thick progress bar, fades out (400 ms). Subsequent in-tab
+visits are skipped via `sessionStorage["stukhin.home.intro"]`. The
+`stukhin:preloader-done` event used to fire here when an in-progress
+TV-reveal animation listened for it; that animation was removed,
+the event has no subscribers, and the dispatch was dropped too.
 
 The percentage and bar share a `flex-direction: column` wrapper so
 the percent text always sits flush with the bar's right edge,
@@ -332,9 +392,13 @@ calmest possible entrance.
   Don't add new global rules unless they're truly site-wide.
 - **TypeScript strict.** Refs use specific element types
   (`useRef<HTMLDivElement>`); no `any` outside vendored code.
-- **Vendored components** (LiquidEther, GridDistortion) keep their
-  source style — don't rewrite them in TS or restructure for fun;
-  upstream parity is more useful than local consistency here.
+- **Vendored React Bits components** were brought in-tree and
+  rewritten to match the rest of the codebase: `LiquidEther` is
+  `.tsx` with typed uniforms, `GridDistortion` is split between
+  the renderer (`GridDistortion.tsx`) and shader source +
+  uniforms type (`gridShaders.ts`), and `GridDistortion` runs on
+  ogl instead of the upstream three.js. Don't refer back to
+  upstream parity — these are now first-class site components.
 - **Animations** prefer GPU-friendly properties (`transform`,
   `opacity`). For the few places we use the **individual
   transform properties** (`scale`, `translate`, `rotate`), each
@@ -379,11 +443,12 @@ calmest possible entrance.
 - **GridDistortion's data texture** initialised with random
   offsets produces a chaotic "scrambled tiles" first frame.
   Always zero-init.
-- **`world-atlas/countries-110m.json` drops small island
-  nations.** For visits on missing countries, set `coords` on
-  the `Visit` record and the map renders a fallback dot marker.
-  Switching to 50m is 7× larger and rarely worth it for one or
-  two markers.
+- **TopoJSON detail vs hit-targets.** The site uses 50m for clean
+  coastlines under focus-mode zoom, but tiny island nations
+  (Seychelles, Maldives) are still effectively unclickable at
+  default zoom. For those, set `coords` on the `Visit` record and
+  the map renders a dot marker on top with a generous hit
+  circle.
 
 ---
 
@@ -393,13 +458,16 @@ calmest possible entrance.
 |---|---|
 | change the page strip order | `src/lib/pageOrder.ts`, `src/lib/pageVisuals.ts` |
 | change a page's bg colour during slide | `src/lib/pageVisuals.ts` |
+| read a media query in a component | `src/lib/useMediaQuery.ts` (`MQ.TOUCH` / `MQ.REDUCED_MOTION` / `MQ.DESKTOP_WIDE`) |
 | add a cursor variant | `src/components/Cursor/Cursor.tsx` + `Cursor.module.css` |
 | tweak the chained slide motion | `src/components/ChainBridge/` |
-| add a Walls filter / dropdown | `src/components/WallsGallery/WallsGallery.tsx` (`FilterDropdown`) |
+| add a Walls filter / dropdown | `src/components/WallsGallery/WallsGallery.tsx` (`FilterDropdown` sibling) |
 | add wallpapers / orientations | `src/data/walls.json`, `src/data/galleryManifest.ts` |
-| add a visited country | `src/components/BlogMap/visits.ts` (use `coords` if ISO not in 110m) |
+| add a visited country | `src/components/BlogMap/visits.ts` (use `coords` if the silhouette is too small to grab) |
+| change a country fill / hover / focus | `src/components/BlogMap/CountryLayer.tsx` + `BlogMap.module.css` |
 | change site-wide theme tokens | `src/app/globals.css` (the `[data-theme]` blocks) |
-| tweak the preloader gate | `src/components/Preloader/Preloader.tsx` (HOME_INTRO_KEY) |
+| tweak the preloader gate | `src/components/Preloader/Preloader.tsx` (`HOME_INTRO_KEY`) |
+| augment `window` typing | `src/types/global.d.ts` |
 
 ---
 
