@@ -21,12 +21,24 @@
     translate(-50%, -50%) rotate(var(--cursor-rot, 0deg));
   pointer-events: none;
   transition: width 0.15s ease, height 0.15s ease,
-    border-radius 0.15s ease, box-shadow 0.15s ease;
+    border-radius 0.15s ease, box-shadow 0.15s ease,
+    opacity 0.2s ease;
   /* Stays above every other shell layer (Burger z:60, Logo z:45,
      WallsGallery zoom z:100) — picked 200 to give explicit headroom
      while keeping every z-index in the codebase under three digits. */
   z-index: 200;
+  opacity: 1;
   will-change: transform;
+}
+
+/* ClickSpark dissolves the cursor while a navigation spark
+   animation is on screen. Class is added by ClickSpark.tsx on
+   spark spawn and removed when the last spark finishes. The
+   `opacity 0.2s ease` transition above handles the fade out / in
+   smoothly; users see the cursor melt as sparks fly outward and
+   re-form once they settle. */
+:global(html.click-spark-active) .cursor {
+  opacity: 0;
 }
 
 .dark {

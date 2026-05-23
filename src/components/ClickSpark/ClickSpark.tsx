@@ -49,11 +49,16 @@ type Props = {
 };
 
 const NAV_SELECTOR = 'a[href], [data-spark="nav"]';
+/** Class added to <html> while at least one spark is on screen.
+ *  Cursor.module.css reads this and fades the custom cursor to
+ *  opacity 0 — sparks "consume" the cursor visually for the
+ *  duration of the burst. */
+const ACTIVE_CLASS = "click-spark-active";
 
 export default function ClickSpark({
   sparkColor,
-  sparkSize = 12,
-  sparkRadius = 28,
+  sparkSize = 8,
+  sparkRadius = 14,
   sparkCount = 10,
   duration = 500,
   easing = "ease-out",
@@ -119,6 +124,7 @@ export default function ClickSpark({
       // clearRect in CSS pixels (the context is already DPR-scaled).
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
+      const before = sparksRef.current.length;
       sparksRef.current = sparksRef.current.filter((spark) => {
         const elapsed = timestamp - spark.startTime;
         if (elapsed >= duration) return false;
@@ -144,11 +150,24 @@ export default function ClickSpark({
         return true;
       });
 
+      // The last spark just finished — drop the cursor-dissolve class
+      // so Cursor.module.css fades the ring back in. Idempotent guard
+      // via the `before` count so we don't thrash the className.
+      if (before > 0 && sparksRef.current.length === 0) {
+        document.documentElement.classList.remove(ACTIVE_CLASS);
+      }
+
       raf = requestAnimationFrame(draw);
     };
 
     raf = requestAnimationFrame(draw);
-    return () => cancelAnimationFrame(raf);
+    return () => {
+      cancelAnimationFrame(raf);
+      // Effect tears down (component unmounts or deps change) while
+      // sparks are still alive — make sure the cursor-dissolve class
+      // isn't left stuck on <html>.
+      document.documentElement.classList.remove(ACTIVE_CLASS);
+    };
   }, [sparkSize, sparkRadius, duration, easeFunc, extraScale]);
 
   // Resolve the spark colour at spawn time. Explicit prop wins; else
@@ -195,6 +214,10 @@ export default function ClickSpark({
         color,
       }));
       sparksRef.current.push(...sparks);
+      // Cursor.module.css watches this class to fade the custom
+      // cursor to opacity 0 while sparks are flying. The render
+      // loop above strips the class when the last spark dies.
+      document.documentElement.classList.add(ACTIVE_CLASS);
     };
 
     window.addEventListener("click", onClick);
