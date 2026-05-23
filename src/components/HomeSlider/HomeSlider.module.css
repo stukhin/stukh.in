@@ -11,22 +11,30 @@
   overflow: hidden;
 }
 
-/* Wraps either the GridDistortion canvas (desktop) or a plain
-   background-image div (mobile / tablet). */
+/* Holds the photo background and (on desktop) the FloatingLines
+   overlay layered above it with mix-blend-mode: screen. */
 .canvas {
   position: absolute;
   inset: 0;
 }
 
 .fallback {
-  width: 100%;
-  height: 100%;
+  position: absolute;
+  inset: 0;
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
-  /* Soft fade when the slide changes — the GridDistortion path
-     swaps texture in-place, but here we cross-fade via opacity. */
   transition: background-image 0.5s linear;
+}
+
+/* FloatingLines container sized to fill .canvas. The component
+   sets its own mix-blend-mode (default "screen") so the lines
+   composite over the photo. Pointer events go through to the
+   shader canvas, which the component uses for pointermove / leave
+   to drive the bend + parallax effect. */
+.lines {
+  position: absolute;
+  inset: 0;
 }
 
 /* Edge click zones (with arrow cursor). Keep clear of the logo/burger area. */

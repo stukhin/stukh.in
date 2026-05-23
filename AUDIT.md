@@ -13,36 +13,18 @@ Use this alongside [PROJECT.md](./PROJECT.md) at session start.
 
 ## What's actually open
 
-### 🔴 GridDistortion port to ogl — debug + redo
-First attempt (commit `a07b551`) shipped but crashed Chrome's
-renderer on macOS — the home route went black with a "This page
-couldn't load" tab error. Reverted in `748f3af`. The exact failure
-mode wasn't caught by `npm run build` (compiles + prerenders fine)
-and wasn't obvious from re-reading the diff. Theories worth probing
-before the next attempt:
-- Vertex shader has no `precision` directive — works on three's
-  preamble-injected shaders, may compile differently raw.
-- Float32 RGBA32F texture init via `new Texture(gl, { image: data,
-  type: gl.FLOAT, format: gl.RGBA, internalFormat: RGBA32F })` —
-  ogl's `texImage2D` call path might differ from three's in a way
-  the driver rejects.
-- `WEBGL_lose_context` in the cleanup path could race with the
-  async `image.decode()` for the slide texture.
-- React StrictMode double-mount in dev exposing context-loss /
-  texture-leak issues that only show in prod once the first
-  GridDistortion instance is properly cleaned.
-
-Next attempt: open DevTools, get the actual console error, then
-reach for a fix. Don't ship blind.
-
 ### 🔴 LiquidEther port to ogl
-`src/components/LiquidEther/LiquidEther.tsx` is the last `three.js`
-consumer in the codebase — 1175 lines, 39 `new THREE.*` call sites.
-Porting it lets us drop the `three` package entirely. Expected
-savings: ~140–200 KB minified gzipped on `/blog`. Should follow the
-GridDistortion port (above) so we learn from one before tackling
-the much larger fluid sim. Big enough to warrant its own session
-either way.
+`src/components/LiquidEther/LiquidEther.tsx` is the only remaining
+`three.js` consumer in the codebase — 1175 lines, 39 `new THREE.*`
+call sites. Porting it lets us drop the `three` package entirely.
+Expected savings: ~140–200 KB minified gzipped on `/blog`. Sized
+for its own session. Lessons from the FloatingLines saga (below)
+suggest the port should: declare every attribute / uniform / varying
+explicitly in the shader source (ogl doesn't auto-prepend three's
+preamble), avoid GLSL ES 1.00 reserved words as identifiers
+(`packed` was a real landmine), wrap render() in try/catch, and
+verify with DevTools open before shipping — `npm run build` does
+not catch runtime WebGL failures.
 
 ### 🟡 Smaller items worth picking up
 
@@ -65,11 +47,6 @@ either way.
   `wrap.style.setProperty("--pan-x", …)` and `--pan-y` twice per
   mousemove frame. Combining into a single `style.cssText` or batched
   write would save a style-invalidation pass. Cheap.
-- **`GridDistortion.tsx` per-frame loop**: nested `grid × grid` loop
-  runs on the main thread every frame (15 × 15 = 225 ops on top of
-  the displacement decay). Compute shader or coarser grid would
-  reduce CPU. Currently fine on desktop; matters on lower-end mobile
-  if anyone ever scrolls home aggressively.
 - **Preloader save-data gate**: `Preloader.tsx` preloads 21 nature +
   5 city JPGs unconditionally. Mobile users on cellular pay ~6–12 MB
   before any interaction. Gate on `navigator.connection.saveData`.
@@ -111,7 +88,11 @@ Grouped by area:
 **Component bloat & dead code**
 - ✅ WallsGallery split — `WallpaperCard` + `FilterDropdown` lifted
   to siblings (`01fb183`).
-- ✅ GridDistortion shaders extracted to `gridShaders.ts` (`c588c88`).
+- ✅ GridDistortion swapped for FloatingLines as the home hero
+  effect after multiple failed ogl porting attempts. GridDistortion
+  folder deleted; FloatingLines is a TS port of the React Bits
+  three.js component, overlaid on the slide photo with
+  mix-blend-mode: screen.
 - ✅ ChainBridge `<img>` rack removed; `<link rel="preload">` is the
   single preload path now (`cf83ad0`).
 
@@ -133,7 +114,7 @@ Grouped by area:
   (`c9a9c3f`). Zero `eslint-disable` left in `src/`.
 
 **TypeScript**
-- ✅ `LightRays` / `GridDistortion` `any` on uniforms / renderer /
+- ✅ `LightRays` / (former) `GridDistortion` `any` on uniforms / renderer /
   mesh refs — typed properly (`7d7a335`).
 - ✅ `Window` augmentation in `src/types/global.d.ts` —
   `__stukhinChainFrom` is a regular property now, no per-callsite
@@ -149,12 +130,15 @@ Grouped by area:
 - ✅ WallpaperCard IntersectionObserver gate — off-screen cards
   render as plain `<li>`, upgrade to motion + springs at 400 px
   rootMargin (`da8ac34`). Was 120+ idle springs on `/walls` mount.
-- ✅ `import * as THREE` → named imports in GridDistortion
-  (`da8ac34`). Turbopack was already tree-shaking the wildcard, so
-  bundle delta was zero; cleaner code anyway.
-- ⚠️ GridDistortion port to ogl attempted (`a07b551`) and reverted
-  (`748f3af`) — Chrome on macOS crashed the renderer process on
-  the home route. Listed as an open 🔴 above for the next attempt.
+- ⚠️ GridDistortion port to ogl attempted twice (`a07b551`,
+  `ca5d2f4` + `05904a0` + `1e43e60` + `04249ee` + `859f83d`) and
+  reverted / ultimately replaced. Root cause of the crashes:
+  ogl, unlike three.js, does not auto-prepend `attribute vec3
+  position;` etc. to vertex shaders, and the GLSL ES 1.00 reserved
+  word `packed` was used as an identifier. The fixes shipped but
+  perf still wasn't great and the mouse-warp visual didn't carry
+  the same wow, so the user opted to swap the effect entirely.
+  See "GridDistortion → FloatingLines" below.
 - ✅ `useMediaQuery` hook + `MQ` constants replace 10+ inline
   `matchMedia` reads (`2d6c052`). Reactive — flips on dock-switch.
 

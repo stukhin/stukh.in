@@ -19,13 +19,11 @@ them here, link out.
 - **motion** (Framer Motion) for the /walls grid layout animations
   and per-card tilt springs (gated on IntersectionObserver — see
   `WallpaperCard`).
-- **ogl** for `LightRays` (/nature, /city). Intended as the site's
-  standard WebGL stack — a first attempt at porting `GridDistortion`
-  off three.js (commit `a07b551`) shipped but crashed Chrome's
-  renderer on the home route and was reverted. See AUDIT.md.
-- **three** for `GridDistortion` (home hero) and `LiquidEther`
-  (/blog fluid sim). Both currently three.js; both candidates for
-  the ogl move once the GridDistortion port is debugged.
+- **ogl** for `LightRays` (/nature, /city).
+- **three** for `FloatingLines` (home hero overlay) and
+  `LiquidEther` (/blog fluid sim). AUDIT.md tracks the LiquidEther
+  → ogl port as the only remaining 🔴 — porting it would let us
+  drop the `three` package entirely.
 - **d3-geo** + **topojson-client** + **world-atlas** for the /blog
   world map (50m TopoJSON).
 - CSS Modules for everything; one global stylesheet at
@@ -146,8 +144,11 @@ pages set it once via `AppShell`'s `theme` / `themeScrolled` props.
 
 - 4-photo loop in `src/components/HomeSlider/HomeSlider.tsx` (slides
   `/images/gallery/main/desktop/{1..4}.webp`).
-- Desktop: `GridDistortion` WebGL displacement effect cycling the
-  photos. Mobile: plain `background-image` div fallback.
+- Photo paints as a plain `background-image` div on every viewport.
+  Desktop (≥ 1280 px AND non-touch) layers `FloatingLines` on top
+  via `mix-blend-mode: screen` — three.js shader that draws
+  noise-driven wave lines, reacts to the cursor (bend on hover,
+  parallax on slow movement), and animates by itself.
 - Dot indicators at the bottom that double as a 7s slide-progress
   bar; tinted via `--shell-fg-strong/soft` so they flip dark/light
   with the slide's theme.
@@ -395,12 +396,12 @@ calmest possible entrance.
 - **TypeScript strict.** Refs use specific element types
   (`useRef<HTMLDivElement>`); no `any` outside vendored code.
 - **Vendored React Bits components** were brought in-tree and
-  rewritten to match the rest of the codebase: `LiquidEther` is
-  `.tsx` with typed uniforms, `GridDistortion` is split between
-  the renderer (`GridDistortion.tsx`) and shader source +
-  uniforms type (`gridShaders.ts`). Both still run on three.js
-  for now; AUDIT.md tracks the ogl port for both. Don't refer
-  back to upstream parity — these are first-class site components.
+  rewritten as first-class site components: `LiquidEther`
+  (`/blog`) and `FloatingLines` (home hero) are `.tsx` with
+  typed props, uniforms, and refs. Both run on three.js; AUDIT.md
+  tracks the LiquidEther → ogl port as the last remaining `three`
+  consumer. Don't refer back to upstream React Bits parity — the
+  in-tree versions are the canonical source.
 - **Animations** prefer GPU-friendly properties (`transform`,
   `opacity`). For the few places we use the **individual
   transform properties** (`scale`, `translate`, `rotate`), each
@@ -442,9 +443,16 @@ calmest possible entrance.
   the transition behind a post-mount class (GallerySlider's
   `.transitionsReady`) the user sees the left-side slides
   "drift in" each load.
-- **GridDistortion's data texture** initialised with random
-  offsets produces a chaotic "scrambled tiles" first frame.
-  Always zero-init.
+- **ogl-style shaders** must declare every attribute / uniform /
+  varying they reference — unlike three.js, ogl doesn't auto-
+  prepend `attribute vec3 position;` etc. The first GridDistortion
+  ogl port silently failed to compile because of this and killed
+  Chrome's renderer.
+- **GLSL ES 1.00 reserved words** as variable names crash compile.
+  `packed` is the one that bit us in FloatingLines's neighbour
+  (was-)GridDistortion. Avoid `packed`, `sample`, `cast`,
+  `interface`, `template`, `super`, anything from the future-
+  reserved list in the GLSL ES spec.
 - **TopoJSON detail vs hit-targets.** The site uses 50m for clean
   coastlines under focus-mode zoom, but tiny island nations
   (Seychelles, Maldives) are still effectively unclickable at

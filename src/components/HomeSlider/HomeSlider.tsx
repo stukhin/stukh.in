@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import GridDistortion from "../GridDistortion/GridDistortion";
+import FloatingLines from "../FloatingLines/FloatingLines";
 import { useVerticalPageSwipe } from "@/lib/useVerticalPageSwipe";
 import { MQ, useMediaQuery } from "@/lib/useMediaQuery";
 import { setRouteBg } from "@/lib/pageVisuals";
@@ -172,30 +172,35 @@ export default function HomeSlider() {
     document.documentElement.dataset.theme = "dark";
   }, []);
 
-  // GridDistortion is desktop-only: it's a heavy WebGL effect and the
-  // mouse-warp idea doesn't translate to touch input anyway. Below the
-  // desktop breakpoint we fall back to a plain background-image div so
-  // the photo still shows correctly. `isDesktop` (above) reactively
-  // flips on resize / orientation change via useMediaQuery.
+  // The photo always paints as a plain background-image div. On
+  // desktop (≥ 1280 px width AND non-touch) we layer FloatingLines
+  // on top — three.js shader that animates noise-driven wave lines
+  // and reacts to the cursor via mix-blend-mode: screen. Below the
+  // desktop breakpoint or on touch the photo paints alone (the
+  // effect is mouse-driven, no point spinning a WebGL context for
+  // visitors who can't trigger it).
+  const showLines = isDesktop && !isTouch;
 
   return (
     <div className={styles.wrap}>
       <div className={styles.slider}>
         <div className={styles.canvas}>
-          {isDesktop ? (
-            <GridDistortion
-              imageSrc={slides[active]}
-              direction={direction}
-              grid={18}
-              mouse={0.10}
-              strength={0.02}
-              relaxation={0.92}
-            />
-          ) : (
-            <div
-              className={styles.fallback}
-              style={{ backgroundImage: `url(${slides[active]})` }}
-            />
+          <div
+            className={styles.fallback}
+            style={{ backgroundImage: `url(${slides[active]})` }}
+          />
+          {showLines && (
+            <div className={styles.lines}>
+              <FloatingLines
+                enabledWaves={["top", "middle", "bottom"]}
+                lineCount={[10, 15, 20]}
+                lineDistance={[8, 6, 4]}
+                bendRadius={5.0}
+                bendStrength={-0.5}
+                interactive
+                parallax
+              />
+            </div>
           )}
         </div>
       </div>
