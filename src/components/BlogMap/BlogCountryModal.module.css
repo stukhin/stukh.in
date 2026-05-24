@@ -1,16 +1,17 @@
 /* ============================================================
    Country "field notebook" — three horizontally paged spreads.
 
-     1. cover   hero photo, name, fact row, jump-cards to other
-                spreads
-     2. taste   recommendations on a 4-quadrant flavour grid;
-                chips grow on hover, lock to a centred card on
-                click, collapse back to slot on backdrop click
-     3. gallery contact-print grid of photos
+     1. cover    issue meta · hero photo · name (capitalised) ·
+                 cities · description · frame & spot counts
+     2. taste    recommendations on a 4-quadrant flavour grid;
+                 chips grow on hover, lock to a centred card on
+                 click, collapse back via shared layout
+     3. gallery  contact-print grid (or "frames coming soon"
+                 placeholder when photos are sparse)
 
-   Layout language: Swiss-typographic, no skeuomorphic textures.
-   Breaks the AI-shaped subheader dossier formula through paged
-   navigation + per-spread micro-layouts.
+   While the panel is open we set html.blog-panel-open from the
+   modal effect; TopNav opt-in CSS hides itself so it doesn't
+   crash into the panel's pager + footer title at the bottom.
    ============================================================ */
 
 /* ---- panel container ---- */
@@ -93,11 +94,11 @@
   opacity: 1;
 }
 
-/* ---- footer title ---- */
+/* ---- footer title (bottom-left) ---- */
 
 .footerTitle {
   position: absolute;
-  bottom: 26px;
+  bottom: 24px;
   left: 28px;
   font-size: 11px;
   letter-spacing: 0.18em;
@@ -135,8 +136,8 @@
   overflow-y: auto;
   overflow-x: hidden;
   scrollbar-width: none;
-  /* bottom padding leaves room for pager + footerTitle */
-  padding: 64px 48px 80px 48px;
+  /* Bottom padding clears the pager dots (bottom 22-24px) */
+  padding: 56px 48px 64px 48px;
   display: flex;
   flex-direction: column;
   position: relative;
@@ -148,21 +149,21 @@
 
 @media (max-width: 1024px) {
   .spread {
-    padding: 56px 36px 76px 36px;
+    padding: 52px 36px 60px 36px;
   }
 }
 
 @media (max-width: 597px) {
   .spread {
-    padding: 48px 22px 72px 22px;
+    padding: 44px 22px 56px 22px;
   }
 }
 
-/* ---- page indicator dots ---- */
+/* ---- page indicator (bottom-right; TopNav is hidden while open) ---- */
 
 .pager {
   position: absolute;
-  bottom: 24px;
+  bottom: 22px;
   right: 28px;
   display: flex;
   gap: 12px;
@@ -219,14 +220,14 @@
 }
 
 /* ============================================================
-   COVER spread
+   COVER spread — slim hierarchy, hero pinned to top, single
+   meta line, no jump cards.
    ============================================================ */
 
 .cover {
-  flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 0;
+  gap: 14px;
   min-height: 0;
 }
 
@@ -235,9 +236,8 @@
   align-items: baseline;
   justify-content: space-between;
   gap: 16px;
-  /* pad right so the issue number doesn't crash into the close X */
+  /* room for close × */
   padding-right: 48px;
-  margin-bottom: 18px;
 }
 
 .coverIssue {
@@ -249,64 +249,45 @@
 }
 
 .coverFlag {
-  font-size: 24px;
+  font-size: 22px;
   line-height: 1;
 }
 
-/* Hero photo: dominant block at the top, aspect 4:3 so it fills
-   the panel width with breathing room above and below. The stamp
-   sits in its top-right corner. */
-.coverHero,
-.coverHeroEmpty {
+/* Hero — sized by viewport height so it never dominates on
+   short screens. The stamp pins to its top-right corner. */
+.coverHero {
   position: relative;
   width: 100%;
-  aspect-ratio: 4 / 3;
-  background-color: rgba(0, 0, 0, 0.06);
+  height: clamp(180px, 30vh, 320px);
+  background-color: rgba(0, 0, 0, 0.05);
   background-size: cover;
   background-position: center;
   box-shadow:
-    0 1px 0 rgba(0, 0, 0, 0.06),
-    0 16px 36px rgba(0, 0, 0, 0.12);
-  margin-bottom: 24px;
+    0 1px 0 rgba(0, 0, 0, 0.04),
+    0 10px 24px rgba(0, 0, 0, 0.08);
   flex-shrink: 0;
 }
 .coverHeroEmpty {
-  display: flex;
-  align-items: flex-start;
-  justify-content: flex-end;
-  padding: 18px;
+  background-image: none;
 }
 
-@media (max-width: 597px) {
-  .coverHero,
-  .coverHeroEmpty {
-    aspect-ratio: 4 / 3;
-    margin-bottom: 18px;
-  }
-}
-
-/* Visa stamp sitting in the hero's top-right corner */
 .coverStamp {
   position: absolute;
-  top: 18px;
-  right: 18px;
+  top: 14px;
+  right: 14px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 6px;
-  padding: 12px 18px;
+  gap: 5px;
+  padding: 10px 16px;
   border: 1.5px dashed rgba(193, 74, 58, 0.7);
-  border-radius: 4px;
+  border-radius: 3px;
   transform: rotate(-6deg);
   color: rgba(193, 74, 58, 0.85);
-  font-weight: 400;
-  background: rgba(245, 244, 241, 0.88);
+  background: rgba(245, 244, 241, 0.85);
   backdrop-filter: blur(4px);
   -webkit-backdrop-filter: blur(4px);
   pointer-events: none;
-}
-.coverHeroEmpty .coverStamp {
-  position: static;
 }
 .stampDates {
   font-size: 10px;
@@ -315,30 +296,47 @@
   white-space: nowrap;
 }
 .stampLine {
-  width: 32px;
+  width: 28px;
   height: 1px;
   background: rgba(193, 74, 58, 0.55);
 }
 .stampTag {
-  font-size: 12px;
+  font-size: 11px;
   letter-spacing: 0.3em;
   text-transform: uppercase;
 }
 
 .coverName {
-  margin: 0 0 6px;
-  font-size: clamp(48px, 7.8vw, 96px);
+  /* Country names render proper-case via CSS capitalize while
+     the data stays lowercase, matching the rest of the site. */
+  margin: 6px 0 0;
+  font-size: clamp(44px, 6.4vw, 78px);
   font-weight: 200;
-  letter-spacing: -0.035em;
-  text-transform: lowercase;
-  line-height: 0.9;
+  letter-spacing: -0.03em;
+  text-transform: capitalize;
+  line-height: 0.95;
   word-break: break-word;
   overflow-wrap: break-word;
 }
 
+.coverCities {
+  font-size: 12px;
+  font-weight: 400;
+  letter-spacing: 0.04em;
+  text-transform: lowercase;
+  opacity: 0.55;
+}
+.coverCity {
+  white-space: nowrap;
+}
+.coverCitySep {
+  margin: 0 8px;
+  opacity: 0.5;
+}
+
 .coverDescription {
-  margin: 4px 0 0;
-  max-width: 58ch;
+  margin: 8px 0 0;
+  max-width: 60ch;
   font-size: 15px;
   line-height: 1.55;
   font-weight: 300;
@@ -352,115 +350,19 @@
   }
 }
 
-.coverFacts {
-  display: flex;
-  gap: 36px;
-  margin: 22px 0 0;
-  padding: 16px 0 0;
-  border-top: 1px solid rgba(0, 0, 0, 0.08);
-}
-.fact {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-.fact dt {
-  font-size: 10px;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  opacity: 0.5;
-}
-.fact dd {
-  margin: 0;
-  font-size: 24px;
-  font-weight: 300;
-  letter-spacing: -0.02em;
-  font-variant-numeric: tabular-nums;
-}
-
-/* City list — comma-style row, distinct from facts so it has its
-   own visual rhythm */
-.coverCities {
-  margin: 14px 0 0;
-  font-size: 13px;
-  font-weight: 400;
-  letter-spacing: -0.005em;
-  text-transform: lowercase;
-  opacity: 0.7;
-}
-.coverCity {
-  white-space: nowrap;
-}
-.coverCitySep {
-  margin: 0 8px;
-  opacity: 0.5;
-}
-
-/* Jump cards — quick links to the next two spreads with a teaser */
-.coverJumps {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 16px;
-  margin-top: 28px;
-}
-
-@media (max-width: 597px) {
-  .coverJumps {
-    grid-template-columns: 1fr;
-    gap: 12px;
-    margin-top: 22px;
-  }
-}
-
-.coverJump,
-.coverJumpGallery {
-  background: rgba(255, 255, 255, 0.5);
-  border: 1px solid rgba(0, 0, 0, 0.08);
-  padding: 14px 16px;
-  text-align: left;
-  cursor: none;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  transition: background 0.18s ease, transform 0.18s ease,
-    border-color 0.18s ease;
-}
-.coverJump:hover,
-.coverJumpGallery:hover {
-  background: rgba(255, 255, 255, 0.8);
-  border-color: rgba(0, 0, 0, 0.18);
-  transform: translateY(-1px);
-}
-
-.coverJumpKicker {
+/* Bottom-of-cover micro stats — minimal, no big dividers */
+.coverCounts {
+  margin-top: auto;
+  padding-top: 18px;
   font-size: 11px;
   letter-spacing: 0.18em;
   text-transform: uppercase;
-  color: #1a1a1a;
-  opacity: 0.65;
-  font-weight: 500;
-}
-.coverJumpHint {
-  font-size: 13px;
-  font-weight: 300;
-  color: #1a1a1a;
-  opacity: 0.7;
-  letter-spacing: -0.005em;
-}
-
-.coverThumbRow {
+  opacity: 0.45;
   display: flex;
-  gap: 4px;
-  height: 36px;
+  gap: 10px;
 }
-.coverThumb {
-  flex: 1;
-  height: 100%;
-  min-width: 0;
-  background-size: cover;
-  background-position: center;
-  background-color: rgba(0, 0, 0, 0.06);
-  border-radius: 1px;
+.coverCountSep {
+  opacity: 0.6;
 }
 
 /* ============================================================
@@ -471,7 +373,7 @@
   display: flex;
   align-items: baseline;
   justify-content: space-between;
-  margin-bottom: 22px;
+  margin-bottom: 18px;
   /* reserve right side for close button */
   padding-right: 48px;
 }
@@ -503,11 +405,13 @@
 
 .tasteCanvas {
   position: relative;
-  flex: 1;
-  min-height: 520px;
+  /* Shrink the canvas so countries with 3 recs don't read as
+     a desert with chips floating in white space. */
+  height: clamp(380px, 52vh, 540px);
   border: 1px solid rgba(0, 0, 0, 0.08);
   background: rgba(255, 255, 255, 0.4);
-  overflow: visible; /* hover-grown chips can briefly exceed */
+  overflow: visible;
+  flex-shrink: 0;
 }
 
 .tasteAxisH,
@@ -551,8 +455,22 @@
 .corner_bl { bottom: 14px; left: 14px; }
 .corner_br { bottom: 14px; right: 14px; flex-direction: row-reverse; }
 
-/* Chip — absolutely positioned via inline left|right + top|bottom
-   from its quadrant anchor in the React layer. */
+/* Empty quadrant — a quiet em-dash centred so the geometry
+   reads as intentional negative space, not broken layout. */
+.tasteEmpty {
+  position: absolute;
+  font-size: 16px;
+  font-weight: 200;
+  opacity: 0.18;
+  pointer-events: none;
+  /* Each quadrant occupies a quarter of the canvas; we anchor
+     to its midpoint via outer corner % + transform. */
+}
+.empty_tl { top: 25%; left: 25%; transform: translate(-50%, -50%); }
+.empty_tr { top: 25%; right: 25%; transform: translate(50%, -50%); }
+.empty_bl { bottom: 25%; left: 25%; transform: translate(-50%, 50%); }
+.empty_br { bottom: 25%; right: 25%; transform: translate(50%, 50%); }
+
 .tasteChip {
   position: absolute;
   max-width: 200px;
@@ -568,7 +486,6 @@
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
   cursor: none;
   font-family: inherit;
-  /* Apply chip's resting rotation via custom prop set inline */
   --rot: 0deg;
   transform: rotate(var(--rot));
   z-index: 1;
@@ -578,9 +495,6 @@
   box-shadow: 0 10px 22px rgba(0, 0, 0, 0.12);
 }
 
-/* When a chip's "lifted" version is shown in the overlay, hide
-   the original silhouette in the grid (layoutId will animate the
-   real card; we just don't want the ghost still rendering). */
 .tasteChipHidden {
   opacity: 0;
   pointer-events: none;
@@ -607,9 +521,6 @@
 }
 
 @media (max-width: 597px) {
-  .tasteCanvas {
-    min-height: 460px;
-  }
   .tasteChip {
     max-width: 140px;
     padding: 8px 11px 9px;
@@ -647,7 +558,6 @@
   box-shadow: 0 24px 60px rgba(0, 0, 0, 0.22);
   overflow: hidden;
   z-index: 21;
-  /* Locked card should not inherit chip's resting rotation. */
   --rot: 0deg;
   transform: none;
 }
@@ -664,7 +574,7 @@
   display: flex;
   flex-direction: column;
   gap: 8px;
-  padding: 20px 22px 22px;
+  padding: 18px 20px 20px;
 }
 
 .lockedCategory {
@@ -679,7 +589,7 @@
 .lockedCategoryIcon { font-size: 13px; }
 
 .lockedName {
-  font-size: 22px;
+  font-size: 20px;
   font-weight: 400;
   letter-spacing: -0.015em;
   line-height: 1.2;
@@ -716,21 +626,16 @@
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
   transition: opacity 0.15s ease;
 }
-.lockedChip:has(.lockedPhoto) .lockedClose {
-  /* When there's a hero photo, the X sits over it — keep light. */
-  color: #fff;
-}
-.lockedClose:hover {
-  opacity: 1;
-}
-/* When there is NO photo, the X sits over white card — use dark */
 .lockedChip:not(:has(.lockedPhoto)) .lockedClose {
   color: #1a1a1a;
   text-shadow: none;
 }
+.lockedClose:hover {
+  opacity: 1;
+}
 
 /* ============================================================
-   GALLERY — contact prints
+   GALLERY — contact prints, or empty placeholder
    ============================================================ */
 
 .gallery {
@@ -742,7 +647,7 @@
 .galleryGrid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 30px 22px;
+  gap: 28px 22px;
   align-content: start;
   flex: 1;
 }
@@ -795,4 +700,27 @@
   font-weight: 300;
   line-height: 1.4;
   opacity: 0.55;
+}
+
+/* Empty gallery — clean placeholder consistent with the
+   taste-map "—" empty quadrant treatment. */
+.galleryEmpty {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  opacity: 0.45;
+}
+.galleryEmptyDash {
+  font-size: 28px;
+  font-weight: 200;
+  opacity: 0.5;
+}
+.galleryEmptyText {
+  font-size: 11px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  font-weight: 500;
 }

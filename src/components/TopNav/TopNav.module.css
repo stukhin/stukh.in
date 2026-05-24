@@ -31,7 +31,8 @@
 /* When the gallery zoom modal is open, fade the nav out behind the
    modal's frosted glass — having it visible bottom-right while the
    photo fills the screen reads as clutter. */
-:global(html.zoom-open) .nav {
+:global(html.zoom-open) .nav,
+:global(html.blog-panel-open) .nav {
   visibility: hidden;
   opacity: 0;
 }

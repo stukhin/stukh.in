@@ -20,46 +20,54 @@ type Spread = {
 
 /**
  * Country "field notebook" — slides in from the right of the
- * viewport when a visited country is clicked on /blog. Three paged
- * spreads instead of a vertical dossier:
+ * viewport when a visited country is clicked on /blog. Always
+ * exactly three paged spreads (cover · taste · gallery) so the
+ * structure is consistent across countries even when data is
+ * sparse: empty quadrants and missing photos render explicit
+ * empty states instead of suppressing the spread.
  *
- *   1. cover   — issue meta, hero photo, name, dates + city count,
- *                description, trip facts row, preview thumbnails
- *                (clickable, jumps to gallery).
- *   2. taste   — recommendations on a 4-quadrant flavour grid
- *                (coffee · nature · food · view). Each chip grows
- *                on hover; click locks it to a centered card with
- *                photo + note; click backdrop or × collapses it
- *                back to its quadrant slot via shared layout.
- *   3. gallery — contact-print grid of all photos, slight per-print
- *                rotation, hover straightens.
+ * While the panel is open we set `html.blog-panel-open` to hide
+ * the desktop TopNav (which lives in the same bottom-right area as
+ * the panel's pager dots). Escape or × closes the panel and
+ * restores the nav.
  *
- * Paging is plain CSS scroll-snap on a horizontal flex row, which
- * gives free native swipe on touch + smooth wheel on desktop. Arrow
- * keys + the page-dot rail call `scrollTo` for explicit nav.
+ * Paging via plain CSS scroll-snap on a horizontal flex row: native
+ * swipe on touch + smooth wheel on desktop. Arrow keys + the page-
+ * dot rail call scrollTo for explicit nav. Inside the taste spread,
+ * tapping a chip locks it to a centered card via framer-motion
+ * shared layout; backdrop / × / Escape collapses it back to slot.
  */
 export default function BlogCountryModal({ visit, onClose }: Props) {
   const scrollerRef = useRef<HTMLDivElement>(null);
   const [activePage, setActivePage] = useState(0);
   const [lockedRec, setLockedRec] = useState<number | null>(null);
 
-  const spreads = useMemo<Spread[]>(() => {
-    if (!visit) return [];
-    const list: Spread[] = [{ key: "cover", label: "cover" }];
-    if (visit.recommendations && visit.recommendations.length > 0) {
-      list.push({ key: "taste", label: "places" });
-    }
-    if (visit.photos && visit.photos.length > 0) {
-      list.push({ key: "gallery", label: "frames" });
-    }
-    return list;
-  }, [visit]);
+  const spreads: Spread[] = useMemo(
+    () => [
+      { key: "cover", label: "cover" },
+      { key: "taste", label: "places" },
+      { key: "gallery", label: "frames" },
+    ],
+    []
+  );
 
   const issueNumber = useMemo(() => {
     if (!visit) return 0;
     const idx = VISITS.findIndex((v) => v.iso === visit.iso);
     return idx >= 0 ? idx + 1 : 0;
   }, [visit]);
+
+  // Hide TopNav while the panel is open. Toggles only when the
+  // open/closed state flips (not on every country switch), so the
+  // nav doesn't flicker when navigating between visits.
+  const isOpen = !!visit;
+  useEffect(() => {
+    if (!isOpen) return;
+    document.documentElement.classList.add("blog-panel-open");
+    return () => {
+      document.documentElement.classList.remove("blog-panel-open");
+    };
+  }, [isOpen]);
 
   // Snap-scroll position → active page (rAF-throttled).
   useEffect(() => {
@@ -94,7 +102,7 @@ export default function BlogCountryModal({ visit, onClose }: Props) {
         return;
       }
       if (e.key === "ArrowLeft" || e.key === "ArrowRight") {
-        if (lockedRec !== null) return; // don't page while a card is locked
+        if (lockedRec !== null) return;
         const el = scrollerRef.current;
         if (!el) return;
         const dir = e.key === "ArrowLeft" ? -1 : 1;
@@ -125,9 +133,6 @@ export default function BlogCountryModal({ visit, onClose }: Props) {
     if (!el) return;
     el.scrollTo({ left: i * el.clientWidth, behavior: "smooth" });
   };
-
-  const tasteIndex = spreads.findIndex((s) => s.key === "taste");
-  const galleryIndex = spreads.findIndex((s) => s.key === "gallery");
 
   return (
     <aside
@@ -166,35 +171,22 @@ export default function BlogCountryModal({ visit, onClose }: Props) {
               aria-label={`${visit.name} — ${s.label}`}
             >
               {s.key === "cover" && (
-                <CoverSpread
-                  visit={visit}
-                  issue={issueNumber}
-                  onJumpTaste={
-                    tasteIndex >= 0 ? () => goToPage(tasteIndex) : undefined
-                  }
-                  onJumpGallery={
-                    galleryIndex >= 0
-                      ? () => goToPage(galleryIndex)
-                      : undefined
-                  }
-                />
+                <CoverSpread visit={visit} issue={issueNumber} />
               )}
               {s.key === "taste" && (
                 <TasteSpread
-                  recommendations={visit.recommendations!}
+                  recommendations={visit.recommendations ?? []}
                   lockedRec={lockedRec}
                   setLockedRec={setLockedRec}
                 />
               )}
               {s.key === "gallery" && (
-                <GallerySpread photos={visit.photos!} />
+                <GallerySpread photos={visit.photos ?? []} />
               )}
             </section>
           ))}
         </div>
 
-        {/* Locked chip overlay — lives outside the scroller so it
-            fills the whole panel without inheriting scroll-snap. */}
         <AnimatePresence>
           {lockedRec !== null && visit.recommendations?.[lockedRec] && (
             <LockedChipOverlay
@@ -206,23 +198,21 @@ export default function BlogCountryModal({ visit, onClose }: Props) {
         </AnimatePresence>
       </LayoutGroup>
 
-      {spreads.length > 1 && (
-        <nav className={styles.pager} aria-label="notebook spreads">
-          {spreads.map((s, i) => (
-            <button
-              key={s.key}
-              type="button"
-              className={`${styles.dot} ${i === activePage ? styles.dotActive : ""}`}
-              aria-label={`go to ${s.label}`}
-              aria-current={i === activePage ? "page" : undefined}
-              data-cursor="hover"
-              onClick={() => goToPage(i)}
-            >
-              <span className={styles.dotLabel}>{s.label}</span>
-            </button>
-          ))}
-        </nav>
-      )}
+      <nav className={styles.pager} aria-label="notebook spreads">
+        {spreads.map((s, i) => (
+          <button
+            key={s.key}
+            type="button"
+            className={`${styles.dot} ${i === activePage ? styles.dotActive : ""}`}
+            aria-label={`go to ${s.label}`}
+            aria-current={i === activePage ? "page" : undefined}
+            data-cursor="hover"
+            onClick={() => goToPage(i)}
+          >
+            <span className={styles.dotLabel}>{s.label}</span>
+          </button>
+        ))}
+      </nav>
     </aside>
   );
 }
@@ -231,19 +221,10 @@ export default function BlogCountryModal({ visit, onClose }: Props) {
 /* COVER                                                              */
 /* ------------------------------------------------------------------ */
 
-function CoverSpread({
-  visit,
-  issue,
-  onJumpTaste,
-  onJumpGallery,
-}: {
-  visit: Visit;
-  issue: number;
-  onJumpTaste?: () => void;
-  onJumpGallery?: () => void;
-}) {
+function CoverSpread({ visit, issue }: { visit: Visit; issue: number }) {
   const hero = visit.photos?.[0];
-  const previewThumbs = (visit.photos ?? []).slice(0, 6);
+  const framesCount = visit.photos?.length ?? 0;
+  const spotsCount = visit.recommendations?.length ?? 0;
 
   return (
     <div className={styles.cover}>
@@ -256,49 +237,20 @@ function CoverSpread({
         </span>
       </div>
 
-      {hero ? (
-        <div
-          className={styles.coverHero}
-          style={{ backgroundImage: `url(${hero.src})` }}
-          role="img"
-          aria-label={hero.place ?? `${visit.name} hero`}
-        >
-          <div className={styles.coverStamp} aria-hidden="true">
-            <span className={styles.stampDates}>{visit.dates}</span>
-            <span className={styles.stampLine} />
-            <span className={styles.stampTag}>visited</span>
-          </div>
+      <div
+        className={`${styles.coverHero} ${!hero ? styles.coverHeroEmpty : ""}`}
+        style={hero ? { backgroundImage: `url(${hero.src})` } : undefined}
+        role={hero ? "img" : undefined}
+        aria-label={hero?.place ?? undefined}
+      >
+        <div className={styles.coverStamp} aria-hidden="true">
+          <span className={styles.stampDates}>{visit.dates}</span>
+          <span className={styles.stampLine} />
+          <span className={styles.stampTag}>visited</span>
         </div>
-      ) : (
-        <div className={styles.coverHeroEmpty} aria-hidden="true">
-          <div className={styles.coverStamp}>
-            <span className={styles.stampDates}>{visit.dates}</span>
-            <span className={styles.stampLine} />
-            <span className={styles.stampTag}>visited</span>
-          </div>
-        </div>
-      )}
+      </div>
 
       <h2 className={styles.coverName}>{visit.name}</h2>
-
-      {visit.description && (
-        <p className={styles.coverDescription}>{visit.description}</p>
-      )}
-
-      <dl className={styles.coverFacts}>
-        <div className={styles.fact}>
-          <dt>cities</dt>
-          <dd>{visit.cities.length}</dd>
-        </div>
-        <div className={styles.fact}>
-          <dt>frames</dt>
-          <dd>{visit.photos?.length ?? 0}</dd>
-        </div>
-        <div className={styles.fact}>
-          <dt>spots</dt>
-          <dd>{visit.recommendations?.length ?? 0}</dd>
-        </div>
-      </dl>
 
       {visit.cities.length > 0 && (
         <div className={styles.coverCities}>
@@ -315,66 +267,49 @@ function CoverSpread({
         </div>
       )}
 
-      {(onJumpTaste || onJumpGallery) && (
-        <nav className={styles.coverJumps} aria-label="jump to spread">
-          {onJumpTaste && (
-            <button
-              type="button"
-              className={styles.coverJump}
-              onClick={onJumpTaste}
-              data-cursor="hover"
-            >
-              <span className={styles.coverJumpKicker}>↘ places</span>
-              <span className={styles.coverJumpHint}>
-                taste map of {visit.recommendations?.length ?? 0} spots
-              </span>
-            </button>
-          )}
-          {onJumpGallery && previewThumbs.length > 0 && (
-            <button
-              type="button"
-              className={styles.coverJumpGallery}
-              onClick={onJumpGallery}
-              data-cursor="hover"
-              aria-label="open frames"
-            >
-              <span className={styles.coverJumpKicker}>↘ frames</span>
-              <div className={styles.coverThumbRow}>
-                {previewThumbs.map((p, i) => (
-                  <span
-                    key={i}
-                    className={styles.coverThumb}
-                    style={{ backgroundImage: `url(${p.src})` }}
-                  />
-                ))}
-              </div>
-            </button>
-          )}
-        </nav>
+      {visit.description && (
+        <p className={styles.coverDescription}>{visit.description}</p>
       )}
+
+      <div className={styles.coverCounts}>
+        <span>
+          {framesCount} frame{framesCount === 1 ? "" : "s"}
+        </span>
+        <span className={styles.coverCountSep} aria-hidden="true">
+          ·
+        </span>
+        <span>
+          {spotsCount} spot{spotsCount === 1 ? "" : "s"}
+        </span>
+      </div>
     </div>
   );
 }
 
 /* ------------------------------------------------------------------ */
-/* TASTE — 4-quadrant flavour grid with click-to-lock chips           */
+/* TASTE                                                              */
 /* ------------------------------------------------------------------ */
 
-const CATEGORY_META: Record<
-  Recommendation["category"],
-  { icon: string; label: string; quadrant: "tl" | "tr" | "bl" | "br" }
-> = {
-  coffee: { icon: "☕", label: "coffee", quadrant: "tl" },
-  nature: { icon: "⛰", label: "nature", quadrant: "tr" },
-  food: { icon: "🍽", label: "food", quadrant: "bl" },
-  view: { icon: "▣", label: "view", quadrant: "br" },
-};
+const CATEGORIES: Array<{
+  key: Recommendation["category"];
+  icon: string;
+  label: string;
+  quadrant: "tl" | "tr" | "bl" | "br";
+}> = [
+  { key: "coffee", icon: "☕", label: "coffee", quadrant: "tl" },
+  { key: "nature", icon: "⛰", label: "nature", quadrant: "tr" },
+  { key: "food", icon: "🍽", label: "food", quadrant: "bl" },
+  { key: "view", icon: "▣", label: "view", quadrant: "br" },
+];
 
-// Per-quadrant anchor offsets. `major` is the distance from the
-// quadrant's outer (corner) edge along the long axis; `minor` is
-// along the short axis. Each chip is positioned via `left|right` +
-// `top|bottom` % matching its quadrant so it cannot overflow the
-// canvas no matter how wide its content gets.
+const CATEGORY_META = Object.fromEntries(
+  CATEGORIES.map((c) => [c.key, c])
+) as Record<Recommendation["category"], (typeof CATEGORIES)[number]>;
+
+// Per-quadrant anchor offsets — `x` measured from the quadrant's
+// outer corner along the horizontal axis, `y` along the vertical.
+// React applies these as `left|right + top|bottom` matching the
+// quadrant, so chips grow inward and never overflow.
 const QUADRANT_OFFSETS: Record<
   "tl" | "tr" | "bl" | "br",
   Array<{ x: number; y: number; rot: number }>
@@ -436,19 +371,31 @@ function TasteSpread({
         <div className={styles.tasteAxisH} aria-hidden="true" />
         <div className={styles.tasteAxisV} aria-hidden="true" />
 
-        {(Object.entries(CATEGORY_META) as Array<
-          [Recommendation["category"], (typeof CATEGORY_META)[Recommendation["category"]]]
-        >).map(([cat, meta]) => (
+        {CATEGORIES.map((cat) => (
           <div
-            key={cat}
-            className={`${styles.tasteCornerLabel} ${styles[`corner_${meta.quadrant}`]}`}
-            data-category={cat}
+            key={cat.key}
+            className={`${styles.tasteCornerLabel} ${styles[`corner_${cat.quadrant}`]}`}
+            data-category={cat.key}
             aria-hidden="true"
           >
-            <span className={styles.tasteCornerIcon}>{meta.icon}</span>
-            <span className={styles.tasteCornerText}>{meta.label}</span>
+            <span className={styles.tasteCornerIcon}>{cat.icon}</span>
+            <span className={styles.tasteCornerText}>{cat.label}</span>
           </div>
         ))}
+
+        {/* Empty quadrant placeholders — keep the geometry honest
+            when a country has no chips in a given category. */}
+        {CATEGORIES.map((cat) =>
+          grouped[cat.quadrant].length === 0 ? (
+            <div
+              key={`empty-${cat.key}`}
+              className={`${styles.tasteEmpty} ${styles[`empty_${cat.quadrant}`]}`}
+              aria-hidden="true"
+            >
+              —
+            </div>
+          ) : null
+        )}
 
         {(
           Object.entries(grouped) as Array<
@@ -491,9 +438,6 @@ function ChipInQuadrant({
   isHidden: boolean;
   onLock: () => void;
 }) {
-  // Anchor each chip from its quadrant's outer corner so growing
-  // chips expand AWAY from the centre cross and CAN'T overflow the
-  // canvas no matter what's inside them.
   const positionStyle: React.CSSProperties = {
     [quadrant.includes("l") ? "left" : "right"]: `${offset.x}%`,
     [quadrant.includes("t") ? "top" : "bottom"]: `${offset.y}%`,
@@ -511,7 +455,6 @@ function ChipInQuadrant({
       style={{ ...positionStyle, ["--rot" as string]: `${offset.rot}deg` }}
       onClick={onLock}
       data-cursor="hover"
-      // Hover-grow: scale + lift via spring.
       whileHover={{ scale: 1.06, rotate: 0 }}
       transition={{ type: "spring", stiffness: 320, damping: 28 }}
     >
@@ -536,8 +479,6 @@ function LockedChipOverlay({
   index: number;
   onClose: () => void;
 }) {
-  // Trap clicks on the card itself so backdrop dismiss only fires
-  // from genuine outside clicks.
   const stop = (e: React.MouseEvent) => e.stopPropagation();
 
   return (
@@ -592,7 +533,7 @@ function LockedChipOverlay({
 }
 
 /* ------------------------------------------------------------------ */
-/* GALLERY — contact prints in a slightly tilted grid                 */
+/* GALLERY                                                            */
 /* ------------------------------------------------------------------ */
 
 const PRINT_ROTATIONS = [-2.4, 1.6, -0.8, 2.2, -1.4, 1.0, -2.0, 0.6];
@@ -605,35 +546,42 @@ function GallerySpread({ photos }: { photos: Photo[] }) {
         <span className={styles.spreadCount}>{photos.length}</span>
       </header>
 
-      <div className={styles.galleryGrid}>
-        {photos.map((p, i) => {
-          const rot = PRINT_ROTATIONS[i % PRINT_ROTATIONS.length];
-          return (
-            <figure
-              key={i}
-              className={styles.print}
-              style={{ ["--rot" as string]: `${rot}deg` }}
-            >
-              <div
-                className={styles.printImage}
-                style={{ backgroundImage: `url(${p.src})` }}
-                role="img"
-                aria-label={p.caption ?? p.place ?? "photograph"}
-              />
-              {(p.place || p.caption) && (
-                <figcaption className={styles.printCaption}>
-                  {p.place && (
-                    <span className={styles.printPlace}>{p.place}</span>
-                  )}
-                  {p.caption && (
-                    <span className={styles.printNote}>{p.caption}</span>
-                  )}
-                </figcaption>
-              )}
-            </figure>
-          );
-        })}
-      </div>
+      {photos.length === 0 ? (
+        <div className={styles.galleryEmpty}>
+          <span className={styles.galleryEmptyDash}>—</span>
+          <span className={styles.galleryEmptyText}>frames coming soon</span>
+        </div>
+      ) : (
+        <div className={styles.galleryGrid}>
+          {photos.map((p, i) => {
+            const rot = PRINT_ROTATIONS[i % PRINT_ROTATIONS.length];
+            return (
+              <figure
+                key={i}
+                className={styles.print}
+                style={{ ["--rot" as string]: `${rot}deg` }}
+              >
+                <div
+                  className={styles.printImage}
+                  style={{ backgroundImage: `url(${p.src})` }}
+                  role="img"
+                  aria-label={p.caption ?? p.place ?? "photograph"}
+                />
+                {(p.place || p.caption) && (
+                  <figcaption className={styles.printCaption}>
+                    {p.place && (
+                      <span className={styles.printPlace}>{p.place}</span>
+                    )}
+                    {p.caption && (
+                      <span className={styles.printNote}>{p.caption}</span>
+                    )}
+                  </figcaption>
+                )}
+              </figure>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }

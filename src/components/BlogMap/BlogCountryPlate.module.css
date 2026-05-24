@@ -38,7 +38,7 @@
 
 .name {
   font-size: 18px;
-  text-transform: lowercase;
+  text-transform: capitalize;
 }
 
 .flag {
