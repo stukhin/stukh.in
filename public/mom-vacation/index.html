@@ -475,6 +475,29 @@ section.table-view .hotel{display:none !important;}
 }
 .hotel-table thead .sticky-col{background:#f6f6f9;}
 .hotel-table tbody tr:hover .sticky-col{background:#fafafa;}
+.hotel-table .sticky-col.clickable{display:flex;align-items:center;gap:12px;}
+.hotel-table .rank-badge{
+  flex:0 0 26px;width:26px;height:26px;
+  display:inline-flex;align-items:center;justify-content:center;
+  border-radius:50%;
+  background:#f0f0f4;color:#52525b;
+  font-size:12px;font-weight:800;letter-spacing:-.01em;
+}
+.hotel-table .rank-badge.r1{background:#fbbf24;color:#7c2d12;}
+.hotel-table .rank-badge.r2{background:#d4d4d8;color:#18181b;}
+.hotel-table .rank-badge.r3{background:#fb923c;color:#7c2d12;}
+.hotel-table .h-name-block{min-width:0;flex:1;}
+.hotel-table tbody tr[data-slug]{cursor:pointer;}
+
+/* Card flash when scrolled to from decision table */
+.hotel.flash{
+  animation:cardFlash 1.8s ease;
+}
+@keyframes cardFlash{
+  0%{box-shadow:0 0 0 0 rgba(37,99,235,0),0 1px 2px rgba(0,0,0,.04),0 6px 20px rgba(0,0,0,.04);}
+  15%,55%{box-shadow:0 0 0 4px rgba(37,99,235,.45),0 8px 28px rgba(37,99,235,.18);}
+  100%{box-shadow:0 0 0 0 rgba(37,99,235,0),0 1px 2px rgba(0,0,0,.04),0 6px 20px rgba(0,0,0,.04);}
+}
 .hotel-table .h-rate{
   display:inline-flex;align-items:center;justify-content:center;
   padding:4px 9px;border-radius:6px;
@@ -2228,7 +2251,7 @@ if (seyMapEl) {
     const img = document.querySelector(`img[src="/mom-vacation/pics_booking/${slug}_1.jpg"]`);
     return img ? img.closest('.hotel') : null;
   }
-  function rowFor(card){
+  function rowFor(card, rank, slug){
     const nameEl = card.querySelector('.h-name');
     const full = nameEl ? nameEl.textContent.trim() : '';
     const name = shortName(full);
@@ -2243,10 +2266,14 @@ if (seyMapEl) {
     const price = card.dataset.price;
     const bookLink = card.querySelector('.btn-book');
     const href = bookLink ? bookLink.getAttribute('href') : '#';
-    return `<tr>
-      <td class="sticky-col">
-        <div class="h-name">${name}</div>
-        ${area ? `<div class="h-area">${area}</div>` : ''}
+    const rankCls = rank <= 3 ? `r${rank}` : '';
+    return `<tr data-slug="${slug}">
+      <td class="sticky-col clickable">
+        <div class="rank-badge ${rankCls}">${rank}</div>
+        <div class="h-name-block">
+          <div class="h-name">${name}</div>
+          ${area ? `<div class="h-area">${area}</div>` : ''}
+        </div>
       </td>
       <td><span class="h-rate ${ratingCls}">${rating}</span></td>
       <td>${stars}★</td>
@@ -2258,8 +2285,10 @@ if (seyMapEl) {
     </tr>`;
   }
   function buildTable(slugs){
-    const cards = slugs.map(cardBySlug).filter(Boolean);
-    const rows = cards.map(rowFor).join('');
+    const rows = slugs.map((slug, i) => {
+      const card = cardBySlug(slug);
+      return card ? rowFor(card, i + 1, slug) : '';
+    }).join('');
     return `<div class="hotel-table-wrap" style="display:block;">
       <div class="hotel-table-scroll">
         <table class="hotel-table">
@@ -2279,9 +2308,43 @@ if (seyMapEl) {
     </div>`;
   }
 
+  function scrollToCard(slug){
+    const img = document.querySelector(`img[src="/mom-vacation/pics_booking/${slug}_1.jpg"]`);
+    if (!img) return;
+    const card = img.closest('.hotel');
+    if (!card) return;
+    const navH = window.matchMedia('(max-width: 780px)').matches ? 70 : 80;
+    const targetY = card.getBoundingClientRect().top + window.scrollY - navH;
+    window.scrollTo({ top: targetY, behavior: 'smooth' });
+    // brief highlight
+    card.classList.remove('flash');
+    void card.offsetWidth;
+    card.classList.add('flash');
+    setTimeout(() => card.classList.remove('flash'), 1800);
+  }
+
+  function snapButtonToLeft(btn){
+    if (!window.matchMedia('(max-width: 780px)').matches) return;
+    const container = btn.closest('.dh-buttons');
+    if (!container) return;
+    const cRect = container.getBoundingClientRect();
+    const bRect = btn.getBoundingClientRect();
+    const PEEK = 32;
+    const target = container.scrollLeft + (bRect.left - cRect.left) - PEEK;
+    container.scrollTo({ left: Math.max(0, target), behavior: 'smooth' });
+  }
+
   const results = document.getElementById('dhResults');
   if (!results) return;
   let currentPick = null;
+
+  // Delegate click on rendered table rows → scroll to card
+  results.addEventListener('click', (e) => {
+    if (e.target.closest('a')) return; // let Booking link work normally
+    const tr = e.target.closest('tr[data-slug]');
+    if (!tr) return;
+    scrollToCard(tr.dataset.slug);
+  });
 
   document.querySelectorAll('.dh-btn').forEach(btn => {
     btn.addEventListener('click', () => {
@@ -2301,7 +2364,11 @@ if (seyMapEl) {
       const slugs = PICKS[pick];
       const title = TITLES[pick];
       results.innerHTML = `<div class="dh-result-title">${title}</div>${buildTable(slugs)}`;
-      // Smooth scroll into view
+
+      // Mobile: snap active button to left edge with peek (like nav)
+      snapButtonToLeft(btn);
+
+      // Smooth scroll table into view
       requestAnimationFrame(() => {
         results.scrollIntoView({behavior:'smooth', block:'nearest'});
       });
