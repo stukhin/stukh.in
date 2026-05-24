@@ -285,6 +285,31 @@ section .section-lead{
 .map-body{max-height:560px;overflow:hidden;transition:max-height .35s ease;}
 .map-card.collapsed .map-body{max-height:0;}
 .leaflet-map{width:100%;height:520px;}
+
+/* Big "expand map" CTA — visible only on mobile when map is collapsed */
+.map-expand-cta{display:none;}
+@media (max-width:780px){
+  /* Mobile: map collapsed by default, .expanded class opens it */
+  .map-card .map-body{max-height:0;}
+  .map-card.expanded .map-body{max-height:560px;}
+  .map-card:not(.expanded) .map-head{border-bottom-color:transparent;}
+  .map-card:not(.expanded) .map-toggle-btn .chev{transform:rotate(-180deg);}
+  .map-card.expanded .map-toggle-btn .chev{transform:none;}
+  /* Hide small chevron-toggle on mobile when collapsed — big CTA takes its role */
+  .map-card:not(.expanded) .map-toggle-btn{display:none;}
+  /* Big CTA */
+  .map-expand-cta{
+    display:flex;align-items:center;justify-content:center;gap:10px;
+    width:100%;padding:28px 18px;
+    background:#fff;color:#0a0a0a;
+    border:0;border-top:1px solid var(--card-border);
+    font:inherit;font-size:15px;font-weight:700;letter-spacing:-.005em;
+    cursor:pointer;transition:background .12s;
+  }
+  .map-expand-cta:hover,.map-expand-cta:active{background:#f0f0f4;}
+  .map-expand-cta svg{width:22px;height:22px;flex-shrink:0;}
+  .map-card.expanded .map-expand-cta{display:none;}
+}
 .leaflet-popup-content-wrapper{border-radius:10px;}
 .popup-name{font-weight:600;font-size:14px;margin-bottom:3px;color:#0a0a0a;}
 .popup-meta{font-size:12px;color:#71717a;}
@@ -843,6 +868,10 @@ body.lightbox-open{overflow:hidden;}
     <div class="map-body">
       <div id="turkey-map" class="leaflet-map"></div>
     </div>
+    <button class="map-expand-cta" type="button" id="mapExpandCta">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg>
+      Показать карту Турции
+    </button>
   </div>
 </section>
 
@@ -1458,6 +1487,10 @@ body.lightbox-open{overflow:hidden;}
     <div class="map-body">
       <div id="seychelles-map" class="leaflet-map"></div>
     </div>
+    <button class="map-expand-cta" type="button" id="seyMapExpandCta">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg>
+      Показать карту Сейшел
+    </button>
   </div>
 
   <div class="grid">
@@ -2271,18 +2304,46 @@ if (seyMapEl) {
 
 /* ========== MAP TOGGLE ========== */
 (function(){
+  // Desktop: map open by default, click header to collapse (.collapsed class).
+  // Mobile: map closed by default (CSS-only), .expanded class opens it; CTA button is prominent.
+  const MQ_MOBILE = window.matchMedia('(max-width: 780px)');
+
   function bind(cardId, headId, mapKey){
     const card = document.getElementById(cardId);
     const head = document.getElementById(headId);
     if (!card || !head) return;
     const txt = head.querySelector('.map-toggle-txt');
-    head.addEventListener('click', () => {
-      const collapsed = card.classList.toggle('collapsed');
-      if (txt) txt.textContent = collapsed ? 'Показать карту' : 'Скрыть карту';
-      if (!collapsed && window[mapKey]) {
+    const cta = card.querySelector('.map-expand-cta');
+
+    function isMobile(){ return MQ_MOBILE.matches; }
+    function isOpen(){
+      return isMobile()
+        ? card.classList.contains('expanded')
+        : !card.classList.contains('collapsed');
+    }
+    function setOpen(open){
+      if (isMobile()){
+        card.classList.toggle('expanded', open);
+      } else {
+        card.classList.toggle('collapsed', !open);
+      }
+      if (txt) txt.textContent = open ? 'Скрыть карту' : 'Показать карту';
+      if (open && window[mapKey]){
         setTimeout(() => window[mapKey].invalidateSize(), 360);
       }
-    });
+    }
+    function toggle(){ setOpen(!isOpen()); }
+
+    head.addEventListener('click', toggle);
+    if (cta){
+      cta.addEventListener('click', (e) => {
+        e.stopPropagation();
+        toggle();
+      });
+    }
+
+    // Initialize header text for current viewport state
+    if (txt) txt.textContent = isOpen() ? 'Скрыть карту' : 'Показать карту';
   }
   bind('mapCard',    'mapHead',    '_leafletMap');
   bind('seyMapCard', 'seyMapHead', '_seyMap');
