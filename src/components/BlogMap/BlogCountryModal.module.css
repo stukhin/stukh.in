@@ -1,14 +1,16 @@
 /* ============================================================
-   Country "field notebook" — horizontally paged spreads.
+   Country "field notebook" — three horizontally paged spreads.
 
-   Layout: fixed-position aside on the right (full-screen on
-   mobile). Inside is a flex row with CSS scroll-snap, one spread
-   per snap stop. Each spread renders its own micro-layout
-   (cover · sheet · taste · map · notes); no shared subheaders.
+     1. cover   hero photo, name, fact row, jump-cards to other
+                spreads
+     2. taste   recommendations on a 4-quadrant flavour grid;
+                chips grow on hover, lock to a centred card on
+                click, collapse back to slot on backdrop click
+     3. gallery contact-print grid of photos
 
-   The visual language stays Swiss-typographic — no paper textures,
-   no skeuomorphic decoration — relying on geometry + per-spread
-   layout shift to break the dossier formula.
+   Layout language: Swiss-typographic, no skeuomorphic textures.
+   Breaks the AI-shaped subheader dossier formula through paged
+   navigation + per-spread micro-layouts.
    ============================================================ */
 
 /* ---- panel container ---- */
@@ -69,8 +71,8 @@
 
 .close {
   position: absolute;
-  top: 24px;
-  right: 28px;
+  top: 22px;
+  right: 24px;
   width: 36px;
   height: 36px;
   display: flex;
@@ -85,18 +87,17 @@
   cursor: none;
   opacity: 0.55;
   transition: opacity 0.15s ease;
-  z-index: 4;
+  z-index: 5;
 }
-
 .close:hover {
   opacity: 1;
 }
 
-/* ---- footer title (shows current spread when not on cover) ---- */
+/* ---- footer title ---- */
 
 .footerTitle {
   position: absolute;
-  bottom: 22px;
+  bottom: 26px;
   left: 28px;
   font-size: 11px;
   letter-spacing: 0.18em;
@@ -118,8 +119,8 @@
   overflow-y: hidden;
   scroll-snap-type: x mandatory;
   scroll-behavior: smooth;
-  /* Hide the scrollbar across engines. */
   scrollbar-width: none;
+  min-height: 0;
 }
 .scroller::-webkit-scrollbar {
   display: none;
@@ -134,7 +135,8 @@
   overflow-y: auto;
   overflow-x: hidden;
   scrollbar-width: none;
-  padding: 80px 56px 80px 56px;
+  /* bottom padding leaves room for pager + footerTitle */
+  padding: 64px 48px 80px 48px;
   display: flex;
   flex-direction: column;
   position: relative;
@@ -146,24 +148,24 @@
 
 @media (max-width: 1024px) {
   .spread {
-    padding: 72px 40px 72px 40px;
+    padding: 56px 36px 76px 36px;
   }
 }
 
 @media (max-width: 597px) {
   .spread {
-    padding: 60px 24px 72px 24px;
+    padding: 48px 22px 72px 22px;
   }
 }
 
-/* ---- page indicator (dots + spread label on hover/active) ---- */
+/* ---- page indicator dots ---- */
 
 .pager {
   position: absolute;
-  bottom: 22px;
+  bottom: 24px;
   right: 28px;
   display: flex;
-  gap: 14px;
+  gap: 12px;
   z-index: 4;
   align-items: center;
 }
@@ -222,11 +224,10 @@
 
 .cover {
   flex: 1;
-  display: grid;
-  grid-template-rows: auto 1fr auto auto;
+  display: flex;
+  flex-direction: column;
   gap: 0;
-  height: 100%;
-  padding-top: 8px;
+  min-height: 0;
 }
 
 .coverMeta {
@@ -234,113 +235,128 @@
   align-items: baseline;
   justify-content: space-between;
   gap: 16px;
-  margin-bottom: 8px;
+  /* pad right so the issue number doesn't crash into the close X */
+  padding-right: 48px;
+  margin-bottom: 18px;
 }
 
 .coverIssue {
-  font-size: 12px;
-  letter-spacing: 0.22em;
+  font-size: 11px;
+  letter-spacing: 0.24em;
   text-transform: uppercase;
-  opacity: 0.55;
+  opacity: 0.5;
   font-weight: 400;
 }
 
 .coverFlag {
-  font-size: 32px;
+  font-size: 24px;
   line-height: 1;
 }
 
-.coverName {
-  margin: 0;
-  font-size: clamp(64px, 13vw, 140px);
-  font-weight: 200;
-  letter-spacing: -0.035em;
-  text-transform: lowercase;
-  line-height: 0.86;
-  align-self: end;
-  /* Hyphenate / break long names so they don't push the panel
-     wider than the column. */
-  word-break: break-word;
-  overflow-wrap: break-word;
+/* Hero photo: dominant block at the top, aspect 4:3 so it fills
+   the panel width with breathing room above and below. The stamp
+   sits in its top-right corner. */
+.coverHero,
+.coverHeroEmpty {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  background-color: rgba(0, 0, 0, 0.06);
+  background-size: cover;
+  background-position: center;
+  box-shadow:
+    0 1px 0 rgba(0, 0, 0, 0.06),
+    0 16px 36px rgba(0, 0, 0, 0.12);
+  margin-bottom: 24px;
+  flex-shrink: 0;
 }
-
-/* Visa stamp: tilted rect with a dotted border, dates inside,
-   a hairline + "visited" tag below. Pure CSS, no SVG. */
-.coverStampWrap {
-  position: absolute;
-  top: 96px;
-  right: 64px;
-  pointer-events: none;
-}
-
-@media (max-width: 1024px) {
-  .coverStampWrap {
-    top: 84px;
-    right: 48px;
-  }
+.coverHeroEmpty {
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-end;
+  padding: 18px;
 }
 
 @media (max-width: 597px) {
-  .coverStampWrap {
-    top: 72px;
-    right: 32px;
+  .coverHero,
+  .coverHeroEmpty {
+    aspect-ratio: 4 / 3;
+    margin-bottom: 18px;
   }
 }
 
+/* Visa stamp sitting in the hero's top-right corner */
 .coverStamp {
+  position: absolute;
+  top: 18px;
+  right: 18px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 8px;
-  padding: 14px 22px;
-  border: 1.5px dashed rgba(193, 74, 58, 0.55);
+  gap: 6px;
+  padding: 12px 18px;
+  border: 1.5px dashed rgba(193, 74, 58, 0.7);
   border-radius: 4px;
   transform: rotate(-6deg);
-  color: rgba(193, 74, 58, 0.75);
+  color: rgba(193, 74, 58, 0.85);
   font-weight: 400;
-  /* Faint inner glow so the stamp feels inked rather than drawn. */
-  background: rgba(193, 74, 58, 0.04);
+  background: rgba(245, 244, 241, 0.88);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  pointer-events: none;
 }
-
+.coverHeroEmpty .coverStamp {
+  position: static;
+}
 .stampDates {
-  font-size: 11px;
+  font-size: 10px;
   letter-spacing: 0.16em;
   text-transform: uppercase;
   white-space: nowrap;
 }
 .stampLine {
-  width: 36px;
+  width: 32px;
   height: 1px;
   background: rgba(193, 74, 58, 0.55);
 }
 .stampTag {
-  font-size: 14px;
+  font-size: 12px;
   letter-spacing: 0.3em;
   text-transform: uppercase;
 }
 
+.coverName {
+  margin: 0 0 6px;
+  font-size: clamp(48px, 7.8vw, 96px);
+  font-weight: 200;
+  letter-spacing: -0.035em;
+  text-transform: lowercase;
+  line-height: 0.9;
+  word-break: break-word;
+  overflow-wrap: break-word;
+}
+
 .coverDescription {
-  margin: 32px 0 0;
-  max-width: 56ch;
-  font-size: 16px;
+  margin: 4px 0 0;
+  max-width: 58ch;
+  font-size: 15px;
   line-height: 1.55;
   font-weight: 300;
   letter-spacing: -0.005em;
-  opacity: 0.85;
+  opacity: 0.82;
 }
 
 @media (max-width: 597px) {
   .coverDescription {
     font-size: 14px;
-    margin-top: 24px;
   }
 }
 
 .coverFacts {
   display: flex;
   gap: 36px;
-  margin: 28px 0 0;
-  padding: 18px 0 0;
+  margin: 22px 0 0;
+  padding: 16px 0 0;
   border-top: 1px solid rgba(0, 0, 0, 0.08);
 }
 .fact {
@@ -356,38 +372,108 @@
 }
 .fact dd {
   margin: 0;
-  font-size: 26px;
+  font-size: 24px;
   font-weight: 300;
   letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
 }
 
-.coverAdvance {
-  margin-top: 24px;
-  align-self: flex-start;
-  background: transparent;
-  border: none;
-  padding: 0;
-  font-size: 12px;
-  letter-spacing: 0.16em;
+/* City list — comma-style row, distinct from facts so it has its
+   own visual rhythm */
+.coverCities {
+  margin: 14px 0 0;
+  font-size: 13px;
+  font-weight: 400;
+  letter-spacing: -0.005em;
   text-transform: lowercase;
-  color: #1a1a1a;
-  opacity: 0.6;
-  cursor: none;
-  transition: opacity 0.15s ease;
+  opacity: 0.7;
 }
-.coverAdvance:hover {
-  opacity: 1;
+.coverCity {
+  white-space: nowrap;
+}
+.coverCitySep {
+  margin: 0 8px;
+  opacity: 0.5;
+}
+
+/* Jump cards — quick links to the next two spreads with a teaser */
+.coverJumps {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-top: 28px;
+}
+
+@media (max-width: 597px) {
+  .coverJumps {
+    grid-template-columns: 1fr;
+    gap: 12px;
+    margin-top: 22px;
+  }
+}
+
+.coverJump,
+.coverJumpGallery {
+  background: rgba(255, 255, 255, 0.5);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  padding: 14px 16px;
+  text-align: left;
+  cursor: none;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  transition: background 0.18s ease, transform 0.18s ease,
+    border-color 0.18s ease;
+}
+.coverJump:hover,
+.coverJumpGallery:hover {
+  background: rgba(255, 255, 255, 0.8);
+  border-color: rgba(0, 0, 0, 0.18);
+  transform: translateY(-1px);
+}
+
+.coverJumpKicker {
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: #1a1a1a;
+  opacity: 0.65;
+  font-weight: 500;
+}
+.coverJumpHint {
+  font-size: 13px;
+  font-weight: 300;
+  color: #1a1a1a;
+  opacity: 0.7;
+  letter-spacing: -0.005em;
+}
+
+.coverThumbRow {
+  display: flex;
+  gap: 4px;
+  height: 36px;
+}
+.coverThumb {
+  flex: 1;
+  height: 100%;
+  min-width: 0;
+  background-size: cover;
+  background-position: center;
+  background-color: rgba(0, 0, 0, 0.06);
+  border-radius: 1px;
 }
 
 /* ============================================================
-   Shared spread header (sheet · taste · map · notes)
+   Shared spread header
    ============================================================ */
 
 .spreadHeader {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
-  margin-bottom: 28px;
+  margin-bottom: 22px;
+  /* reserve right side for close button */
+  padding-right: 48px;
 }
 .spreadKicker {
   font-size: 11px;
@@ -397,35 +483,272 @@
   font-weight: 400;
 }
 .spreadCount {
-  font-size: 13px;
-  letter-spacing: -0.01em;
+  font-size: 12px;
+  letter-spacing: -0.005em;
   font-weight: 300;
   opacity: 0.55;
   font-variant-numeric: tabular-nums;
 }
 
 /* ============================================================
-   SHEET — contact prints in a slightly tilted grid
+   TASTE — 4-quadrant flavour grid
    ============================================================ */
 
-.sheet {
+.taste {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.tasteCanvas {
+  position: relative;
+  flex: 1;
+  min-height: 520px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  background: rgba(255, 255, 255, 0.4);
+  overflow: visible; /* hover-grown chips can briefly exceed */
+}
+
+.tasteAxisH,
+.tasteAxisV {
+  position: absolute;
+  background: rgba(0, 0, 0, 0.08);
+  pointer-events: none;
+}
+.tasteAxisH {
+  left: 0;
+  right: 0;
+  top: 50%;
+  height: 1px;
+}
+.tasteAxisV {
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  width: 1px;
+}
+
+.tasteCornerLabel {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  opacity: 0.45;
+  pointer-events: none;
+  font-weight: 500;
+}
+.tasteCornerIcon {
+  font-size: 16px;
+  opacity: 0.85;
+}
+
+.corner_tl { top: 14px; left: 14px; }
+.corner_tr { top: 14px; right: 14px; flex-direction: row-reverse; }
+.corner_bl { bottom: 14px; left: 14px; }
+.corner_br { bottom: 14px; right: 14px; flex-direction: row-reverse; }
+
+/* Chip — absolutely positioned via inline left|right + top|bottom
+   from its quadrant anchor in the React layer. */
+.tasteChip {
+  position: absolute;
+  max-width: 200px;
+  padding: 10px 14px 11px;
+  background: #fff;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 2px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  text-align: left;
+  border-left-width: 3px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+  cursor: none;
+  font-family: inherit;
+  /* Apply chip's resting rotation via custom prop set inline */
+  --rot: 0deg;
+  transform: rotate(var(--rot));
+  z-index: 1;
+}
+.tasteChip:hover {
+  z-index: 3;
+  box-shadow: 0 10px 22px rgba(0, 0, 0, 0.12);
+}
+
+/* When a chip's "lifted" version is shown in the overlay, hide
+   the original silhouette in the grid (layoutId will animate the
+   real card; we just don't want the ghost still rendering). */
+.tasteChipHidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.tasteChip[data-category="coffee"] { border-left-color: #8a5a3b; }
+.tasteChip[data-category="nature"] { border-left-color: #4a6b3e; }
+.tasteChip[data-category="food"]   { border-left-color: #c14a3a; }
+.tasteChip[data-category="view"]   { border-left-color: #3a4a6b; }
+
+.tasteChipName {
+  font-size: 13px;
+  letter-spacing: -0.005em;
+  line-height: 1.3;
+  font-weight: 500;
+  color: #1a1a1a;
+}
+.tasteChipCity {
+  font-size: 9px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  opacity: 0.5;
+  font-weight: 400;
+}
+
+@media (max-width: 597px) {
+  .tasteCanvas {
+    min-height: 460px;
+  }
+  .tasteChip {
+    max-width: 140px;
+    padding: 8px 11px 9px;
+  }
+  .tasteChipName { font-size: 12px; }
+}
+
+/* ---- Locked chip overlay ---- */
+
+.lockedBackdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(245, 244, 241, 0.7);
+  backdrop-filter: blur(8px) saturate(140%);
+  -webkit-backdrop-filter: blur(8px) saturate(140%);
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 28px;
+  cursor: none;
+}
+
+.lockedChip {
+  position: relative;
+  max-width: min(420px, 100%);
+  width: 100%;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  background: #fff;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  border-left-width: 4px;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.22);
+  overflow: hidden;
+  z-index: 21;
+  /* Locked card should not inherit chip's resting rotation. */
+  --rot: 0deg;
+  transform: none;
+}
+
+.lockedPhoto {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  background-size: cover;
+  background-position: center;
+  background-color: rgba(0, 0, 0, 0.06);
+}
+
+.lockedBody {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 20px 22px 22px;
+}
+
+.lockedCategory {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  opacity: 0.6;
+}
+.lockedCategoryIcon { font-size: 13px; }
+
+.lockedName {
+  font-size: 22px;
+  font-weight: 400;
+  letter-spacing: -0.015em;
+  line-height: 1.2;
+  color: #1a1a1a;
+}
+
+.lockedNote {
+  margin: 4px 0 0;
+  font-size: 14px;
+  line-height: 1.55;
+  font-weight: 300;
+  color: #1a1a1a;
+  opacity: 0.78;
+  max-width: 50ch;
+}
+
+.lockedClose {
+  position: absolute;
+  top: 8px;
+  right: 10px;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  font-size: 26px;
+  font-weight: 200;
+  line-height: 1;
+  color: #fff;
+  cursor: none;
+  opacity: 0.7;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+  transition: opacity 0.15s ease;
+}
+.lockedChip:has(.lockedPhoto) .lockedClose {
+  /* When there's a hero photo, the X sits over it — keep light. */
+  color: #fff;
+}
+.lockedClose:hover {
+  opacity: 1;
+}
+/* When there is NO photo, the X sits over white card — use dark */
+.lockedChip:not(:has(.lockedPhoto)) .lockedClose {
+  color: #1a1a1a;
+  text-shadow: none;
+}
+
+/* ============================================================
+   GALLERY — contact prints
+   ============================================================ */
+
+.gallery {
   flex: 1;
   display: flex;
   flex-direction: column;
 }
 
-.sheetGrid {
+.galleryGrid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 28px 22px;
+  gap: 30px 22px;
   align-content: start;
   flex: 1;
-  /* the grid itself scrolls within the spread when there are many
-     photos, so the page indicator stays in view */
 }
 
 @media (max-width: 597px) {
-  .sheetGrid {
+  .galleryGrid {
     grid-template-columns: 1fr;
     gap: 22px;
   }
@@ -449,7 +772,6 @@
   background-size: cover;
   background-position: center;
   background-color: rgba(0, 0, 0, 0.06);
-  /* Subtle "print" border: thin dark inset + soft shadow. */
   box-shadow:
     0 1px 0 rgba(0, 0, 0, 0.04),
     0 8px 20px rgba(0, 0, 0, 0.1),
@@ -473,321 +795,4 @@
   font-weight: 300;
   line-height: 1.4;
   opacity: 0.55;
-}
-
-/* ============================================================
-   TASTE — 4-quadrant flavour grid
-   ============================================================ */
-
-.taste {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-}
-
-.tasteCanvas {
-  position: relative;
-  flex: 1;
-  min-height: 480px;
-  border: 1px solid rgba(0, 0, 0, 0.08);
-  background: rgba(255, 255, 255, 0.4);
-}
-
-.tasteAxisH,
-.tasteAxisV {
-  position: absolute;
-  background: rgba(0, 0, 0, 0.08);
-  pointer-events: none;
-}
-.tasteAxisH {
-  left: 0;
-  right: 0;
-  top: 50%;
-  height: 1px;
-}
-.tasteAxisV {
-  top: 0;
-  bottom: 0;
-  left: 50%;
-  width: 1px;
-}
-
-/* Corner labels — sit in the four corners of the canvas. */
-.tasteCornerLabel {
-  position: absolute;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 11px;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  opacity: 0.5;
-  pointer-events: none;
-}
-.tasteCornerIcon {
-  font-size: 16px;
-  opacity: 0.85;
-}
-
-.corner_tl { top: 16px; left: 16px; }
-.corner_tr { top: 16px; right: 16px; flex-direction: row-reverse; }
-.corner_bl { bottom: 16px; left: 16px; }
-.corner_br { bottom: 16px; right: 16px; flex-direction: row-reverse; }
-
-/* Chips — placed via inline left/top % on the canvas. */
-.tasteChip {
-  position: absolute;
-  max-width: 220px;
-  padding: 8px 12px 9px;
-  background: #fff;
-  border: 1px solid rgba(0, 0, 0, 0.08);
-  border-radius: 2px;
-  display: flex;
-  flex-direction: column;
-  gap: 1px;
-  transform: rotate(var(--rot, 0deg));
-  transform-origin: top left;
-  /* Each category gets a left-edge colour stripe so the chip's
-     position on the grid is corroborated by its colour. */
-  border-left-width: 3px;
-  transition: transform 0.2s ease, box-shadow 0.2s ease, z-index 0s linear 0.2s;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
-  cursor: none;
-}
-.tasteChip:hover {
-  transform: rotate(0deg) translateY(-2px);
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
-  z-index: 2;
-  transition: transform 0.2s ease, box-shadow 0.2s ease, z-index 0s linear 0s;
-}
-
-.tasteChip[data-category="coffee"] { border-left-color: #8a5a3b; }
-.tasteChip[data-category="nature"] { border-left-color: #4a6b3e; }
-.tasteChip[data-category="food"]   { border-left-color: #c14a3a; }
-.tasteChip[data-category="view"]   { border-left-color: #3a4a6b; }
-
-.tasteChipName {
-  font-size: 12px;
-  letter-spacing: -0.005em;
-  line-height: 1.3;
-  font-weight: 400;
-  color: #1a1a1a;
-}
-.tasteChipCity {
-  font-size: 9px;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  opacity: 0.5;
-}
-
-@media (max-width: 597px) {
-  .tasteCanvas {
-    min-height: 420px;
-  }
-  .tasteChip {
-    max-width: 150px;
-    padding: 7px 10px 8px;
-  }
-  .tasteChipName { font-size: 11px; }
-}
-
-/* ============================================================
-   MAP — country silhouette + city pins
-   ============================================================ */
-
-.map {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-}
-
-.mapCanvas {
-  flex: 1;
-  min-height: 280px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 8px 0;
-}
-
-.mapSvg {
-  width: 100%;
-  height: 100%;
-  max-height: 460px;
-  display: block;
-}
-
-.mapSilhouette {
-  fill: #1a1a1a;
-  fill-opacity: 0.08;
-  stroke: #1a1a1a;
-  stroke-opacity: 0.5;
-  stroke-width: 0.75;
-  stroke-linejoin: round;
-  vector-effect: non-scaling-stroke;
-}
-
-.mapPin {
-  cursor: none;
-}
-.mapPinHalo {
-  fill: transparent;
-}
-.mapPinRing {
-  fill: transparent;
-  stroke: #c14a3a;
-  stroke-width: 1.5;
-  vector-effect: non-scaling-stroke;
-  transition: r 0.2s ease, stroke-width 0.2s ease;
-}
-.mapPinDot {
-  fill: #c14a3a;
-  transition: r 0.2s ease;
-}
-.mapPinActive .mapPinRing { stroke-width: 2; }
-.mapPinActive .mapPinDot { fill: #c14a3a; }
-
-.mapPinLabel {
-  font-size: 12px;
-  letter-spacing: 0.02em;
-  fill: #1a1a1a;
-  fill-opacity: 0.7;
-  font-weight: 400;
-  pointer-events: none;
-  /* Default fade — only active pin's label reads at full opacity. */
-  opacity: 0.55;
-  transition: opacity 0.2s ease;
-}
-.mapPin:hover .mapPinLabel,
-.mapPinActive .mapPinLabel {
-  opacity: 1;
-}
-
-.mapDetail {
-  margin-top: 24px;
-  display: grid;
-  grid-template-columns: 120px 1fr;
-  gap: 18px;
-  padding-top: 18px;
-  border-top: 1px solid rgba(0, 0, 0, 0.08);
-}
-
-@media (max-width: 597px) {
-  .mapDetail {
-    grid-template-columns: 80px 1fr;
-    gap: 14px;
-    margin-top: 18px;
-  }
-}
-
-.mapDetailPhoto {
-  width: 100%;
-  aspect-ratio: 1 / 1;
-  background-size: cover;
-  background-position: center;
-  background-color: rgba(0, 0, 0, 0.06);
-  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.08);
-}
-
-.mapDetailBody {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  padding-top: 4px;
-}
-
-.mapDetailName {
-  font-size: 20px;
-  font-weight: 300;
-  letter-spacing: -0.015em;
-  text-transform: lowercase;
-}
-
-.mapDetailMemory {
-  margin: 0;
-  font-size: 13px;
-  line-height: 1.55;
-  font-weight: 300;
-  opacity: 0.75;
-}
-
-.mapEmpty {
-  margin: auto;
-  font-size: 13px;
-  opacity: 0.5;
-}
-
-/* ============================================================
-   NOTES — dispatch entries
-   ============================================================ */
-
-.notes {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-}
-
-.notesList {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 36px;
-}
-
-.note {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  padding-left: 18px;
-  position: relative;
-  /* Margin line, like a notebook */
-  border-left: 1px solid rgba(193, 74, 58, 0.35);
-}
-
-.noteHead {
-  display: flex;
-  align-items: baseline;
-  gap: 14px;
-  flex-wrap: wrap;
-}
-
-.noteDay {
-  font-size: 10px;
-  letter-spacing: 0.22em;
-  text-transform: uppercase;
-  opacity: 0.6;
-  font-weight: 500;
-}
-
-.notePlace {
-  font-size: 14px;
-  font-weight: 400;
-  letter-spacing: -0.01em;
-  text-transform: lowercase;
-  opacity: 0.85;
-}
-
-.noteText {
-  margin: 0;
-  /* Italic serif as a stand-in for "handwritten" — keeps the
-     vibe without a webfont network round-trip. */
-  font-family: Georgia, "Times New Roman", serif;
-  font-style: italic;
-  font-size: 17px;
-  line-height: 1.55;
-  font-weight: 400;
-  color: #1a1a1a;
-  opacity: 0.85;
-  max-width: 56ch;
-}
-
-@media (max-width: 597px) {
-  .notesList {
-    gap: 28px;
-  }
-  .noteText {
-    font-size: 15px;
-  }
 }

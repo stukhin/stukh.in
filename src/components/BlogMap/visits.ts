@@ -4,20 +4,17 @@
  * world-atlas/countries-50m.json) so the map's path renderer can
  * look the visit up directly off the geometry it just drew.
  *
- * Country panel = the "field notebook" (BlogCountryModal), a
- * horizontally-paged spread instead of a vertical dossier:
- *   1. cover  — typography + visa stamp
- *   2. sheet  — contact-sheet film strip from `photos`
- *   3. taste  — `recommendations` plotted on a 4-quadrant flavour
- *               grid by `category`
- *   4. map    — country silhouette with city pins from `cityPins`
- *   5. notes  — `dispatch` micro-entries, handwritten
+ * Country panel = the "field notebook" (BlogCountryModal), three
+ * horizontally-paged spreads instead of a vertical dossier:
+ *   1. cover   — hero photo, name, fact row, jump links
+ *   2. taste   — `recommendations` on a 4-quadrant flavour grid
+ *                by `category`; click a chip to lock it centred
+ *   3. gallery — contact prints from `photos`
  *
- * Each notebook field is optional — countries with only the legacy
- * shape (description + cities + plain string recs) still render
- * cleanly, just with fewer spreads filled in. Spain is the pilot
- * with every field populated so the layout has something real to
- * land on.
+ * Optional fields degrade gracefully — countries with only the
+ * legacy shape (description + cities + plain string recs) still
+ * render, just with fewer spreads. Spain is the pilot with every
+ * field populated so the layout has something real to land on.
  */
 export type RecommendationCategory = "coffee" | "food" | "nature" | "view";
 
@@ -28,6 +25,10 @@ export type Recommendation = {
   category: RecommendationCategory;
   /** City it belongs to (matches an entry in `cities` when present). */
   city?: string;
+  /** Extra context shown when the chip is hovered/locked open. */
+  note?: string;
+  /** Optional photo URL shown in the locked card. */
+  photo?: string;
 };
 
 export type Photo = {
@@ -37,27 +38,6 @@ export type Photo = {
   caption?: string;
   /** Optional place name (often a city). */
   place?: string;
-};
-
-export type CityPin = {
-  /** City name (lowercase, matches an entry in `cities`). */
-  name: string;
-  /** [lon, lat] in degrees, used to position the pin on the
-   *  per-country mini-map projection. */
-  coords: [number, number];
-  /** Optional thumbnail shown on hover/tap of the pin. */
-  photo?: string;
-  /** One-sentence memory, shown next to the photo. */
-  memory?: string;
-};
-
-export type DispatchEntry = {
-  /** Free-form marker like "day 4" or "morning". */
-  day?: string;
-  /** City or specific spot. */
-  place?: string;
-  /** The actual note. Lowercase, conversational. */
-  text: string;
 };
 
 export type Visit = {
@@ -89,14 +69,8 @@ export type Visit = {
    *  hover plate / click-to-modal behaviour. */
   coords?: [number, number];
 
-  /* ---- notebook spreads (all optional) ---- */
-
-  /** Photos for the contact-sheet spread. */
+  /** Photos for the gallery spread (first one is the cover hero). */
   photos?: Photo[];
-  /** City pins for the country-map spread. */
-  cityPins?: CityPin[];
-  /** Handwritten dispatch entries. */
-  dispatch?: DispatchEntry[];
 };
 
 const wall = (id: string) => `/images/walls/${id}.webp`;
@@ -112,13 +86,50 @@ export const VISITS: Visit[] = [
     description:
       "coastal walks along the costa brava, sant pere de rodes monastery at sunset, and slow days in girona's old town.",
     recommendations: [
-      { name: "la pubilla, gracia", category: "coffee", city: "barcelona" },
-      { name: "calders bookshop, sant antoni", category: "view", city: "barcelona" },
-      { name: "sant pere de rodes from el port de la selva", category: "nature", city: "girona" },
-      { name: "central del raval at 8am", category: "coffee", city: "barcelona" },
-      { name: "bar cañete, dinner late", category: "food", city: "barcelona" },
-      { name: "cap de creus before sunrise", category: "nature", city: "girona" },
-      { name: "rooftop of la lonja", category: "view", city: "valencia" },
+      {
+        name: "la pubilla",
+        category: "coffee",
+        city: "barcelona",
+        note: "opens at 8am sharp. ask for the pa amb tomàquet — it's the kind that makes you skip lunch.",
+      },
+      {
+        name: "calders bookshop",
+        category: "view",
+        city: "barcelona",
+        note: "tiny indie in sant antoni. the staircase to the back room is where the light always wins.",
+      },
+      {
+        name: "sant pere de rodes",
+        category: "nature",
+        city: "girona",
+        note: "two-hour climb out of el port de la selva to a 10th-century monastery. sunset light hits the stone at 19:00 in september.",
+        photo: wall("wall-4-march11-sp"),
+      },
+      {
+        name: "central del raval",
+        category: "coffee",
+        city: "barcelona",
+        note: "outdoor tables next to macba. coffee is fine; the people-watching is the point.",
+      },
+      {
+        name: "bar cañete",
+        category: "food",
+        city: "barcelona",
+        note: "no menu. order the carrillada and whatever the bartender suggests after.",
+      },
+      {
+        name: "cap de creus",
+        category: "nature",
+        city: "girona",
+        note: "easternmost point of mainland spain. wind, lighthouse, salt. go before sunrise — there's no one and the road is yours.",
+        photo: wall("wall-1-december25-t"),
+      },
+      {
+        name: "la lonja rooftop",
+        category: "view",
+        city: "valencia",
+        note: "5€ entry, never a queue. the silk exchange ceiling pattern is wilder than anything below it.",
+      },
     ],
     photos: [
       { src: wall("wall-1-december25-h"), place: "costa brava", caption: "violet sky, long exposure" },
@@ -127,43 +138,6 @@ export const VISITS: Visit[] = [
       { src: wall("wall-3-july11-ca"), place: "barcelona" },
       { src: wall("wall-4-march11-s"), place: "valencia" },
       { src: wall("wall-4-march11-sp"), place: "el port de la selva", caption: "monastery from below" },
-    ],
-    cityPins: [
-      {
-        name: "barcelona",
-        coords: [2.17, 41.39],
-        photo: wall("wall-3-july11-ca"),
-        memory: "late breakfasts in gracia, slow afternoons on the rooftops.",
-      },
-      {
-        name: "girona",
-        coords: [2.82, 41.98],
-        photo: wall("wall-2-january10-s"),
-        memory: "fog hanging over the onyar river, no one out before 9.",
-      },
-      {
-        name: "valencia",
-        coords: [-0.38, 39.47],
-        photo: wall("wall-4-march11-s"),
-        memory: "afternoon light on the silk exchange, paella the colour of clay.",
-      },
-    ],
-    dispatch: [
-      {
-        day: "day 2",
-        place: "barcelona",
-        text: "missed the morning train to girona on purpose; ended up at a café where the owner sold us almond tarts wrapped in newspaper.",
-      },
-      {
-        day: "day 4",
-        place: "el port de la selva",
-        text: "drove the empty road to cap de creus at 5am. salt wind, no other cars. shutter froze once from cold.",
-      },
-      {
-        day: "day 7",
-        place: "valencia",
-        text: "rooftop of la lonja, last day. the city was beige in every direction and we didn't speak for an hour.",
-      },
     ],
   },
   {
