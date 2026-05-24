@@ -1,211 +1,244 @@
 # stukh.in — backlog / tech-debt
 
-Refreshed 2026-05-16 after the cleanup arc that closed almost every
-🔴 / 🟡 item the original snapshot (commit `51701a3`, May 10) had
-flagged. The site is in a healthy state — `npm run build` clean, all
-10 routes prerender, no `eslint-disable` left in `src/`, no
-`TODO` / `FIXME` markers, no inline `matchMedia` reads outside the
-one deliberate gesture-time read in ChainBridge.
+Refreshed 2026-05-24 at HEAD = `d8ea775`. Site is in healthy shape:
+`npm run build` is clean, all 10 routes prerender, no
+`eslint-disable` left in `src/`, no `TODO` / `FIXME` markers, no
+inline `matchMedia` reads outside the one deliberate gesture-time
+read in ChainBridge.
 
 Use this alongside [PROJECT.md](./PROJECT.md) at session start.
 
 ---
 
+## Starting a new Claude Code session
+
+1. **Worktree:** the project lives in a Claude worktree branch
+   `claude/dazzling-swartz-cbfece` at
+   `/Users/alexnderstyukhin/Projects/stukh.in/.claude/worktrees/dazzling-swartz-cbfece`.
+   `npm install` already done; `node_modules/` is present.
+2. **Read order:** `PROJECT.md` (architecture, page-by-page notes,
+   conventions, known footguns) → this file (open backlog + lessons
+   from past attempts) → only then start coding.
+3. **Pick from "What's actually open" below.** The single 🔴 left is
+   the LiquidEther → ogl port — sized for a dedicated session.
+   Otherwise grab a 🟡 / 🟢.
+4. **Deploy:** `git push origin claude/dazzling-swartz-cbfece:main`
+   fast-forwards `main`; Vercel auto-deploys from `main`. The user
+   prefers terse Russian, brief English in code comments. Memory:
+   no preview-server screenshots — verify with `npm run build`.
+   Once build is clean, commit + push without asking.
+5. **Visual / WebGL changes need DevTools verification.** `npm run
+   build` doesn't catch runtime WebGL failures. After deploy, ask
+   the user to open Chrome → F12 → Console → reload, and report
+   anything red. We have lived through that loop several times.
+
+---
+
 ## What's actually open
 
-### 🔴 GridDistortion + LiquidEther — both still on three.js
-Both home-hero `GridDistortion` and `/blog`'s `LiquidEther` still
-import from `three`. Porting LiquidEther (1175 lines, 39
-`new THREE.*` sites) is alone enough to drop the package; porting
-GridDistortion would shave a bit more bundle and unify the WebGL
-stack with `LightRays`.
+### 🔴 LiquidEther port to ogl
+`src/components/LiquidEther/LiquidEther.tsx` — 1175 lines, 39
+`new THREE.*` call sites. The only remaining `three.js` consumer
+in the codebase. Porting it lets us drop the `three` package
+entirely (~140–200 KB minified gzipped saved on `/blog`). Sized
+for its own session.
 
-GridDistortion has a previous failed ogl porting attempt
-(commits `a07b551` → `ca5d2f4`+ → reverted in `748f3af` after a
-laggier replacement was abandoned). Lessons for the next try
-(documented in PROJECT.md "Known footguns" too):
+GridDistortion (the other historical `three.js` consumer) had a
+failed ogl port saga earlier; lessons documented under
+"GridDistortion ogl saga" below — apply them upfront:
 
 - Declare every attribute / uniform / varying explicitly in the
-  shader source. ogl, unlike three.js, does not auto-prepend
-  `attribute vec3 position; attribute vec2 uv; uniform mat4
-  projectionMatrix; uniform mat4 modelViewMatrix;` — the shader
-  silently fails to compile, the program never links, and using
-  an unlinked program killed Chrome's renderer process.
+  shader source. ogl does NOT auto-prepend the three.js
+  preamble — shader silently fails to compile, the program never
+  links, and Chrome's renderer can crash on `useProgram(invalid)`.
 - Avoid GLSL ES 1.00 reserved words as identifiers — `packed`
-  was the bug that took half a session to find. Also reserved
-  for future use: `sample`, `cast`, `interface`, `template`,
-  `super`.
+  was a real landmine. Also reserved for future: `sample`, `cast`,
+  `interface`, `template`, `super`.
 - Wrap `renderer.render()` in try/catch so compile errors don't
-  cascade into React render errors (we hit a `Minified React #311`
-  this way).
+  cascade into React render errors.
 - Float-format textures (`RGBA32F` + `FLOAT`) are fine on Chrome
-  desktop. A short detour to `RGBA8` to sidestep imagined driver
-  issues introduced visible mouse-track quantisation jitter (one
-  float-unit = 2.55 byte-steps of resolution).
-- Verify with **DevTools console open** before shipping. `npm run
-  build` does not catch runtime WebGL failures.
+  desktop — a short detour to `RGBA8` introduced visible mouse-
+  track quantisation jitter.
+- Verify with **DevTools console open** before shipping.
 
 ### 🟡 Smaller items worth picking up
-
 - **GalleryModal** (`src/components/GalleryModal/GalleryModal.tsx`,
-  ~570 lines) still hosts three intertwined animation systems: the
-  WAAPI FLIP entrance, CSS opacity backdrop fade, and the rAF
-  hover-zoom tracker. Each could be its own `useFlipIn` /
-  `useHoverZoom` hook for clarity. No bug — just a future readability
-  win. Tagged 🟡 on the original audit, never escalated.
-- **Shared CSS recipes**: `GalleryModal.module.css` and
-  `WallsGallery.module.css` both render the same `tile.webp` +
-  linear-gradient overlay behind their zoom modals. Could be lifted
-  into a `.modalBackdrop` utility class shared from `globals.css`.
+  ~570 lines) still hosts three intertwined animation systems
+  (WAAPI FLIP entrance, CSS opacity backdrop fade, rAF hover-zoom
+  tracker). Each could be its own `useFlipIn` / `useHoverZoom`
+  hook for clarity. No bug — readability win.
+- **Shared modal-backdrop CSS recipe**: `GalleryModal.module.css`
+  and `WallsGallery.module.css` both render the same `tile.webp`
+  + linear-gradient overlay behind their zoom modals. Could lift
+  into a shared utility class in `globals.css`.
 - **Magic offsets** scattered as literal pixels across modules
   (`top: 200px / 160px / 140px` for walls filters, `top: 66px`
-  for the Logo, `bottom: 65px` for TopNav, `bottom: 32px` for
-  BlogMap zoom controls). Could promote to CSS custom properties on
-  `:root`. Mostly stylistic.
+  for Logo, `bottom: 65px` for TopNav, `bottom: 32px` for BlogMap
+  zoom controls). Promote to CSS custom properties on `:root`.
 - **`BlogMap.tsx` pan write**: `recomputePan` writes
   `wrap.style.setProperty("--pan-x", …)` and `--pan-y` twice per
-  mousemove frame. Combining into a single `style.cssText` or batched
-  write would save a style-invalidation pass. Cheap.
-- **Preloader save-data gate**: `Preloader.tsx` preloads 21 nature +
-  5 city JPGs unconditionally. Mobile users on cellular pay ~6–12 MB
-  before any interaction. Gate on `navigator.connection.saveData`.
-- **`tsconfig`** flag `noUncheckedIndexedAccess: true` would catch the
-  `arr[0]` patterns scattered in WebGL components — currently
-  unchecked, occasionally bites in the form of `arr[i]` being `T`
-  rather than `T | undefined`.
+  mousemove frame. Combine into one batched write to save a
+  style-invalidation pass per frame.
+- **Preloader save-data gate**: `Preloader.tsx` preloads 21 nature
+  + 5 city JPGs unconditionally. Mobile users on cellular pay
+  ~6–12 MB before any interaction. Gate on
+  `navigator.connection.saveData`.
+- **`tsconfig.noUncheckedIndexedAccess: true`** would catch
+  `arr[0]` patterns scattered in WebGL components. Currently
+  unchecked.
+- **GridDistortion → ogl re-attempt** (deprioritised). Currently
+  on three.js, works fine, no perf issues. Porting would shave a
+  bit of bundle and unify the WebGL stack with `LightRays` —
+  cosmetic. Defer until LiquidEther is also ported (drops `three`
+  in one go).
 
 ### 🟢 Nice-to-have, no urgency
 - Pin explicit `JSX.Element` return type on exported components.
-  Strict mode infers it, but pinning is better DX for editor hovers.
+  Strict mode infers it; pinning is better DX for editor hovers.
 - Eric Meyer reset in `globals.css` (35-line tag list) is overkill
-  for Next 16 + modern browsers — could swap for a small modern reset.
-- Bare `useMediaQuery` could also subscribe to `change` events with
-  AbortController instead of `mql.removeEventListener` for symmetry —
-  trivial.
+  for Next 16 + modern browsers — could swap for a small modern
+  reset.
+- `useMediaQuery` could subscribe with AbortController instead of
+  `mql.removeEventListener` for symmetry. Trivial.
 
 ---
 
-## What shipped since `51701a3`
+## What shipped
 
-The original AUDIT's full backlog has been processed top-to-bottom.
-Grouped by area:
+Grouped by area, newest-first within each group. Commits are at
+`https://github.com/stukhin/stukh.in/commit/<sha>`.
 
-**TOP 5 — all closed**
-- ✅ `:focus-visible` indicator everywhere — `globals.css` adds an
-  outline-based ring scoped to `:focus-visible` (commit `4c7471f`).
-- ✅ PAGE_VISUALS mutation killed — `Readonly<…>` + `setRouteBg` /
-  `getRouteBg` API (`cf83ad0`).
-- ✅ Dead-code sweep — `HomeToggle` / `ParallaxSlider` deleted,
-  `setTransitionDirection` removed, orphan walls CSS pruned, legacy
+**Click-spark + cursor dissolve (May 23–24)**
+- ✅ ClickSpark React-Bits port (`9d92a5f`) — viewport-wide canvas
+  overlay; fires a radial burst of spark lines on clicks that lead
+  to navigation. Filter: `a[href]` (covers all Next `<Link>`) +
+  `data-spark="nav"` (EdgeNav opt-in). Skips `target="_blank"`.
+- ✅ Spark visual tune (`2f775ce`) — radius 28 → 14, size 12 → 8;
+  also adds `html.click-spark-active` so the custom cursor fades
+  during the burst.
+- ✅ Fade lasts through the chain (`e62c3fb`) — Cursor reads
+  `chain-active` / `chain-settling` so dissolve covers the slide
+  too, not just the 500 ms spark.
+- ✅ Kill mid-transition flash + persist cursor pos
+  (`02fea26`) — new `chain-pending` class on ChainBridge handler
+  entry plugs the variable img-decode delay gap; new
+  `src/lib/mousePosition.ts` survives Cursor remounts so the
+  cursor fades back in at the real cursor position, not at
+  (-100, -100).
+
+**BlogMap focus-mode perf (May 24)**
+- ✅ Wrap unvisited paths in a single `<g>` (`d8ea775`) — 250+
+  per-path opacity transitions collapsed into one group-level
+  fade. Indonesia / France focus-mode jitter fixed.
+- ✅ Dropped dead `explodeStyleFor` + the `--explode-*` inline
+  CSS vars that no rule ever consumed (same commit). Also the
+  orphan `transform-box` / `transform-origin` / `transform 1.5s`
+  transition slots from `.country` / `.visitedVisual` /
+  `.visitedHit` / `.visitedDot` / `.visitedDotHit`.
+
+**GridDistortion ogl saga (May 14–23 — net zero, lessons retained)**
+- Attempted ogl port (`a07b551`) crashed Chrome's renderer →
+  reverted (`748f3af`).
+- Conservative retry (`ca5d2f4` + a chain of fix-ups
+  `05904a0` / `1e43e60` / `04249ee` / `859f83d`) made it work but
+  the visual felt different and slightly laggy.
+- Briefly swapped to React-Bits FloatingLines (`84e4381`) — user
+  flagged the decorative lines weren't what they wanted; just the
+  cursor-warps-photo behaviour.
+- Restored the original three.js GridDistortion verbatim from
+  `748f3af` (`fa4a012`). End state: same as before the saga, with
+  a stash of lessons baked into AUDIT + PROJECT.md footguns.
+
+**Tech-debt cleanup (May 16)** — see `40f19f2`
+- AUDIT.md and PROJECT.md got a full rewrite (this file's previous
+  refresh).
+- HomeSlider `isDesktopWide` alias dropped in favour of the direct
+  hook value.
+
+**Big perf — partial wins (May 15)**
+- ✅ WallpaperCard IntersectionObserver gate (`da8ac34`). Off-
+  screen cards render as plain `<li>`, upgrade to motion +
+  springs at 400 px rootMargin. Was 120+ idle Framer Motion
+  springs on `/walls` mount.
+- ⚠️ `import * as THREE` → named imports in GridDistortion
+  (`da8ac34`). Turbopack already tree-shook the wildcard, so the
+  bundle delta was zero; cleaner code anyway.
+
+**A11y (May 15)** — see `5b923a6`
+- ✅ Focus trap + return-focus on GalleryModal and WallsGallery
+  zoom modals.
+- ✅ `prefers-reduced-motion` honoured by HomeSlider autoplay and
+  ChainBridge slide.
+- ✅ BlogMap `.zoomControls` `aria-hidden="true"` conflict with
+  child `<button aria-label>` dropped.
+
+**Tech debt (May 15)** — see `2d6c052`
+- ✅ `src/lib/useMediaQuery.ts` + `MQ` constants replace 10+
+  inline `matchMedia` reads. Reactive — flips on dock-switch.
+  Important: call hooks unconditionally, never short-circuit
+  `useMediaQuery(A) && useMediaQuery(B)` (we did that and hit
+  React #311 — fix in `741e6e5`).
+- ✅ `src/types/global.d.ts` — `Window.__stukhinChainFrom`
+  augmentation removes per-callsite `(window as unknown as
+  ChainWindow)` casts.
+- ✅ `100vh` predecessor for `100dvh` in BlogMap (Safari < 15.4).
+- ⚠️ `worldRaw as unknown as Topology` cast in
+  `mapProjection.ts` stays — tried lifting via a
+  `declare module "world-atlas/*.json"` shim, but resolveJsonModule's
+  inferred JSON type wins over the shim and `feature()`'s overload
+  resolver picks the wrong signature. Documented in the source.
+
+**TOP 5 from original audit (May 10) — all closed**
+- ✅ `:focus-visible` ring (`4c7471f`).
+- ✅ PAGE_VISUALS mutation killed (`cf83ad0`).
+- ✅ Dead-code sweep — HomeToggle / ParallaxSlider deleted,
+  setTransitionDirection removed, orphan walls CSS pruned, legacy
   `logoColor` / `bgColor` props dropped (`4c7471f`).
 - ✅ `LiquidEther.jsx` → `.tsx`, `tsconfig.allowJs` dropped
   (`7d7a335`).
-- ✅ `BlogMap.tsx` split into `mapProjection.ts` + `CountryStroke` +
-  `CountryLayer` + `DotLayer` + `BlogMapClient` wrapper, dynamic-
-  imported with `ssr: false` (`e5b4eba`, `cf83ad0`).
+- ✅ `BlogMap.tsx` split into `mapProjection.ts` + `CountryStroke`
+  + `CountryLayer` + `DotLayer` + `BlogMapClient` dynamic wrapper
+  (`e5b4eba`, `cf83ad0`).
 
-**Component bloat & dead code**
+**Other notable wins from the May arc**
 - ✅ WallsGallery split — `WallpaperCard` + `FilterDropdown` lifted
   to siblings (`01fb183`).
-- ✅ GridDistortion shaders extracted to `gridShaders.ts` (`c588c88`).
-- ✅ ChainBridge `<img>` rack removed; `<link rel="preload">` is the
-  single preload path now (`cf83ad0`).
-
-**CSS smells**
-- ✅ Z-index conflict on BlogMap zoom controls fixed (5 → 8, above
-  EdgeNav) (`cf83ad0`).
-- ✅ Cursor z-index 9999 → 200 (`25f1a00`).
-- ✅ `font-family !important` in globals.css removed (`25f1a00`).
-- ✅ GallerySlider `width !important` documented with rationale
-  (Swiper inline-styles override) (`25f1a00`).
-
-**React anti-patterns**
-- ✅ BlogMap `useMemo` projection refactor — projection returned
-  from the paths memo, dotMarkers depends on it directly (`cf83ad0`).
-- ✅ `exitFocus` → `useCallback`, `eslint-disable` dropped
-  (`cf83ad0`).
+- ✅ GridDistortion shaders extracted to `gridShaders.ts`
+  (`c588c88`).
+- ✅ ChainBridge `<img>` rack removed; `<link rel="preload">` is
+  the single preload path (`cf83ad0`).
+- ✅ BlogMap projection refactor — projection returned from the
+  paths memo, dotMarkers depends on it directly (`cf83ad0`).
+- ✅ `exitFocus` → `useCallback` (`cf83ad0`).
 - ✅ ESLint inline disables sweep — every remaining suppression
-  fixed by promoting handlers to `useCallback` with correct deps
-  (`c9a9c3f`). Zero `eslint-disable` left in `src/`.
-
-**TypeScript**
-- ✅ `LightRays` / `GridDistortion` `any` on uniforms / renderer /
-  mesh refs — typed properly (`7d7a335`).
-- ✅ `Window` augmentation in `src/types/global.d.ts` —
-  `__stukhinChainFrom` is a regular property now, no per-callsite
-  `(window as unknown as ChainWindow)` cast (`2d6c052`).
-- ⚠️ `worldRaw as unknown as Topology` cast in
-  `mapProjection.ts` kept — tried lifting via `declare module
-  "world-atlas/*.json"` shim, but `resolveJsonModule`'s inferred
-  JSON type wins over the shim and `feature()`'s overload resolver
-  picks the wrong signature. Documented in the source.
-
-**Performance**
+  fixed (`c9a9c3f`). Zero `eslint-disable` left in `src/`.
+- ✅ z-index conflict on BlogMap zoom controls (`5` → `8`, above
+  EdgeNav).
+- ✅ Cursor z-index `9999` → `200` (`25f1a00`).
+- ✅ `font-family !important` in globals.css removed (`25f1a00`).
+- ✅ Walls download button bumped 32 → 44 px on mobile (WCAG
+  2.5.5) (`25f1a00`).
 - ✅ Triple preload consolidated — link-preload only (`cf83ad0`).
-- ✅ WallpaperCard IntersectionObserver gate — off-screen cards
-  render as plain `<li>`, upgrade to motion + springs at 400 px
-  rootMargin (`da8ac34`). Was 120+ idle springs on `/walls` mount.
-- ⚠️ GridDistortion port to ogl attempted multiple times
-  (`a07b551`, `ca5d2f4` + `05904a0` + `1e43e60` + `04249ee` +
-  `859f83d`), then briefly replaced with a FloatingLines overlay
-  before the user clarified they wanted the cursor-bend-on-photo
-  visual, not decorative lines + colours. Restored to the original
-  three.js implementation. Root causes of the ogl crashes are
-  captured under the 🔴 entry above as lessons for the next try.
-- ✅ `useMediaQuery` hook + `MQ` constants replace 10+ inline
-  `matchMedia` reads (`2d6c052`). Reactive — flips on dock-switch.
-
-**Accessibility**
-- ✅ Focus trap + return-focus on GalleryModal and WallsGallery zoom
-  modals (`5b923a6`).
-- ✅ `prefers-reduced-motion` honoured by HomeSlider autoplay and
-  ChainBridge slide animation (`5b923a6`).
-- ✅ BlogMap `.zoomControls` `aria-hidden="true"` conflict with
-  child `<button aria-label>` dropped (`5b923a6`).
-- ✅ Walls download button bumped to 44 × 44 on mobile to meet WCAG
-  2.5.5 (`25f1a00`).
-
-**Mobile / responsive**
-- ✅ Mobile page transitions now match desktop — useVerticalPageSwipe
-  drops its custom preview overlay, fires `chainNavigate` on commit
-  so ChainBridge runs (`2c7ca20`).
+- ✅ Mobile page transitions now match desktop —
+  useVerticalPageSwipe drops its preview overlay, fires
+  `chainNavigate` so ChainBridge runs (`2c7ca20`).
 - ✅ BlogMap touch pan + pinch zoom; tap → full-screen modal
   (`2c7ca20`, `cf83ad0`).
-- ✅ `useVerticalPageSwipe` gated on `hover:none AND pointer:coarse`
-  to skip Windows touchscreen-laptops that report both (`2d6c052`).
-- ✅ `100vh` predecessor for `100dvh` in BlogMap for Safari < 15.4
-  (`2d6c052`).
-
-**Build / DX**
-- ✅ `allowJs` flag dropped from `tsconfig.json` (`7d7a335`).
-- ✅ `exif-reader` removed from devDependencies (`25f1a00`).
-
-**Naming / docs drift**
-- ✅ `Preloader.tsx` `HOME_INTRO_KEY` / `PRELOADER_DONE_EVENT` exports
-  demoted to module-local (`25f1a00`).
-- ✅ 110m → 50m docs drift fixed in BlogMap + visits (`25f1a00`).
-- ✅ `/system` motion table rewritten with current source-of-truth
-  values (`25f1a00`).
-- ✅ AppShell legacy "kept for prop-API compat" props removed
-  (`4c7471f`).
-
-**Bug fixes that came up along the way**
-- ✅ Country stroke trace no longer underdraws — switched
-  `motion.path` (which regressed on 50m multi-subpath geometries)
-  for imperative WAAPI `dashoffset` driven from
-  `getTotalLength()` (`50f3335`).
+- ✅ `useVerticalPageSwipe` gated on `hover:none AND
+  pointer:coarse` (skip Windows touchscreen-laptops that report
+  both) (`2d6c052`).
+- ✅ Stroke trace rewrite to imperative WAAPI dashoffset
+  (`50f3335`) — survived multi-subpath countries the
+  `motion.path` approach didn't.
 
 ---
 
-## Starting a new session
+## Where new code landed (since the last refresh)
 
-1. Read `PROJECT.md` (architecture) + this file (backlog).
-2. The only 🔴 left is the LiquidEther port — sized for its own
-   session. Pick a 🟡 if you want something smaller.
-3. `npm run build` to verify; deploy = push to `main` (Vercel auto-
-   deploys). Note the repo uses a Claude worktree on
-   `claude/dazzling-swartz-cbfece`; push that branch to `main`
-   directly (`git push origin claude/dazzling-swartz-cbfece:main`).
-4. The user prefers brief Russian responses, terse English in code
-   comments. Memory: no preview screenshots — verify with `npm run
-   build`. Once build is clean, commit + push without asking.
+| Path | Purpose |
+|---|---|
+| `src/components/ClickSpark/ClickSpark.tsx` | Viewport-wide click-burst overlay, nav-only filter, theme-aware colour. Mounted in `app/layout.tsx`. |
+| `src/lib/mousePosition.ts` | Tiny `{x, y}` module storage so the custom Cursor's position survives across per-route remounts. |
+| `html.click-spark-active` class | Set by ClickSpark while sparks are alive. Cursor reads it via CSS to fade out. |
+| `html.chain-pending` class | Set by ChainBridge synchronously on handler entry, removed in the final cleanup. Cursor reads it via CSS to stay faded through the full chain timeline. |
+| `<g class="unvisitedGroup">` in BlogMap | Wraps 250+ unvisited country paths; opacity transition lives on the group so focus-mode fade is GPU-cheap. |

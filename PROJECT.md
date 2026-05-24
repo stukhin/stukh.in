@@ -106,7 +106,12 @@ wallpaper grid scrolls its body.
 ## Persistent shell
 
 `src/components/AppShell` mounts the same set of fixed-position
-chrome elements on every page that uses it:
+chrome elements on every page that uses it. The root layout
+(`src/app/layout.tsx`) also mounts a few site-wide overlays
+(Preloader, ChainBridge, ClickSpark) that stay alive across
+route changes.
+
+Via AppShell:
 
 - `Logo`             top-left, mix-blend-mode: difference, drives
                      the colour boundary effect during page slides
@@ -120,10 +125,38 @@ chrome elements on every page that uses it:
                      default ring, hover dot, magnifier, picture,
                      arrow-{left,right,up,down}, grab/grabbing
                      (each via `data-cursor="..."` on hovered
-                     element)
+                     element). Position survives route remounts
+                     via `src/lib/mousePosition.ts` — without that
+                     a new Cursor instance starts at (-100, -100)
+                     and only snaps to the real cursor on the
+                     next mousemove. Cursor fades to opacity 0
+                     while `html.click-spark-active` (set by
+                     ClickSpark for the spark burst) OR
+                     `html.chain-pending` (set by ChainBridge for
+                     the full slide + settle timeline) is
+                     present, so the cursor "dissolves" through
+                     a navigation and re-forms once the new page
+                     has landed.
 - `EdgeNav`          top + bottom click-zones for desktop
                      keyboard-light page navigation
 - `useDesktopPageWheel()` (mounted from inside AppShell)
+
+Via root layout:
+
+- `Preloader`        first-visit loading bar (sessionStorage
+                     gated)
+- `ChainBridge`      cross-page slide overlay (see "Page
+                     transitions" below)
+- `ClickSpark`       viewport-wide canvas that emits a radial
+                     burst of spark lines on clicks that lead
+                     to navigation (filter: `a[href]` to a
+                     same-tab destination + opt-in
+                     `data-spark="nav"` for the EdgeNav buttons,
+                     which navigate via JS not anchor). Spark
+                     colour reads `--shell-fg-strong` so it
+                     adapts to the theme. Also adds
+                     `html.click-spark-active` for the cursor
+                     dissolve described above.
 
 Theme tokens live as CSS variables on `<html data-theme="...">`:
 
@@ -467,6 +500,9 @@ calmest possible entrance.
 | change a page's bg colour during slide | `src/lib/pageVisuals.ts` |
 | read a media query in a component | `src/lib/useMediaQuery.ts` (`MQ.TOUCH` / `MQ.REDUCED_MOTION` / `MQ.DESKTOP_WIDE`) |
 | add a cursor variant | `src/components/Cursor/Cursor.tsx` + `Cursor.module.css` |
+| keep cursor pos across remounts | `src/lib/mousePosition.ts` (read/write on mount + every mousemove) |
+| add or filter click-spark triggers | `src/components/ClickSpark/ClickSpark.tsx` (selector list at top of file) |
+| make a button fire a click-spark | add `data-spark="nav"` (covers non-`<a>` navigation buttons) |
 | tweak the chained slide motion | `src/components/ChainBridge/` |
 | add a Walls filter / dropdown | `src/components/WallsGallery/WallsGallery.tsx` (`FilterDropdown` sibling) |
 | add wallpapers / orientations | `src/data/walls.json`, `src/data/galleryManifest.ts` |
