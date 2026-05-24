@@ -246,8 +246,19 @@ section h2.is-stuck{
 }
 section h2 .flag{font-size:24px;}
 @media (max-width:780px){
-  section h2{top:58px;font-size:19px;padding:12px 24px 11px;margin:0 -24px 18px;gap:10px;letter-spacing:-.02em;}
-  section h2 .flag{font-size:20px;}
+  /* On mobile, section h2 is NOT sticky — top nav already shows active section */
+  section h2{
+    position:static;top:auto;
+    background:transparent;
+    border-bottom:none;
+    box-shadow:none !important;
+    padding:0;
+    margin:0 0 16px;
+    font-size:22px;
+    gap:10px;letter-spacing:-.02em;
+  }
+  section h2.is-stuck{background:transparent;box-shadow:none;}
+  section h2 .flag{font-size:22px;}
 }
 section#map-section h2{display:none;}
 section h2 .info{
@@ -2322,10 +2333,22 @@ if (seyMapEl) {
   if (!sections.length) return;
 
   let activeId = null;
+  const MQ_MOBILE_SPY = window.matchMedia('(max-width: 780px)');
+  function scrollActiveIntoView(link){
+    if (!MQ_MOBILE_SPY.matches) return;
+    const container = link.closest('.toc-buttons');
+    if (!container) return;
+    const cRect = container.getBoundingClientRect();
+    const lRect = link.getBoundingClientRect();
+    // Align active button's left edge with container's left edge
+    const target = container.scrollLeft + (lRect.left - cRect.left);
+    container.scrollTo({ left: Math.max(0, target), behavior: 'smooth' });
+  }
   function setActive(id){
     if (activeId === id) return;
     activeId = id;
     navLinks.forEach(a => a.classList.toggle('active', a === linkMap[id]));
+    if (linkMap[id]) scrollActiveIntoView(linkMap[id]);
   }
 
   // Track which section's top edge is just past the nav (active zone = ~80px from top).
