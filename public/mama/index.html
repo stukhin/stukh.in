@@ -1,0 +1,2546 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>Отпуск мамы — Турция · июль 2026</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f5f5f7;
+  --bg-soft:#ececef;
+  --card:#ffffff;
+  --card-border:rgba(0,0,0,.07);
+  --card-border-strong:rgba(0,0,0,.14);
+  --ink:#0a0a0a;
+  --ink-soft:#52525b;
+  --sub:#8b8b95;
+  --good:#16a34a;
+  --good-bg:#e9f7ee;
+  --bad:#dc2626;
+  --bad-bg:#fcecec;
+}
+*{box-sizing:border-box;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;}
+html{scroll-behavior:smooth;}
+html,body{
+  margin:0;padding:0;
+  background:var(--bg);
+  color:var(--ink);
+  font:16px/1.5 'Manrope',-apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif;
+  letter-spacing:-0.011em;
+}
+body{
+  background:
+    radial-gradient(70% 50% at 50% -5%, rgba(120,135,255,.10) 0%, transparent 65%),
+    radial-gradient(35% 30% at 92% 22%, rgba(255,120,180,.07) 0%, transparent 60%),
+    radial-gradient(35% 30% at 8% 60%, rgba(120,220,180,.07) 0%, transparent 60%),
+    linear-gradient(180deg,#f5f5f7 0%,#ececef 100%);
+  background-attachment:fixed;
+  min-height:100vh;
+}
+a{color:inherit;text-decoration:none;}
+img{display:block;max-width:100%;}
+section,h3.sub{scroll-margin-top:80px;}
+
+/* HERO — small subtitle */
+.hero{padding:28px 24px 10px;text-align:center;position:relative;}
+.hero-title{
+  margin:0;font-size:12.5px;font-weight:600;
+  letter-spacing:.09em;text-transform:uppercase;
+  color:var(--sub);
+}
+
+/* NAV — prominent sticky buttons + filter button */
+nav.toc{
+  position:sticky;top:0;z-index:9999;
+  background:rgba(245,245,247,.85);
+  backdrop-filter:saturate(180%) blur(20px);-webkit-backdrop-filter:saturate(180%) blur(20px);
+  border-bottom:1px solid var(--card-border);
+  padding:14px 24px;
+  display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:8px;
+}
+nav.toc .toc-spacer{}
+.toc-buttons{
+  display:flex;justify-content:center;gap:8px;flex-wrap:wrap;
+}
+.toc-buttons a{
+  padding:11px 20px;border-radius:10px;
+  font-size:15px;font-weight:700;letter-spacing:-.005em;
+  color:#0a0a0a;
+  background:#fff;
+  border:1.5px solid #d4d4d8;
+  box-shadow:0 1px 2px rgba(0,0,0,.06);
+  transition:all .15s;
+  cursor:pointer;
+}
+.toc-buttons a:hover{
+  background:#0a0a0a;color:#fff;border-color:#0a0a0a;
+  box-shadow:0 2px 6px rgba(0,0,0,.18);
+}
+.toc-right{display:flex;justify-content:flex-end;}
+.filter-btn{
+  display:inline-flex;align-items:center;gap:8px;
+  padding:11px 18px;border-radius:10px;
+  background:#0a0a0a;color:#fff;border:1px solid #0a0a0a;
+  font-size:15px;font-weight:600;letter-spacing:-.005em;
+  cursor:pointer;
+  box-shadow:0 1px 2px rgba(0,0,0,.08);
+  transition:all .15s;
+  font-family:inherit;
+}
+.filter-btn:hover{background:#27272a;border-color:#27272a;}
+.filter-btn.active{background:#2563eb;border-color:#2563eb;}
+.filter-btn svg{width:16px;height:16px;}
+.filter-btn .badge{
+  display:inline-flex;align-items:center;justify-content:center;
+  min-width:20px;height:20px;padding:0 6px;
+  background:#fff;color:#0a0a0a;
+  border-radius:99px;font-size:11px;font-weight:800;
+  margin-left:2px;
+}
+.filter-btn.active .badge{background:rgba(255,255,255,.95);}
+@media (max-width:780px){
+  nav.toc{
+    display:flex;align-items:center;gap:10px;
+    grid-template-columns:none;
+    padding:12px 14px;
+    position:sticky;top:0;
+  }
+  nav.toc .toc-spacer{display:none;}
+  .toc-buttons{
+    flex:1 1 0;min-width:0;
+    display:flex;flex-wrap:nowrap;gap:8px;
+    justify-content:flex-start;
+    overflow-x:auto;
+    overflow-y:hidden;
+    -webkit-overflow-scrolling:touch;
+    scrollbar-width:none;
+    touch-action:pan-x;
+    overscroll-behavior-x:contain;
+    /* visual fade hint on right edge — content visibly cut off so user knows to swipe */
+    -webkit-mask-image:linear-gradient(to right, #000 0, #000 calc(100% - 28px), transparent 100%);
+    mask-image:linear-gradient(to right, #000 0, #000 calc(100% - 28px), transparent 100%);
+  }
+  .toc-buttons::-webkit-scrollbar{display:none;}
+  .toc-buttons a{flex:0 0 auto;font-size:15px;font-weight:700;}
+  .toc-right{flex:0 0 auto;position:static;transform:none;}
+  .toc-right::before{display:none;}
+}
+@media (max-width:520px){
+  nav.toc{padding:10px 12px;gap:8px;}
+  .toc-buttons{gap:6px;}
+  .toc-buttons a{padding:10px 14px;font-size:14px;}
+  .filter-btn{padding:10px 13px;font-size:13.5px;}
+  .filter-btn .label-txt{display:none;}
+}
+/* overflow-x: clip prevents horizontal scroll WITHOUT breaking sticky positioning (unlike hidden) */
+html,body{overflow-x:hidden;}
+@supports (overflow-x:clip){html,body{overflow-x:clip;}}
+
+/* FILTER PANEL */
+.filter-panel{
+  position:sticky;top:64px;z-index:9998;
+  background:rgba(255,255,255,.95);
+  backdrop-filter:saturate(180%) blur(20px);-webkit-backdrop-filter:saturate(180%) blur(20px);
+  border-bottom:1px solid var(--card-border);
+  max-height:0;overflow:hidden;
+  transition:max-height .35s ease, padding .35s ease, border-bottom-color .15s;
+  border-bottom-color:transparent;
+}
+.filter-panel.open{
+  max-height:1000px;
+  padding:18px 24px 20px;
+  border-bottom-color:var(--card-border);
+  box-shadow:0 8px 24px rgba(0,0,0,.06);
+}
+.filter-panel-inner{
+  max-width:1200px;margin:0 auto;
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+  gap:18px 28px;
+}
+.filter-group .flabel{
+  font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;
+  color:#0a0a0a;margin-bottom:10px;
+}
+.filter-chips{display:flex;flex-wrap:wrap;gap:7px;}
+.fchip{
+  padding:8px 14px;
+  border:1.5px solid #d4d4d8;
+  border-radius:99px;
+  background:#fff;
+  font-size:13.5px;font-weight:600;color:#0a0a0a;
+  cursor:pointer;transition:all .12s;user-select:none;
+  font-family:inherit;display:inline-flex;align-items:center;gap:5px;
+}
+.fchip:hover{background:#f0f0f4;border-color:#a1a1aa;}
+.fchip.selected{
+  background:#0a0a0a;color:#fff;border-color:#0a0a0a;
+  box-shadow:0 2px 6px rgba(0,0,0,.18);
+}
+.filter-actions{
+  grid-column:1 / -1;
+  display:flex;align-items:center;gap:10px;
+  padding-top:14px;margin-top:4px;
+  border-top:1px solid var(--card-border);
+}
+.filter-count{
+  margin-right:auto;font-size:13px;color:var(--ink-soft);
+}
+.filter-count b{color:#0a0a0a;font-weight:700;}
+.filter-reset{
+  padding:9px 16px;
+  background:transparent;
+  border:1px solid var(--card-border-strong);
+  border-radius:8px;
+  font-size:13px;font-weight:500;color:var(--ink);
+  cursor:pointer;font-family:inherit;transition:all .12s;
+}
+.filter-reset:hover{background:#f6f6f9;}
+.filter-close{
+  padding:9px 16px;
+  background:#0a0a0a;color:#fff;
+  border:1px solid #0a0a0a;border-radius:8px;
+  font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;
+  transition:background .12s;
+}
+.filter-close:hover{background:#27272a;}
+
+/* SECTIONS */
+section{max-width:1200px;margin:0 auto;padding:28px 24px 16px;}
+section#map-section{padding-top:20px;padding-bottom:0;}
+section h2{
+  font-size:clamp(22px,2.6vw,30px);line-height:1.15;letter-spacing:-0.025em;
+  font-weight:800;margin:0 -24px 22px;display:flex;align-items:center;gap:12px;color:#0a0a0a;
+  position:sticky;top:62px;z-index:50;
+  background:#f5f5f7;
+  padding:14px 24px 13px;
+  border-bottom:1px solid var(--card-border);
+  transition:box-shadow .2s, background .2s;
+}
+section h2.is-stuck{
+  box-shadow:0 8px 18px -8px rgba(0,0,0,.15);
+}
+section h2 .flag{font-size:24px;}
+@media (max-width:780px){
+  section h2{top:58px;font-size:19px;padding:12px 24px 11px;margin:0 -24px 18px;gap:10px;letter-spacing:-.02em;}
+  section h2 .flag{font-size:20px;}
+}
+section#map-section h2{display:none;}
+section h2 .info{
+  font-size:12px;color:var(--ink-soft);font-weight:500;margin-left:auto;
+  padding:6px 12px;border:1px solid var(--card-border);border-radius:99px;
+  background:rgba(255,255,255,.6);letter-spacing:.02em;
+  backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+}
+section .section-lead{
+  font-size:16px;color:var(--ink-soft);max-width:760px;line-height:1.55;margin:0 0 28px;
+}
+
+/* MAP */
+.map-card{
+  background:var(--card);border:1px solid var(--card-border);border-radius:16px;
+  overflow:hidden;margin:0 0 28px;position:relative;isolation:isolate;
+  box-shadow:0 1px 3px rgba(0,0,0,.04),0 8px 24px rgba(0,0,0,.04);
+}
+.map-card .map-head{
+  padding:14px 22px;border-bottom:1px solid var(--card-border);
+  display:flex;justify-content:space-between;align-items:center;
+  flex-wrap:wrap;gap:10px;color:#0a0a0a;cursor:pointer;
+  transition:background .12s;
+}
+.map-card .map-head:hover{background:#fafafa;}
+.map-card.collapsed .map-head{border-bottom-color:transparent;}
+.map-card .map-head h4{margin:0;font-size:14px;font-weight:700;letter-spacing:-0.01em;color:#0a0a0a;display:inline-flex;align-items:center;gap:8px;}
+.map-card .map-head .legend{display:flex;gap:16px;flex-wrap:wrap;font-size:13px;color:var(--ink-soft);margin-right:auto;margin-left:18px;}
+.map-card .map-head .legend span{display:inline-flex;align-items:center;gap:6px;}
+.map-card .map-head .legend i{display:inline-block;width:10px;height:10px;border-radius:50%;}
+.map-toggle-btn{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:7px 13px;border-radius:8px;
+  border:1.5px solid #d4d4d8;background:#fff;color:#0a0a0a;
+  font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;
+  transition:all .12s;
+}
+.map-toggle-btn:hover{background:#0a0a0a;color:#fff;border-color:#0a0a0a;}
+.map-toggle-btn .chev{transition:transform .25s;}
+.map-card.collapsed .map-toggle-btn .chev{transform:rotate(-180deg);}
+.map-body{max-height:560px;overflow:hidden;transition:max-height .35s ease;}
+.map-card.collapsed .map-body{max-height:0;}
+.leaflet-map{width:100%;height:520px;}
+.leaflet-popup-content-wrapper{border-radius:10px;}
+.popup-name{font-weight:600;font-size:14px;margin-bottom:3px;color:#0a0a0a;}
+.popup-meta{font-size:12px;color:#71717a;}
+.popup-rate{display:inline-block;background:#0a0a0a;color:#fff;padding:2px 7px;border-radius:5px;font-size:12px;font-weight:600;margin-left:5px;}
+.leaflet-pane,.leaflet-top,.leaflet-bottom,.leaflet-control{z-index:1 !important;}
+
+/* GRID */
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;}
+@media (max-width:980px){.grid{grid-template-columns:1fr;}}
+
+/* REGION INFO — full-width card (spans 2 columns on desktop). About on left, flight on right. */
+.region-info{
+  grid-column:1 / -1;
+  background:var(--card);
+  border:1px solid var(--card-border);
+  border-radius:16px;
+  padding:22px 24px;
+  display:grid;
+  grid-template-columns:1fr 1.35fr;
+  gap:28px;
+  box-shadow:0 1px 2px rgba(0,0,0,.04),0 6px 20px rgba(0,0,0,.04);
+}
+@media (max-width:780px){.region-info{grid-template-columns:1fr;gap:18px;padding:20px;}}
+.ri-label{
+  font-size:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;
+  color:var(--sub);margin-bottom:10px;display:inline-flex;align-items:center;gap:7px;
+}
+.ri-label .ic{font-size:12px;line-height:1;}
+.ri-airlines{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px;}
+.airline-chip{
+  display:inline-flex;align-items:center;gap:7px;
+  padding:4px 11px 4px 4px;
+  background:#f6f6f9;border:1px solid #ececef;
+  border-radius:999px;font-size:12.5px;font-weight:600;color:#0a0a0a;
+  transition:opacity .15s;
+}
+.airline-chip .logo{
+  width:20px;height:20px;border-radius:50%;
+  display:inline-flex;align-items:center;justify-content:center;
+  font-size:8.5px;font-weight:700;color:#fff;letter-spacing:.01em;
+}
+.airline-chip.dim{
+  background:#fafafa;border-color:#f0f0f4;
+  color:#a1a1aa;font-weight:500;
+}
+.airline-chip.dim .logo{
+  filter:grayscale(.85);
+  opacity:.55;
+}
+.ri-meta{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.ri-stat{
+  background:#f6f6f9;border:1px solid #ececef;border-radius:10px;
+  padding:11px 12px;
+}
+.ri-stat .label{
+  font-size:9.5px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;
+  color:var(--sub);margin-bottom:6px;line-height:1.1;
+}
+.ri-stat .value{
+  font-size:18px;font-weight:700;color:#0a0a0a;letter-spacing:-.02em;line-height:1.05;
+  display:inline-flex;align-items:baseline;gap:2px;
+}
+.ri-stat .value .rub{font-size:13px;font-weight:500;color:#71717a;margin-right:2px;}
+.ri-stat .value .num{font-size:18px;font-weight:700;color:#0a0a0a;}
+.ri-stat .value .suf{font-size:11px;font-weight:500;color:#71717a;margin-left:2px;}
+.ri-note{font-size:11.5px;color:var(--sub);margin-top:8px;line-height:1.4;}
+.ri-about p{margin:0;font-size:14.5px;line-height:1.55;color:var(--ink-soft);}
+.ri-about p + p{margin-top:8px;}
+
+/* VIEW SWITCHER — collapse cards into table */
+.view-switcher{
+  grid-column:1 / -1;
+  display:flex;justify-content:center;
+  margin:-4px 0 -8px;
+}
+.view-btn{
+  display:inline-flex;align-items:center;gap:8px;
+  padding:10px 18px;border-radius:99px;
+  background:#fff;color:#0a0a0a;
+  border:1.5px solid #d4d4d8;
+  font-size:13.5px;font-weight:600;
+  cursor:pointer;font-family:inherit;
+  transition:all .15s;
+  box-shadow:0 1px 2px rgba(0,0,0,.04);
+}
+.view-btn:hover{background:#0a0a0a;color:#fff;border-color:#0a0a0a;}
+.view-btn svg{width:14px;height:14px;}
+
+/* HOTEL TABLE — appears when section is in table-view */
+.hotel-table-wrap{
+  grid-column:1 / -1;
+  background:var(--card);
+  border:1px solid var(--card-border);
+  border-radius:16px;
+  overflow:hidden;
+  box-shadow:0 1px 2px rgba(0,0,0,.04),0 6px 20px rgba(0,0,0,.04);
+  display:none;
+}
+section.table-view .hotel-table-wrap{display:block;}
+section.table-view .hotel{display:none !important;}
+
+/* Switch animations */
+@keyframes hotelFadeOut{
+  0%{opacity:1;transform:scale(1);}
+  100%{opacity:0;transform:scale(.94);}
+}
+@keyframes hotelFadeIn{
+  0%{opacity:0;transform:scale(.94);}
+  100%{opacity:1;transform:scale(1);}
+}
+@keyframes tableSlideIn{
+  0%{opacity:0;transform:translateY(12px);}
+  100%{opacity:1;transform:translateY(0);}
+}
+@keyframes tableSlideOut{
+  0%{opacity:1;transform:translateY(0);}
+  100%{opacity:0;transform:translateY(-8px);}
+}
+.hotel.is-fading-out{animation:hotelFadeOut .26s ease both;will-change:opacity,transform;}
+.hotel.is-fading-in{animation:hotelFadeIn .34s ease both;will-change:opacity,transform;}
+.hotel-table-wrap.is-fading-in{animation:tableSlideIn .3s ease both;will-change:opacity,transform;}
+.hotel-table-wrap.is-fading-out{animation:tableSlideOut .24s ease both;will-change:opacity,transform;}
+.view-btn[disabled]{opacity:.6;cursor:wait;}
+.hotel-table-scroll{overflow-x:auto;}
+.hotel-table{width:100%;border-collapse:separate;border-spacing:0;font-size:14px;}
+.hotel-table thead th{
+  font-size:10.5px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;
+  color:var(--sub);
+  padding:14px 16px;text-align:left;
+  background:#f6f6f9;border-bottom:1px solid var(--card-border);
+  white-space:nowrap;
+}
+.hotel-table tbody td{
+  padding:14px 16px;
+  border-bottom:1px solid var(--card-border);
+  color:#0a0a0a;white-space:nowrap;vertical-align:middle;
+}
+.hotel-table tbody tr:last-child td{border-bottom:none;}
+.hotel-table tbody tr:hover td{background:#fafafa;}
+.hotel-table .sticky-col{
+  position:sticky;left:0;z-index:2;
+  background:#fff;
+  border-right:1px solid var(--card-border);
+  min-width:240px;max-width:300px;
+  white-space:normal;
+}
+.hotel-table thead .sticky-col{background:#f6f6f9;}
+.hotel-table tbody tr:hover .sticky-col{background:#fafafa;}
+.hotel-table .h-rate{
+  display:inline-flex;align-items:center;justify-content:center;
+  padding:4px 9px;border-radius:6px;
+  background:#16a34a;color:#fff;font-weight:800;font-size:13px;
+}
+.hotel-table .h-rate.gray{background:#71717a;}
+.hotel-table .h-name{font-weight:700;font-size:14.5px;letter-spacing:-.01em;color:#0a0a0a;}
+.hotel-table .h-area{font-size:12px;color:var(--sub);margin-top:2px;}
+.hotel-table .h-yes{color:#16a34a;font-weight:800;}
+.hotel-table .h-no{color:#c8c8d0;font-weight:500;}
+.hotel-table .h-price{font-weight:800;font-size:14.5px;color:#0a0a0a;}
+.hotel-table .h-price .ru{font-weight:500;color:#71717a;font-size:12px;margin-right:1px;}
+.hotel-table .h-link{
+  display:inline-flex;align-items:center;gap:4px;
+  padding:6px 11px;border-radius:6px;
+  background:#003580;color:#fff;font-weight:700;font-size:12px;
+  text-decoration:none;transition:background .12s;
+}
+.hotel-table .h-link:hover{background:#00224f;}
+.hotel-table .h-meal{
+  display:inline-block;padding:3px 8px;border-radius:6px;
+  background:#f0f0f4;color:#27272a;font-weight:700;font-size:11.5px;letter-spacing:.02em;
+}
+.hotel-table .h-meal.green{background:#dcfce7;color:#16a34a;}
+@media (max-width:780px){
+  .hotel-table .sticky-col{min-width:33vw;max-width:33vw;}
+  .hotel-table thead th, .hotel-table tbody td{padding:11px 12px;font-size:13px;}
+  .hotel-table .h-name{font-size:13.5px;}
+}
+
+/* HOTEL CARD — light Vercel style */
+.hotel{
+  background:var(--card);
+  border:1px solid var(--card-border);
+  border-radius:16px;overflow:hidden;
+  display:flex;flex-direction:column;
+  color:var(--ink);
+  transition:border-color .15s,box-shadow .15s,transform .15s;
+  position:relative;
+  box-shadow:0 1px 2px rgba(0,0,0,.04),0 6px 20px rgba(0,0,0,.04);
+  height:100%;
+}
+.hotel:hover{border-color:var(--card-border-strong);box-shadow:0 2px 4px rgba(0,0,0,.05),0 12px 28px rgba(0,0,0,.06);}
+.grid{align-items:stretch;}
+
+/* CAROUSEL */
+.carousel-wrap{position:relative;background:#e8e8ec;}
+.carousel{
+  display:flex;overflow-x:auto;overflow-y:hidden;
+  scroll-snap-type:x mandatory;scroll-behavior:smooth;
+  -webkit-overflow-scrolling:touch;scrollbar-width:none;
+  aspect-ratio:16/10;
+  touch-action:pan-y pinch-zoom;
+  overscroll-behavior-x:contain;overscroll-behavior-y:auto;
+}
+.carousel::-webkit-scrollbar{display:none;}
+.carousel-item{flex:0 0 100%;scroll-snap-align:start;}
+.carousel-item img{width:100%;height:100%;object-fit:cover;cursor:zoom-in;}
+.carousel-nav-btn{
+  position:absolute;top:50%;margin-top:-20px;z-index:5;width:40px;height:40px;
+  border-radius:50%;border:1px solid rgba(0,0,0,.06);
+  background:rgba(255,255,255,.92);color:#0a0a0a;font-size:20px;font-weight:500;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
+  box-shadow:0 2px 8px rgba(0,0,0,.12);
+  transition:background .12s;
+}
+.carousel-nav-btn:hover{background:#fff;}
+.carousel-nav-btn.prev{left:12px;}
+.carousel-nav-btn.next{right:12px;}
+.carousel-pager{
+  display:flex;align-items:center;justify-content:center;gap:7px;
+  padding:12px 0 11px;background:transparent;
+  border-bottom:1px solid var(--card-border);
+}
+.carousel-pager span{width:6px;height:6px;border-radius:50%;background:rgba(0,0,0,.18);transition:all .25s;}
+.carousel-pager span.active{background:#0a0a0a;width:22px;border-radius:3px;}
+.carousel-pager .swipe-hint{
+  font-size:12px;color:var(--sub);margin-left:12px;letter-spacing:.04em;
+  width:auto;height:auto;background:transparent;border-radius:0;font-weight:500;
+}
+@media (max-width:980px){.carousel-pager .swipe-hint::before{content:"← свайп → ";}}
+
+/* CARD BODY */
+.h-body{padding:22px 22px 20px;display:flex;flex-direction:column;gap:16px;flex:1;}
+.h-name{
+  font-size:21px;font-weight:700;letter-spacing:-0.02em;line-height:1.2;
+  color:#0a0a0a;margin:0;
+}
+
+/* STATS */
+.h-stats{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;}
+.stat{
+  background:#f6f6f9;
+  border:1px solid #ececef;
+  border-radius:10px;padding:12px 4px;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  text-align:center;min-width:0;min-height:74px;
+}
+.stat .label{
+  font-size:9.5px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;
+  color:var(--sub);margin-bottom:7px;line-height:1.1;white-space:nowrap;
+}
+.stat .value{font-size:20px;font-weight:800;color:#0a0a0a;letter-spacing:-.025em;line-height:1;font-family:inherit;}
+.stat .value.sm{font-size:20px;font-weight:800;letter-spacing:-.025em;}
+.stat .value.yes{color:var(--good);}
+.stat .value.no{color:#c8c8d0;font-weight:500;}
+.stat.rate{background:#0a0a0a;border-color:#0a0a0a;}
+.stat.rate .label{color:rgba(255,255,255,.65);}
+.stat.rate .value{color:#fff;}
+.stat.rate.gold{
+  background:linear-gradient(135deg,#16a34a,#15803d);
+  border-color:#15803d;
+}
+.stat.rate.gold .label{color:rgba(255,255,255,.85);}
+.stat.rate.gold .value{color:#fff;}
+
+/* PROS / CONS — no labels, no separating borders (single divider is above pricing) */
+.h-pc{
+  display:flex;flex-direction:column;gap:0;
+  padding:4px 0 0;
+}
+.h-pc ul{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:7px;}
+.h-pc li{
+  font-size:14.5px;line-height:1.42;padding:1px 0 1px 28px;position:relative;
+  color:#3f3f46;
+}
+.h-pc li.pro::before{
+  content:"";position:absolute;left:0;top:4px;
+  width:18px;height:18px;border-radius:50%;
+  background:var(--good-bg) url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%2316a34a' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'><polyline points='3.5 8.5 6.5 11.5 12.5 5'/></svg>") no-repeat center / 11px 11px;
+}
+.h-pc li.con::before{
+  content:"";position:absolute;left:0;top:4px;
+  width:18px;height:18px;border-radius:50%;
+  background:var(--bad-bg) url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%23dc2626' stroke-width='2.5' stroke-linecap='round'><line x1='4' y1='8' x2='12' y2='8'/></svg>") no-repeat center / 11px 11px;
+}
+
+/* PRICING — pinned to bottom with divider above */
+.h-pricing{
+  display:grid;grid-template-columns:repeat(3,1fr);gap:6px;
+  margin-top:auto;padding-top:16px;
+  border-top:1px solid var(--card-border);
+}
+.price-tile{
+  background:#f6f6f9;
+  border:1px solid #ececef;
+  border-radius:10px;padding:14px 6px;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  text-align:center;min-height:82px;
+}
+.price-tile .label{
+  font-size:9.5px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;
+  color:var(--sub);margin-bottom:8px;line-height:1.1;
+}
+.price-tile .value{display:inline-flex;align-items:baseline;gap:3px;line-height:1;}
+.price-tile .rub{font-size:15px;font-weight:500;color:#71717a;margin-right:2px;}
+.price-tile .num{font-size:26px;font-weight:800;color:#0a0a0a;letter-spacing:-.025em;}
+.price-tile .suf{font-size:12.5px;font-weight:500;color:#71717a;margin-left:3px;}
+
+/* ACTIONS */
+.h-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.btn-book{
+  display:inline-flex;align-items:center;gap:6px;
+  background:#003580;color:#fff;
+  padding:11px 18px;border-radius:8px;
+  font-size:14px;font-weight:700;letter-spacing:-.005em;
+  transition:background .12s;justify-content:center;
+  border:1px solid #003580;
+}
+.btn-book:hover{background:#00224f;border-color:#00224f;}
+.btn-book::after{content:"↗";font-weight:400;font-size:13px;}
+.btn-site{
+  display:inline-flex;align-items:center;gap:5px;
+  background:transparent;color:#0a0a0a;
+  padding:11px 18px;border-radius:8px;
+  font-size:14px;font-weight:500;
+  border:1px solid var(--card-border-strong);
+  transition:all .12s;justify-content:center;
+}
+.btn-site:hover{background:rgba(0,0,0,.04);border-color:rgba(0,0,0,.22);}
+.btn-site::after{content:"↗";font-weight:400;opacity:.55;font-size:13px;}
+
+@media (max-width:520px){
+  .h-stats{grid-template-columns:repeat(5,1fr);gap:4px;}
+  .stat{padding:9px 3px;min-height:64px;}
+  .stat .label{font-size:8.5px;}
+  .stat .value{font-size:19px;}
+  .stat .value.sm{font-size:13px;}
+  .h-pricing{grid-template-columns:1fr 1fr 1fr;gap:4px;}
+  .price-tile{padding:10px 4px;min-height:70px;}
+  .price-tile .label{font-size:8.5px;}
+  .price-tile .num{font-size:21px;}
+  .price-tile .rub{font-size:13px;}
+  .price-tile .suf{font-size:11px;}
+}
+
+/* DECISION HELPER */
+#decision-helper{
+  max-width:1200px;margin:0 auto;
+  padding:48px 24px 80px;text-align:center;
+}
+#decision-helper h2.dh-title{
+  font-size:clamp(24px,3vw,34px);line-height:1.15;letter-spacing:-0.025em;
+  font-weight:800;color:#0a0a0a;margin:0 0 10px;
+  position:static;background:none;border:none;padding:0;display:block;
+  backdrop-filter:none;-webkit-backdrop-filter:none;
+}
+#decision-helper .dh-lead{
+  font-size:16px;color:var(--ink-soft);margin:0 0 28px;
+}
+.dh-buttons{
+  display:grid;grid-template-columns:repeat(3,1fr);gap:12px;
+  max-width:880px;margin:0 auto;
+}
+@media (max-width:780px){
+  .dh-buttons{
+    display:flex;flex-wrap:nowrap;
+    grid-template-columns:none;
+    gap:10px;
+    overflow-x:auto;overflow-y:hidden;
+    -webkit-overflow-scrolling:touch;
+    scrollbar-width:none;
+    touch-action:pan-x;
+    overscroll-behavior-x:contain;
+    justify-content:flex-start;
+    margin:0 -24px;
+    padding:4px 24px;
+    max-width:none;
+    -webkit-mask-image:linear-gradient(to right, #000 0, #000 calc(100% - 30px), transparent 100%);
+    mask-image:linear-gradient(to right, #000 0, #000 calc(100% - 30px), transparent 100%);
+  }
+  .dh-buttons::-webkit-scrollbar{display:none;}
+  .dh-btn{
+    flex:0 0 auto;
+    min-width:230px;
+    padding:20px 18px;
+  }
+}
+.dh-btn{
+  background:#fff;border:1.5px solid #d4d4d8;
+  border-radius:16px;padding:24px 18px;
+  cursor:pointer;text-align:center;
+  transition:all .15s ease;
+  box-shadow:0 1px 2px rgba(0,0,0,.04);
+  font-family:inherit;color:#0a0a0a;
+  display:flex;flex-direction:column;align-items:center;gap:6px;
+}
+.dh-btn:hover{
+  border-color:#0a0a0a;
+  transform:translateY(-2px);
+  box-shadow:0 6px 18px rgba(0,0,0,.08);
+}
+.dh-btn.active{
+  background:#0a0a0a;color:#fff;border-color:#0a0a0a;
+  transform:translateY(-2px);
+  box-shadow:0 8px 24px rgba(0,0,0,.18);
+}
+.dh-btn.active .dh-sub{color:rgba(255,255,255,.72);}
+.dh-btn .dh-icon{font-size:30px;line-height:1;margin-bottom:4px;}
+.dh-btn .dh-name{font-size:16px;font-weight:700;letter-spacing:-.01em;}
+.dh-btn .dh-sub{font-size:13px;color:var(--ink-soft);line-height:1.4;}
+
+#dhResults{
+  margin-top:28px;text-align:left;min-height:0;
+  transition:min-height .25s;
+}
+#dhResults:empty{margin-top:0;}
+#dhResults .dh-result-title{
+  font-size:13px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;
+  color:var(--sub);margin:0 0 12px;text-align:left;
+}
+
+/* LIGHTBOX */
+.lightbox{position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,.92);display:none;align-items:center;justify-content:center;}
+.lightbox.open{display:flex;}
+.lightbox-carousel{width:100%;height:100%;display:flex;overflow-x:auto;scroll-snap-type:x mandatory;scroll-behavior:smooth;scrollbar-width:none;touch-action:pan-x;}
+.lightbox-carousel::-webkit-scrollbar{display:none;}
+.lightbox-carousel .item{flex:0 0 100%;scroll-snap-align:start;display:flex;align-items:center;justify-content:center;padding:60px 30px;}
+.lightbox-carousel .item img{max-width:100%;max-height:100%;object-fit:contain;border-radius:6px;}
+.lightbox-close,.lightbox-nav{position:absolute;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.08);color:#fff;cursor:pointer;backdrop-filter:blur(10px);display:flex;align-items:center;justify-content:center;border-radius:50%;z-index:5;transition:background .12s;}
+.lightbox-close:hover,.lightbox-nav:hover{background:rgba(255,255,255,.16);}
+.lightbox-close{top:24px;right:24px;width:44px;height:44px;font-size:20px;font-weight:300;}
+.lightbox-nav{top:50%;margin-top:-26px;width:52px;height:52px;font-size:26px;font-weight:500;}
+.lightbox-nav.prev{left:24px;}
+.lightbox-nav.next{right:24px;}
+.lightbox-counter{position:absolute;bottom:24px;left:50%;transform:translateX(-50%);color:rgba(255,255,255,.75);font-size:13px;font-weight:500;background:rgba(0,0,0,.5);padding:6px 12px;border-radius:99px;backdrop-filter:blur(10px);}
+body.lightbox-open{overflow:hidden;}
+@media (max-width:520px){
+  .lightbox-carousel .item{padding:30px 10px;}
+  .lightbox-nav{width:40px;height:40px;font-size:22px;}
+  .lightbox-nav.prev{left:12px;}
+  .lightbox-nav.next{right:12px;}
+}
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <h1 class="hero-title">Подбор поездки для мамы</h1>
+</header>
+
+<nav class="toc">
+  <div class="toc-spacer"></div>
+  <div class="toc-buttons">
+    <a href="#aegean">🇹🇷 Эгейское</a>
+    <a href="#med">🇹🇷 Средиземное</a>
+    <a href="#black">🇹🇷 Чёрное</a>
+    <a href="#indian">🇸🇨 Индийский океан</a>
+  </div>
+  <div class="toc-right">
+    <button class="filter-btn" id="filterToggle" aria-expanded="false">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 4h12M4 8h8M6 12h4"/></svg>
+      <span class="label-txt">Фильтры</span>
+      <span class="badge" id="filterCount">21</span>
+    </button>
+  </div>
+</nav>
+
+<div class="filter-panel" id="filterPanel">
+  <div class="filter-panel-inner">
+    <div class="filter-group">
+      <div class="flabel">Регион</div>
+      <div class="filter-chips">
+        <span class="fchip" data-filter="region" data-value="aegean">🇹🇷 Эгейское</span>
+        <span class="fchip" data-filter="region" data-value="med">🇹🇷 Средиземное</span>
+        <span class="fchip" data-filter="region" data-value="black">🇹🇷 Чёрное</span>
+        <span class="fchip" data-filter="region" data-value="seychelles">🇸🇨 Сейшелы</span>
+      </div>
+    </div>
+    <div class="filter-group">
+      <div class="flabel">Рейтинг</div>
+      <div class="filter-chips">
+        <span class="fchip" data-filter="min-rating" data-value="8.5">8.5+</span>
+        <span class="fchip" data-filter="min-rating" data-value="9.0">9.0+</span>
+        <span class="fchip" data-filter="min-rating" data-value="9.3">9.3+</span>
+      </div>
+    </div>
+    <div class="filter-group">
+      <div class="flabel">Цена за ночь</div>
+      <div class="filter-chips">
+        <span class="fchip" data-filter="max-price" data-value="20">до ₽ 20 т.</span>
+        <span class="fchip" data-filter="max-price" data-value="30">до ₽ 30 т.</span>
+        <span class="fchip" data-filter="max-price" data-value="50">до ₽ 50 т.</span>
+      </div>
+    </div>
+    <div class="filter-group">
+      <div class="flabel">Звёзды</div>
+      <div class="filter-chips">
+        <span class="fchip" data-filter="stars" data-value="3">3★</span>
+        <span class="fchip" data-filter="stars" data-value="4">4★</span>
+        <span class="fchip" data-filter="stars" data-value="5">5★</span>
+      </div>
+    </div>
+    <div class="filter-group">
+      <div class="flabel">Питание</div>
+      <div class="filter-chips">
+        <span class="fchip" data-filter="meal" data-value="B&B">B&B</span>
+        <span class="fchip" data-filter="meal" data-value="HB">HB (полупансион)</span>
+        <span class="fchip" data-filter="meal" data-value="AI">AI (всё включено)</span>
+      </div>
+    </div>
+    <div class="filter-group">
+      <div class="flabel">Тип пляжа</div>
+      <div class="filter-chips">
+        <span class="fchip" data-filter="beach" data-value="sand">🏖️ песок</span>
+        <span class="fchip" data-filter="beach" data-value="pebble">🪨 галька</span>
+        <span class="fchip" data-filter="beach" data-value="granite">🗿 гранит</span>
+      </div>
+    </div>
+    <div class="filter-group">
+      <div class="flabel">Температура воды</div>
+      <div class="filter-chips">
+        <span class="fchip" data-filter="water" data-value="warm">тёплая 26°C+</span>
+        <span class="fchip" data-filter="water" data-value="mid">24–26°C</span>
+        <span class="fchip" data-filter="water" data-value="cool">прохладная &lt;24°C</span>
+      </div>
+    </div>
+    <div class="filter-group">
+      <div class="flabel">Удобства</div>
+      <div class="filter-chips">
+        <span class="fchip" data-filter="spa" data-value="1">✓ спа</span>
+        <span class="fchip" data-filter="adults" data-value="1">✓ только взрослые</span>
+      </div>
+    </div>
+    <div class="filter-actions">
+      <div class="filter-count"><b id="filterVisible">21</b> из 21 отелей</div>
+      <button class="filter-reset" id="filterReset">Сбросить</button>
+      <button class="filter-close" id="filterCloseBtn">Готово</button>
+    </div>
+  </div>
+</div>
+
+<section id="map-section">
+  <div class="map-card" id="mapCard">
+    <div class="map-head" id="mapHead">
+      <h4>📍 Все 10 отелей на карте Турции</h4>
+      <div class="legend">
+        <span><i style="background:#3478ff"></i>Эгейское</span>
+        <span><i style="background:#f59e0b"></i>Средиземное</span>
+        <span><i style="background:#16a34a"></i>Чёрное море</span>
+      </div>
+      <button class="map-toggle-btn" type="button">
+        <span class="map-toggle-txt">Скрыть карту</span>
+        <svg class="chev" width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 6 8 10 12 6"/></svg>
+      </button>
+    </div>
+    <div class="map-body">
+      <div id="turkey-map" class="leaflet-map"></div>
+    </div>
+  </div>
+</section>
+
+<section id="aegean">
+  <h2><span class="flag">🇹🇷</span>Эгейское побережье</h2>
+
+  <div class="grid">
+
+    <div class="region-info">
+      <div class="ri-about">
+        <div class="ri-label">О регионе</div>
+        <p>Тёплое море <b>24–26 °C</b> в июле, мягкий песок и галька. Чешме и Алачаты — модный бутиковый регион, столица виндсёрфа (постоянный ветер). Гёчек и Бодрум — яхтенная атмосфера, бирюзовые бухты.</p>
+        <p>Меньше туристов, чем в Аланье, выше уровень отелей, дороже билеты.</p>
+      </div>
+      <div class="ri-flight">
+        <div class="ri-label"><span class="ic">✈</span> Прямой перелёт</div>
+        <div class="ri-airlines">
+          <span class="airline-chip"><span class="logo" style="background:#e30613">TK</span>Turkish Airlines</span>
+          <span class="airline-chip"><span class="logo" style="background:#f37021">PC</span>Pegasus</span>
+          <span class="airline-chip dim"><span class="logo" style="background:#003a8c">VF</span>AJet</span>
+          <span class="airline-chip dim"><span class="logo" style="background:#ed1c24">N4</span>NordWind</span>
+          <span class="airline-chip dim"><span class="logo" style="background:#cc0000">WZ</span>Red Wings</span>
+        </div>
+        <div class="ri-meta">
+          <div class="ri-stat"><div class="label">Длительность</div><div class="value">3,5–4 ч</div></div>
+          <div class="ri-stat"><div class="label">Туда-обратно</div><div class="value"><span class="rub">₽</span><span class="num">50–65</span><span class="suf">т.</span></div></div>
+        </div>
+        <div class="ri-note">DLM в основном чартерами (NordWind / Red Wings / Azur), BJV и ADB — регулярные рейсы TK и Pegasus.</div>
+      </div>
+    </div>
+
+    <div class="view-switcher">
+      <button class="view-btn" type="button" data-section="aegean">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="2" y1="4" x2="14" y2="4"/><line x1="2" y1="8" x2="14" y2="8"/><line x1="2" y1="12" x2="14" y2="12"/></svg>
+        <span class="view-btn-txt">Свернуть в таблицу</span>
+      </button>
+    </div>
+
+    <div class="hotel-table-wrap" data-section="aegean">
+      <div class="hotel-table-scroll"></div>
+    </div>
+
+    <div class="hotel" data-region="aegean" data-rating="9.1" data-price="50" data-stars="5" data-meal="B&B" data-spa="0" data-adults="1" data-beach="sand" data-water="25">
+      <div class="carousel-wrap">
+        <div class="carousel">
+          <div class="carousel-item"><img loading="lazy" src="pics_booking/gaia_1.jpg" alt=""></div>
+          <div class="carousel-item"><img loading="lazy" src="pics_booking/gaia_2.jpg" alt=""></div>
+          <div class="carousel-item"><img loading="lazy" src="pics_booking/gaia_3.jpg" alt=""></div>
+          <div class="carousel-item"><img loading="lazy" src="pics_booking/gaia_4.jpg" alt=""></div>
+          <div class="carousel-item"><img loading="lazy" src="pics_booking/gaia_5.jpg" alt=""></div>
+          <div class="carousel-item"><img loading="lazy" src="pics_booking/gaia_6.jpg" alt=""></div>
+        </div>
+        <button class="carousel-nav-btn prev" onclick="carouselScroll(this,-1)">‹</button>
+        <button class="carousel-nav-btn next" onclick="carouselScroll(this,1)">›</button>
+      </div>
+      <div class="carousel-pager"><span class="active"></span><span></span><span></span><span></span><span></span><span></span><span class="swipe-hint">6 фото</span></div>
+      <div class="h-body">
+        <div class="h-name">GAIA Alaçatı by the Sea — Adult Only</div>
+        <div class="h-stats">
+          <div class="stat rate gold"><div class="label">Рейтинг</div><div class="value">9.1</div></div>
+          <div class="stat"><div class="label">Звёзды</div><div class="value">5★</div></div>
+          <div class="stat"><div class="label">Спа</div><div class="value no">—</div></div>
+          <div class="stat"><div class="label">A-incl.</div><div class="value sm no">B&B</div></div>
+          <div class="stat"><div class="label">Adults</div><div class="value yes">18+</div></div>
+        </div>
+        <div class="h-pc">
+          <ul>
+            <li class="pro">Свой пляж Nayman — мягкий песок, прямой выход с территории</li>
+            <li class="pro">Adults-only 18+, частные бассейны в номерах</li>
+            <li class="pro">Фитнес-центр на территории</li>
+            <li class="pro">Чешме / Алачаты — модный бутиковый регион, рестораны и бары рядом</li>
+            <li class="pro">128 отзывов, оценка 9.1 — стабильно высокая</li>
+            <li class="con">Самый дорогой в подборке</li>
+            <li class="con">Алачаты — столица виндсёрфа, в июле сильный ветер</li>
+          </ul>
+        </div>
+        <div class="h-pricing">
+          <div class="price-tile"><div class="label">Ночь</div><div class="value"><span class="rub">₽</span><span class="num">50</span><span class="suf">т.</span></div></div>
+          <div class="price-tile"><div class="label">10 ночей</div><div class="value"><span class="rub">₽</span><span class="num">500</span><span class="suf">т.</span></div></div>
+          <div class="price-tile"><div class="label">13 ночей</div><div class="value"><span class="rub">₽</span><span class="num">650</span><span class="suf">т.</span></div></div>
+        </div>
+        <div class="h-actions">
+          <a class="btn-book" href="https://www.booking.com/hotel/tr/gaia-by-the-sea-cesme.html?checkin=2026-07-17&checkout=2026-07-20&group_adults=2&selected_currency=RUB&lang=ru" target="_blank">Booking</a>
+          <a class="btn-site" href="https://www.gaiabythesea.com" target="_blank">Сайт</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="hotel" data-region="aegean" data-rating="8.7" data-price="23" data-stars="4" data-meal="B&B" data-spa="0" data-adults="1" data-beach="sand" data-water="25">
+      <div class="carousel-wrap">
+        <div class="carousel">
+          <div class="carousel-item"><img loading="lazy" src="pics_booking/layla_1.jpg" alt=""></div>
+          <div class="carousel-item"><img loading="lazy" src="pics_booking/layla_2.jpg" alt=""></div>
+          <div class="carousel-item"><img loading="lazy" src="pics_booking/layla_3.jpg" alt=""></div>
+          <div class="carousel-item"><img loading="lazy" src="pics_booking/layla_4.jpg" alt=""></div>
+          <div class="carousel-item"><img loading="lazy" src="pics_booking/layla_5.jpg" alt=""></div>
+          <div class="carousel-item"><img loading="lazy" src="pics_booking/layla_6.jpg" alt=""></div>
+        </div>
+        <button class="carousel-nav-btn prev" onclick="carouselScroll(this,-1)">‹</button>
+        <button class="carousel-nav-btn next" onclick="carouselScroll(this,1)">›</button>
+      </div>
+      <div class="carousel-pager"><span class="active"></span><span></span><span></span><span></span><span></span><span></span><span class="swipe-hint">6 фото</span></div>
+      <div class="h-body">
+        <div class="h-name">Layla Gocek — Adults Only</div>
+        <div class="h-stats">
+          <div class="stat rate gold"><div class="label">Рейтинг</div><div class="value">8.7</div></div>
+          <div class="stat"><div class="label">Звёзды</div><div class="value">4★</div></div>
+          <div class="stat"><div class="label">Спа</div><div class="value no">—</div></div>
+          <div class="stat"><div class="label">A-incl.</div><div class="value sm no">B&B</div></div>
+          <div class="stat"><div class="label">Adults</div><div class="value yes">✓</div></div>
+        </div>
+        <div class="h-pc">
+          <ul>
+            <li class="pro">Первая линия пляжа в бухте Гёчек (Inlice)</li>
+            <li class="pro">Adults-only — тишина и приватность</li>
+            <li class="pro">Полу-олимпийский бассейн, барбекю, терраса</li>
+            <li class="pro">Бутиковый камерный формат</li>
+            <li class="pro">412 отзывов, рейтинг 8.7 — стабильно</li>
+            <li class="con">Только завтрак (B&B) — обеды/ужины искать в Гёчеке</li>
+            <li class="con">Нет спа</li>
+            <li class="con">6 км до яхт-клуба и центра Гёчека</li>
+          </ul>
+        </div>
+        <div class="h-pricing">
+          <div class="price-tile"><div class="label">Ночь</div><div class="value"><span class="rub">₽</span><span class="num">23</span><span class="suf">т.</span></div></div>
+          <div class="price-tile"><div class="label">10 ночей</div><div class="value"><span class="rub">₽</span><span class="num">230</span><span class="suf">т.</span></div></div>
+          <div class="price-tile"><div class="label">13 ночей</div><div class="value"><span class="rub">₽</span><span class="num">300</span><span class="suf">т.</span></div></div>
+        </div>
+        <div class="h-actions">
+          <a class="btn-book" href="https://www.booking.com/hotel/tr/layla-gocek.html?checkin=2026-07-17&checkout=2026-07-20&group_adults=2&selected_currency=RUB&lang=ru" target="_blank">Booking</a>
+          <a class="btn-site" href="https://www.laylagocek.com" target="_blank">Сайт</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="hotel" data-region="aegean" data-rating="9.8" data-price="33" data-stars="4" data-meal="B&B" data-spa="0" data-adults="0" data-beach="sand" data-water="25">
+      <div class="carousel-wrap">
+        <div class="carousel">
+          <div class="carousel-item"><img loading="lazy" src="pics_booking/zvillas_1.jpg" alt=""></div>
+          <div class="carousel-item"><img loading="lazy" src="pics_booking/zvillas_2.jpg" alt=""></div>
+          <div class="carousel-item"><img loading="lazy" src="pics_booking/zvillas_3.jpg" alt=""></div>
+          <div class="carousel-item"><img loading="lazy" src="pics_booking/zvillas_4.jpg" alt=""></div>
+          <div class="carousel-item"><img loading="lazy" src="pics_booking/zvillas_5.jpg" alt=""></div>
+          <div class="carousel-item"><img loading="lazy" src="pics_booking/zvillas_6.jpg" alt=""></div>
+        </div>
+        <button class="carousel-nav-btn prev" onclick="carouselScroll(this,-1)">‹</button>
+        <button class="carousel-nav-btn next" onclick="carouselScroll(this,1)">›</button>
+      </div>
+      <div class="carousel-pager"><span class="active"></span><span></span><span></span><span></span><span></span><span></span><span class="swipe-hint">6 фото</span></div>
+      <div class="h-body">
+        <div class="h-name">Z-Villas Beach Hotel</div>
+        <div class="h-stats">
+          <div class="stat rate gold"><div class="label">Рейтинг</div><div class="value">9.8</div></div>
+          <div class="stat"><div class="label">Звёзды</div><div class="value">4★</div></div>
+          <div class="stat"><div class="label">Спа</div><div class="value no">—</div></div>
+          <div class="stat"><div class="label">A-incl.</div><div class="value sm no">B&B</div></div>
+          <div class="stat"><div class="label">Adults</div><div class="value no">—</div></div>
+        </div>
+        <div class="h-pc">
+          <ul>
+            <li class="pro">Самый высокий рейтинг подборки — 9.8 (491 отзыв)</li>
+            <li class="pro">Первая линия + свой пляж в бухте Турунч</li>
+            <li class="pro">4 бассейна на территории</li>
+            <li class="pro">Тихая бухта рядом с Мармарисом — есть куда выбраться</li>
+            <li class="pro">Очень хороший завтрак</li>
+            <li class="con">Не adults-only — летом могут быть семьи с детьми</li>
+            <li class="con">Только B&B (без обедов / ужинов)</li>
+          </ul>
+        </div>
+        <div class="h-pricing">
+          <div class="price-tile"><div class="label">Ночь</div><div class="value"><span class="rub">₽</span><span class="num">33</span><span class="suf">т.</span></div></div>
+          <div class="price-tile"><div class="label">10 ночей</div><div class="value"><span class="rub">₽</span><span class="num">330</span><span class="suf">т.</span></div></div>
+          <div class="price-tile"><div class="label">13 ночей</div><div class="value"><span class="rub">₽</span><span class="num">430</span><span class="suf">т.</span></div></div>
+        </div>
+        <div class="h-actions">
+          <a class="btn-book" href="https://www.booking.com/hotel/tr/z-villas.html?checkin=2026-07-17&checkout=2026-07-20&group_adults=2&selected_currency=RUB&lang=ru" target="_blank">Booking</a>
+          <a class="btn-site" href="https://www.zvillas.com.tr" target="_blank">Сайт</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="hotel" data-region="aegean" data-rating="8.4" data-price="37" data-stars="3" data-meal="B&B" data-spa="0" data-adults="0" data-beach="sand" data-water="25">
+      <div class="carousel-wrap">
+        <div class="carousel">
+          <div class="carousel-item"><img loading="lazy" src="pics_booking/perdue_1.jpg" alt=""></div>
+          <div class="carousel-item"><img loading="lazy" src="pics_booking/perdue_2.jpg" alt=""></div>
+          <div class="carousel-item"><img loading="lazy" src="pics_booking/perdue_3.jpg" alt=""></div>
+          <div class="carousel-item"><img loading="lazy" src="pics_booking/perdue_4.jpg" alt=""></div>
+          <div class="carousel-item"><img loading="lazy" src="pics_booking/perdue_5.jpg" alt=""></div>
+          <div class="carousel-item"><img loading="lazy" src="pics_booking/perdue_6.jpg" alt=""></div>
+        </div>
+        <button class="carousel-nav-btn prev" onclick="carouselScroll(this,-1)">‹</button>
+        <button class="carousel-nav-btn next" onclick="carouselScroll(this,1)">›</button>
+      </div>
+      <div class="carousel-pager"><span class="active"></span><span></span><span></span><span></span><span></span><span></span><span class="swipe-hint">6 фото</span></div>
+      <div class="h-body">
+        <div class="h-name">Perdue Hotel</div>
+        <div class="h-stats">
+          <div class="stat rate"><div class="label">Рейтинг</div><div class="value">8.4</div></div>
+          <div class="stat"><div class="label">Звёзды</div><div class="value">3★</div></div>
+          <div class="stat"><div class="label">Спа</div><div class="value no">—</div></div>
+          <div class="stat"><div class="label">A-incl.</div><div class="value sm no">B&B</div></div>
+          <div class="stat"><div class="label">Adults</div><div class="value no">—</div></div>
+        </div>
+        <div class="h-pc">
+          <ul>
+            <li class="pro">Частная пляжная зона в Фаралии</li>
+            <li class="pro">2 ресторана и бар на территории</li>
+            <li class="pro">Тихий уголок южного Эгея, рядом природа</li>
+            <li class="con">Дорого за 3★ — почти как 4★ в этой подборке</li>
+            <li class="con">Только B&B (без обедов / ужинов)</li>
+            <li class="con">Всего 58 отзывов — мало статистики</li>
+            <li class="con">До аэропорта Даламан ~1,5–2 ч на машине</li>
+          </ul>
+        </div>
+        <div class="h-pricing">
+          <div class="price-tile"><div class="label">Ночь</div><div class="value"><span class="rub">₽</span><span class="num">37</span><span class="suf">т.</span></div></div>
+          <div class="price-tile"><div class="label">10 ночей</div><div class="value"><span class="rub">₽</span><span class="num">370</span><span class="suf">т.</span></div></div>
+          <div class="price-tile"><div class="label">13 ночей</div><div class="value"><span class="rub">₽</span><span class="num">480</span><span class="suf">т.</span></div></div>
+        </div>
+        <div class="h-actions">
+          <a class="btn-book" href="https://www.booking.com/hotel/tr/perdue-butik.html?checkin=2026-07-17&checkout=2026-07-20&group_adults=2&selected_currency=RUB&lang=ru" target="_blank">Booking</a>
+          <a class="btn-site" href="https://www.perdueotel.com" target="_blank">Сайт</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="hotel" data-region="aegean" data-rating="8.9" data-price="33" data-stars="4" data-meal="B&B" data-spa="1" data-adults="1" data-beach="sand" data-water="25">
+      <div class="carousel-wrap">
+        <div class="carousel">
+          <div class="carousel-item"><img loading="lazy" src="pics_booking/lov_1.jpg" alt=""></div>
+          <div class="carousel-item"><img loading="lazy" src="pics_booking/lov_2.jpg" alt=""></div>
+          <div class="carousel-item"><img loading="lazy" src="pics_booking/lov_3.jpg" alt=""></div>
+          <div class="carousel-item"><img loading="lazy" src="pics_booking/lov_4.jpg" alt=""></div>
+          <div class="carousel-item"><img loading="lazy" src="pics_booking/lov_5.jpg" alt=""></div>
+          <div class="carousel-item"><img loading="lazy" src="pics_booking/lov_6.jpg" alt=""></div>
+        </div>
+        <button class="carousel-nav-btn prev" onclick="carouselScroll(this,-1)">‹</button>
+        <button class="carousel-nav-btn next" onclick="carouselScroll(this,1)">›</button>
+      </div>
+      <div class="carousel-pager"><span class="active"></span><span></span><span></span><span></span><span></span><span></span><span class="swipe-hint">6 фото</span></div>
+      <div class="h-body">
+        <div class="h-name">Lov Faralya — Adults Only</div>
+        <div class="h-stats">
+          <div class="stat rate gold"><div class="label">Рейтинг</div><div class="value">8.9</div></div>
+          <div class="stat"><div class="label">Тип</div><div class="value sm">Глэмп</div></div>
+          <div class="stat"><div class="label">Спа</div><div class="value yes">✓</div></div>
+          <div class="stat"><div class="label">A-incl.</div><div class="value sm no">B&B</div></div>
+          <div class="stat"><div class="label">Adults</div><div class="value yes">✓</div></div>
+        </div>
+        <div class="h-pc">
+          <ul>
+            <li class="pro">Adults-only глэмпинг — необычный формат, шале в природе</li>
+            <li class="pro">Частная пляжная зона в Фаралии</li>
+            <li class="pro">Спа на территории</li>
+            <li class="pro">Ресторан + бар, виды на скалы и море</li>
+            <li class="pro">207 отзывов, рейтинг 8.9 — стабильно</li>
+            <li class="con">Не классический отель — палаточные шале не для всех</li>
+            <li class="con">Только завтрак (B&B)</li>
+            <li class="con">Изолированно — до Даламана ~1,5 ч</li>
+          </ul>
+        </div>
+        <div class="h-pricing">
+          <div class="price-tile"><div class="label">Ночь</div><div class="value"><span class="rub">₽</span><span class="num">33</span><span class="suf">т.</span></div></div>
+          <div class="price-tile"><div class="label">10 ночей</div><div class="value"><span class="rub">₽</span><span class="num">330</span><span class="suf">т.</span></div></div>
+          <div class="price-tile"><div class="label">13 ночей</div><div class="value"><span class="rub">₽</span><span class="num">430</span><span class="suf">т.</span></div></div>
+        </div>
+        <div class="h-actions">
+          <a class="btn-book" href="https://www.booking.com/hotel/tr/sandalwood-glamping.html?checkin=2026-07-17&checkout=2026-07-20&group_adults=2&selected_currency=RUB&lang=ru" target="_blank">Booking</a>
+          <a class="btn-site" href="https://www.lovfaralya.com" target="_blank">Сайт</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="hotel" data-region="aegean" data-rating="8.9" data-price="24" data-stars="4" data-meal="B&B" data-spa="0" data-adults="0" data-beach="sand" data-water="25">
+      <div class="carousel-wrap">
+        <div class="carousel">
+          <div class="carousel-item"><img loading="lazy" src="pics_booking/jade_1.jpg" alt=""></div>
+          <div class="carousel-item"><img loading="lazy" src="pics_booking/jade_2.jpg" alt=""></div>
+          <div class="carousel-item"><img loading="lazy" src="pics_booking/jade_3.jpg" alt=""></div>
+          <div class="carousel-item"><img loading="lazy" src="pics_booking/jade_4.jpg" alt=""></div>
+          <div class="carousel-item"><img loading="lazy" src="pics_booking/jade_5.jpg" alt=""></div>
+          <div class="carousel-item"><img loading="lazy" src="pics_booking/jade_6.jpg" alt=""></div>
+        </div>
+        <button class="carousel-nav-btn prev" onclick="carouselScroll(this,-1)">‹</button>
+        <button class="carousel-nav-btn next" onclick="carouselScroll(this,1)">›</button>
+      </div>
+      <div class="carousel-pager"><span class="active"></span><span></span><span></span><span></span><span></span><span></span><span class="swipe-hint">6 фото</span></div>
+      <div class="h-body">
+        <div class="h-name">Jade Residence</div>
+        <div class="h-stats">
+          <div class="stat rate gold"><div class="label">Рейтинг</div><div class="value">8.9</div></div>
+          <div class="stat"><div class="label">Тип</div><div class="value sm">Apt.</div></div>
+          <div class="stat"><div class="label">Спа</div><div class="value no">—</div></div>
+          <div class="stat"><div class="label">A-incl.</div><div class="value sm no">B&B</div></div>
+          <div class="stat"><div class="label">Adults</div><div class="value no">—</div></div>
+        </div>
+        <div class="h-pc">
+          <ul>
+            <li class="pro">Первая линия пляжа в Олюденизе</li>
+            <li class="pro">Доступная цена — один из самых бюджетных</li>
+            <li class="pro">Превосходный завтрак, ресторан и бар</li>
+            <li class="pro">Олюдениз — топ-вид на знаменитую лагуну, парапланы</li>
+            <li class="pro">200 отзывов, рейтинг 8.9 — стабильно</li>
+            <li class="con">Формат «residence» — апартаменты, не классический отель</li>
+            <li class="con">Без спа</li>
+            <li class="con">Не adults-only</li>
+          </ul>
+        </div>
+        <div class="h-pricing">
+          <div class="price-tile"><div class="label">Ночь</div><div class="value"><span class="rub">₽</span><span class="num">24</span><span class="suf">т.</span></div></div>
+          <div class="price-tile"><div class="label">10 ночей</div><div class="value"><span class="rub">₽</span><span class="num">240</span><span class="suf">т.</span></div></div>
+          <div class="price-tile"><div class="label">13 ночей</div><div class="value"><span class="rub">₽</span><span class="num">310</span><span class="suf">т.</span></div></div>
+        </div>
+        <div class="h-actions">
+          <a class="btn-book" href="https://www.booking.com/hotel/tr/jade-residence.html?checkin=2026-07-17&checkout=2026-07-20&group_adults=2&selected_currency=RUB&lang=ru" target="_blank">Booking</a>
+          <a class="btn-site" href="https://www.jaderesidence.com" target="_blank">Сайт</a>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<section id="med">
+  <h2><span class="flag">🇹🇷</span>Средиземное побережье</h2>
+
+  <div class="grid">
+
+    <div class="region-info">
+      <div class="ri-about">
+        <div class="ri-label">О регионе</div>
+        <p>Самое тёплое море Турции — <b>26–28 °C</b> в июле, долгий сезон. Аланья — большой курорт с шумной инфраструктурой; Каш — самый красивый и тихий, бирюзовая вода, без толп туристов.</p>
+        <p>Много чартеров — самые дешёвые билеты по сравнению с другими направлениями.</p>
+      </div>
+      <div class="ri-flight">
+        <div class="ri-label"><span class="ic">✈</span> Прямой перелёт</div>
+        <div class="ri-airlines">
+          <span class="airline-chip"><span class="logo" style="background:#e30613">TK</span>Turkish Airlines</span>
+          <span class="airline-chip"><span class="logo" style="background:#f37021">PC</span>Pegasus</span>
+          <span class="airline-chip"><span class="logo" style="background:#009edb">SU</span>Аэрофлот</span>
+          <span class="airline-chip dim"><span class="logo" style="background:#003a8c">VF</span>AJet</span>
+          <span class="airline-chip"><span class="logo" style="background:#009d3f">S7</span>S7 Airlines</span>
+          <span class="airline-chip dim"><span class="logo" style="background:#ed1c24">N4</span>NordWind</span>
+          <span class="airline-chip dim"><span class="logo" style="background:#003a96">ZF</span>Azur Air</span>
+          <span class="airline-chip dim"><span class="logo" style="background:#cc0000">WZ</span>Red Wings</span>
+        </div>
+        <div class="ri-meta">
+          <div class="ri-stat"><div class="label">Длительность</div><div class="value">3,5 ч</div></div>
+          <div class="ri-stat"><div class="label">Туда-обратно</div><div class="value"><span class="rub">₽</span><span class="num">35–55</span><span class="suf">т.</span></div></div>
+        </div>
+        <div class="ri-note">AYT — самое популярное направление, рейсы каждые 1–2 часа. Каш — через DLM (~2 ч на машине).</div>
+      </div>
+    </div>
+
+    <div class="view-switcher">
+      <button class="view-btn" type="button" data-section="med">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="2" y1="4" x2="14" y2="4"/><line x1="2" y1="8" x2="14" y2="8"/><line x1="2" y1="12" x2="14" y2="12"/></svg>
+        <span class="view-btn-txt">Свернуть в таблицу</span>
+      </button>
+    </div>
+
+    <div class="hotel-table-wrap" data-section="med">
+      <div class="hotel-table-scroll"></div>
+    </div>
+
+    <div class="hotel" data-region="med" data-rating="9.0" data-price="12" data-stars="3" data-meal="B&B" data-spa="0" data-adults="1" data-beach="sand" data-water="27">
+      <div class="carousel-wrap">
+        <div class="carousel">
+          <div class="carousel-item"><img loading="lazy" src="pics_booking/lagaia_1.jpg" alt=""></div>
+          <div class="carousel-item"><img loading="lazy" src="pics_booking/lagaia_2.jpg" alt=""></div>
+          <div class="carousel-item"><img loading="lazy" src="pics_booking/lagaia_3.jpg" alt=""></div>
+          <div class="carousel-item"><img loading="lazy" src="pics_booking/lagaia_4.jpg" alt=""></div>
+          <div class="carousel-item"><img loading="lazy" src="pics_booking/lagaia_5.jpg" alt=""></div>
+          <div class="carousel-item"><img loading="lazy" src="pics_booking/lagaia_6.jpg" alt=""></div>
+        </div>
+        <button class="carousel-nav-btn prev" onclick="carouselScroll(this,-1)">‹</button>
+        <button class="carousel-nav-btn next" onclick="carouselScroll(this,1)">›</button>
+      </div>
+      <div class="carousel-pager"><span class="active"></span><span></span><span></span><span></span><span></span><span></span><span class="swipe-hint">6 фото</span></div>
+      <div class="h-body">
+        <div class="h-name">La Gaia — Adult Only (Аланья)</div>
+        <div class="h-stats">
+          <div class="stat rate gold"><div class="label">Рейтинг</div><div class="value">9.0</div></div>
+          <div class="stat"><div class="label">Звёзды</div><div class="value">3★</div></div>
+          <div class="stat"><div class="label">Спа</div><div class="value no">—</div></div>
+          <div class="stat"><div class="label">A-incl.</div><div class="value sm no">B&B</div></div>
+          <div class="stat"><div class="label">Adults</div><div class="value yes">✓</div></div>
+        </div>
+        <div class="h-pc">
+          <ul>
+            <li class="pro">Первая линия + частная пляжная зона</li>
+            <li class="pro">Adults-only — приватно</li>
+            <li class="pro">Самый бюджетный в подборке</li>
+            <li class="pro">2 ресторана, превосходный завтрак</li>
+            <li class="pro">486 отзывов, рейтинг 9.0 — отличная статистика</li>
+            <li class="con">3★ — без премиум-сервиса</li>
+            <li class="con">Аланья — большой курорт, рядом много туристов</li>
+          </ul>
+        </div>
+        <div class="h-pricing">
+          <div class="price-tile"><div class="label">Ночь</div><div class="value"><span class="rub">₽</span><span class="num">12</span><span class="suf">т.</span></div></div>
+          <div class="price-tile"><div class="label">10 ночей</div><div class="value"><span class="rub">₽</span><span class="num">120</span><span class="suf">т.</span></div></div>
+          <div class="price-tile"><div class="label">13 ночей</div><div class="value"><span class="rub">₽</span><span class="num">160</span><span class="suf">т.</span></div></div>
+        </div>
+        <div class="h-actions">
+          <a class="btn-book" href="https://www.booking.com/hotel/tr/caligo-apart.html?checkin=2026-07-17&checkout=2026-07-20&group_adults=2&selected_currency=RUB&lang=ru" target="_blank">Booking</a>
+          <a class="btn-site" href="https://www.lagaiahotel.com" target="_blank">Сайт</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="hotel" data-region="med" data-rating="9.1" data-price="34" data-stars="3" data-meal="B&B" data-spa="0" data-adults="1" data-beach="pebble" data-water="27">
+      <div class="carousel-wrap">
+        <div class="carousel">
+          <div class="carousel-item"><img loading="lazy" src="pics_booking/suna_1.jpg" alt=""></div>
+          <div class="carousel-item"><img loading="lazy" src="pics_booking/suna_2.jpg" alt=""></div>
+          <div class="carousel-item"><img loading="lazy" src="pics_booking/suna_3.jpg" alt=""></div>
+          <div class="carousel-item"><img loading="lazy" src="pics_booking/suna_4.jpg" alt=""></div>
+          <div class="carousel-item"><img loading="lazy" src="pics_booking/suna_5.jpg" alt=""></div>
+          <div class="carousel-item"><img loading="lazy" src="pics_booking/suna_6.jpg" alt=""></div>
+        </div>
+        <button class="carousel-nav-btn prev" onclick="carouselScroll(this,-1)">‹</button>
+        <button class="carousel-nav-btn next" onclick="carouselScroll(this,1)">›</button>
+      </div>
+      <div class="carousel-pager"><span class="active"></span><span></span><span></span><span></span><span></span><span></span><span class="swipe-hint">6 фото</span></div>
+      <div class="h-body">
+        <div class="h-name">Suna Sun Hotel — Adult Only (Каш)</div>
+        <div class="h-stats">
+          <div class="stat rate gold"><div class="label">Рейтинг</div><div class="value">9.1</div></div>
+          <div class="stat"><div class="label">Звёзды</div><div class="value">3★</div></div>
+          <div class="stat"><div class="label">Спа</div><div class="value no">—</div></div>
+          <div class="stat"><div class="label">A-incl.</div><div class="value sm no">B&B</div></div>
+          <div class="stat"><div class="label">Adults</div><div class="value yes">✓</div></div>
+        </div>
+        <div class="h-pc">
+          <ul>
+            <li class="pro">Adults-only бутик в Каше</li>
+            <li class="pro">Частная пляжная зона</li>
+            <li class="pro">Couples-рейтинг 9.6 — топ для пар / двоих</li>
+            <li class="pro">Каш — самый красивый и тихий курорт Средиземки</li>
+            <li class="pro">Сезонный бассейн, бар</li>
+            <li class="pro">Трансфер от аэропорта</li>
+            <li class="con">Всего 68 отзывов — небольшая статистика</li>
+            <li class="con">До Даламана ~2 ч, до Анталии ~3,5 ч на машине</li>
+          </ul>
+        </div>
+        <div class="h-pricing">
+          <div class="price-tile"><div class="label">Ночь</div><div class="value"><span class="rub">₽</span><span class="num">34</span><span class="suf">т.</span></div></div>
+          <div class="price-tile"><div class="label">10 ночей</div><div class="value"><span class="rub">₽</span><span class="num">340</span><span class="suf">т.</span></div></div>
+          <div class="price-tile"><div class="label">13 ночей</div><div class="value"><span class="rub">₽</span><span class="num">440</span><span class="suf">т.</span></div></div>
+        </div>
+        <div class="h-actions">
+          <a class="btn-book" href="https://www.booking.com/hotel/tr/suna-sun-boutique.html?checkin=2026-07-17&checkout=2026-07-20&group_adults=2&selected_currency=RUB&lang=ru" target="_blank">Booking</a>
+          <a class="btn-site" href="https://www.sunasunhotel.com" target="_blank">Сайт</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="hotel" data-region="med" data-rating="8.6" data-price="28" data-stars="5" data-meal="B&B" data-spa="1" data-adults="1" data-beach="sand" data-water="27">
+      <div class="carousel-wrap">
+        <div class="carousel">
+          <div class="carousel-item"><img loading="lazy" src="pics_booking/dayone_1.jpg" alt=""></div>
+          <div class="carousel-item"><img loading="lazy" src="pics_booking/dayone_2.jpg" alt=""></div>
+          <div class="carousel-item"><img loading="lazy" src="pics_booking/dayone_3.jpg" alt=""></div>
+          <div class="carousel-item"><img loading="lazy" src="pics_booking/dayone_4.jpg" alt=""></div>
+          <div class="carousel-item"><img loading="lazy" src="pics_booking/dayone_5.jpg" alt=""></div>
+          <div class="carousel-item"><img loading="lazy" src="pics_booking/dayone_6.jpg" alt=""></div>
+        </div>
+        <button class="carousel-nav-btn prev" onclick="carouselScroll(this,-1)">‹</button>
+        <button class="carousel-nav-btn next" onclick="carouselScroll(this,1)">›</button>
+      </div>
+      <div class="carousel-pager"><span class="active"></span><span></span><span></span><span></span><span></span><span></span><span class="swipe-hint">6 фото</span></div>
+      <div class="h-body">
+        <div class="h-name">Day One Beach Resort & SPA — Adult Only (Аланья)</div>
+        <div class="h-stats">
+          <div class="stat rate"><div class="label">Рейтинг</div><div class="value">8.6</div></div>
+          <div class="stat"><div class="label">Звёзды</div><div class="value">5★</div></div>
+          <div class="stat"><div class="label">Спа</div><div class="value yes">✓</div></div>
+          <div class="stat"><div class="label">A-incl.</div><div class="value sm no">B&B</div></div>
+          <div class="stat"><div class="label">Adults</div><div class="value yes">✓</div></div>
+        </div>
+        <div class="h-pc">
+          <ul>
+            <li class="pro">Единственный 5★ adults-only в подборке</li>
+            <li class="pro">Реальный спа и оздоровительный центр</li>
+            <li class="pro">Фитнес + частная пляжная зона</li>
+            <li class="pro">868 отзывов — большая статистика</li>
+            <li class="pro">Adults-only — приватно</li>
+            <li class="con">Аланья — большой курорт, шумно вокруг</li>
+            <li class="con">Рейтинг 8.6 — ниже бутиков подборки</li>
+            <li class="con">Только B&B (без обедов / ужинов)</li>
+          </ul>
+        </div>
+        <div class="h-pricing">
+          <div class="price-tile"><div class="label">Ночь</div><div class="value"><span class="rub">₽</span><span class="num">28</span><span class="suf">т.</span></div></div>
+          <div class="price-tile"><div class="label">10 ночей</div><div class="value"><span class="rub">₽</span><span class="num">280</span><span class="suf">т.</span></div></div>
+          <div class="price-tile"><div class="label">13 ночей</div><div class="value"><span class="rub">₽</span><span class="num">360</span><span class="suf">т.</span></div></div>
+        </div>
+        <div class="h-actions">
+          <a class="btn-book" href="https://www.booking.com/hotel/tr/banana-otel.html?checkin=2026-07-17&checkout=2026-07-20&group_adults=2&selected_currency=RUB&lang=ru" target="_blank">Booking</a>
+          <a class="btn-site" href="https://www.dayoneresort.com" target="_blank">Сайт</a>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<section id="black">
+  <h2><span class="flag">🇹🇷</span>Чёрное море</h2>
+
+  <div class="grid">
+
+    <div class="region-info">
+      <div class="ri-about">
+        <div class="ri-label">О регионе</div>
+        <p>Прохладнее остальных направлений — <b>22–24 °C</b> в июле. Северо-запад Турции, граница с Болгарией: нацпарк Лонгоз, дикие пляжи, тропы по лесу.</p>
+        <p>Не классический пляжный отдых — для тех, кто хочет тишину, природу и совсем без толп.</p>
+      </div>
+      <div class="ri-flight">
+        <div class="ri-label"><span class="ic">✈</span> Прямой перелёт</div>
+        <div class="ri-airlines">
+          <span class="airline-chip"><span class="logo" style="background:#e30613">TK</span>Turkish Airlines</span>
+          <span class="airline-chip"><span class="logo" style="background:#f37021">PC</span>Pegasus</span>
+          <span class="airline-chip"><span class="logo" style="background:#009edb">SU</span>Аэрофлот</span>
+        </div>
+        <div class="ri-meta">
+          <div class="ri-stat"><div class="label">Длительность</div><div class="value">3,5 ч + 3 ч авто</div></div>
+          <div class="ri-stat"><div class="label">Туда-обратно</div><div class="value"><span class="rub">₽</span><span class="num">40–55</span><span class="suf">т.</span></div></div>
+        </div>
+        <div class="ri-note">До Игнеады из Стамбула ~250 км — трансфер или машина в аренду (≈ ₽ 8–12 т. в день).</div>
+      </div>
+    </div>
+
+    <div class="view-switcher">
+      <button class="view-btn" type="button" data-section="black">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="2" y1="4" x2="14" y2="4"/><line x1="2" y1="8" x2="14" y2="8"/><line x1="2" y1="12" x2="14" y2="12"/></svg>
+        <span class="view-btn-txt">Свернуть в таблицу</span>
+      </button>
+    </div>
+
+    <div class="hotel-table-wrap" data-section="black">
+      <div class="hotel-table-scroll"></div>
+    </div>
+
+    <div class="hotel" data-region="black" data-rating="9.0" data-price="23" data-stars="5" data-meal="B&B" data-spa="1" data-adults="0" data-beach="sand" data-water="23">
+      <div class="carousel-wrap">
+        <div class="carousel">
+          <div class="carousel-item"><img loading="lazy" src="pics_booking/nayu_1.jpg" alt=""></div>
+          <div class="carousel-item"><img loading="lazy" src="pics_booking/nayu_2.jpg" alt=""></div>
+          <div class="carousel-item"><img loading="lazy" src="pics_booking/nayu_3.jpg" alt=""></div>
+          <div class="carousel-item"><img loading="lazy" src="pics_booking/nayu_4.jpg" alt=""></div>
+          <div class="carousel-item"><img loading="lazy" src="pics_booking/nayu_5.jpg" alt=""></div>
+          <div class="carousel-item"><img loading="lazy" src="pics_booking/nayu_6.jpg" alt=""></div>
+        </div>
+        <button class="carousel-nav-btn prev" onclick="carouselScroll(this,-1)">‹</button>
+        <button class="carousel-nav-btn next" onclick="carouselScroll(this,1)">›</button>
+      </div>
+      <div class="carousel-pager"><span class="active"></span><span></span><span></span><span></span><span></span><span></span><span class="swipe-hint">6 фото</span></div>
+      <div class="h-body">
+        <div class="h-name">Nayu Igneada</div>
+        <div class="h-stats">
+          <div class="stat rate gold"><div class="label">Рейтинг</div><div class="value">9.0</div></div>
+          <div class="stat"><div class="label">Звёзды</div><div class="value">5★</div></div>
+          <div class="stat"><div class="label">Спа</div><div class="value yes">✓</div></div>
+          <div class="stat"><div class="label">A-incl.</div><div class="value sm no">B&B</div></div>
+          <div class="stat"><div class="label">Adults</div><div class="value no">—</div></div>
+        </div>
+        <div class="h-pc">
+          <ul>
+            <li class="pro">5★ премиум на Чёрном море, у границы с Болгарией</li>
+            <li class="pro">Частная пляжная зона</li>
+            <li class="pro">Рядом нацпарк Лонгоз — природа, тропы</li>
+            <li class="pro">Доступная цена для 5★</li>
+            <li class="pro">Тихо, мало туристов — другой формат отдыха</li>
+            <li class="con">Всего 8 отзывов — почти нет статистики</li>
+            <li class="con">Чёрное море прохладнее (22–24 °C в июле)</li>
+            <li class="con">Прилёт в Стамбул + ~3 ч на машине</li>
+          </ul>
+        </div>
+        <div class="h-pricing">
+          <div class="price-tile"><div class="label">Ночь</div><div class="value"><span class="rub">₽</span><span class="num">23</span><span class="suf">т.</span></div></div>
+          <div class="price-tile"><div class="label">10 ночей</div><div class="value"><span class="rub">₽</span><span class="num">230</span><span class="suf">т.</span></div></div>
+          <div class="price-tile"><div class="label">13 ночей</div><div class="value"><span class="rub">₽</span><span class="num">300</span><span class="suf">т.</span></div></div>
+        </div>
+        <div class="h-actions">
+          <a class="btn-book" href="https://www.booking.com/hotel/tr/bayu-igneada.html?checkin=2026-07-17&checkout=2026-07-20&group_adults=2&selected_currency=RUB&lang=ru" target="_blank">Booking</a>
+          <a class="btn-site" href="https://www.nayuigneada.com" target="_blank">Сайт</a>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<section id="indian">
+  <h2><span class="flag">🇸🇨</span>Индийский океан</h2>
+
+  <div class="map-card" id="seyMapCard" style="margin-bottom:20px;">
+    <div class="map-head" id="seyMapHead">
+      <h4>📍 Все 11 отелей Сейшел</h4>
+      <div class="legend">
+        <span><i style="background:#06b6d4"></i>Маэ</span>
+        <span><i style="background:#ec4899"></i>Праслин</span>
+        <span><i style="background:#16a34a"></i>Ла-Диг</span>
+      </div>
+      <button class="map-toggle-btn" type="button">
+        <span class="map-toggle-txt">Скрыть карту</span>
+        <svg class="chev" width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 6 8 10 12 6"/></svg>
+      </button>
+    </div>
+    <div class="map-body">
+      <div id="seychelles-map" class="leaflet-map"></div>
+    </div>
+  </div>
+
+  <div class="grid">
+
+    <div class="region-info">
+      <div class="ri-about">
+        <div class="ri-label">О регионе</div>
+        <p>Сейшелы — три обитаемых острова: <b>Маэ</b> (главный, аэропорт), <b>Праслин</b> (тише, заповедник Vallée de Mai) и <b>Ла-Диг</b> (без машин, велосипеды, гранитные пляжи Anse Source d'Argent).</p>
+        <p>Вода <b>+27–28 °C</b> круглый год, июль — сухой сезон, ветрено.</p>
+      </div>
+      <div class="ri-flight">
+        <div class="ri-label"><span class="ic">✈</span> Прямой перелёт</div>
+        <div class="ri-airlines">
+          <span class="airline-chip"><span class="logo" style="background:#009edb">SU</span>Аэрофлот · прямой</span>
+          <span class="airline-chip"><span class="logo" style="background:#e30613">TK</span>Turkish · IST</span>
+          <span class="airline-chip dim"><span class="logo" style="background:#d71921">EK</span>Emirates · DXB</span>
+          <span class="airline-chip dim"><span class="logo" style="background:#5c0632">QR</span>Qatar · DOH</span>
+          <span class="airline-chip dim"><span class="logo" style="background:#bf9b30">EY</span>Etihad · AUH</span>
+        </div>
+        <div class="ri-meta">
+          <div class="ri-stat"><div class="label">Длительность</div><div class="value">9,5 ч прямой</div></div>
+          <div class="ri-stat"><div class="label">Туда-обратно</div><div class="value"><span class="rub">₽</span><span class="num">120–180</span><span class="suf">т.</span></div></div>
+        </div>
+        <div class="ri-note">Аэрофлот летает напрямую Москва → Маэ (SEZ) несколько раз в неделю. Альтернатива — пересадка через ОАЭ, Доху или Стамбул (12–15 ч, обычно дешевле).</div>
+      </div>
+    </div>
+
+    <div class="view-switcher">
+      <button class="view-btn" type="button" data-section="seychelles">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="2" y1="4" x2="14" y2="4"/><line x1="2" y1="8" x2="14" y2="8"/><line x1="2" y1="12" x2="14" y2="12"/></svg>
+        <span class="view-btn-txt">Свернуть в таблицу</span>
+      </button>
+    </div>
+
+    <div class="hotel-table-wrap" data-section="seychelles">
+      <div class="hotel-table-scroll"></div>
+    </div>
+
+    <div class="hotel" data-region="seychelles" data-rating="9.5" data-price="13" data-stars="3" data-meal="B&B" data-spa="0" data-adults="0" data-beach="granite" data-water="27">
+      <div class="carousel-wrap">
+        <div class="carousel">
+          <div class="carousel-item"><img loading="lazy" src="pics_booking/bluelagoon_1.jpg" alt=""></div>
+          <div class="carousel-item"><img loading="lazy" src="pics_booking/bluelagoon_2.jpg" alt=""></div>
+          <div class="carousel-item"><img loading="lazy" src="pics_booking/bluelagoon_3.jpg" alt=""></div>
+          <div class="carousel-item"><img loading="lazy" src="pics_booking/bluelagoon_4.jpg" alt=""></div>
+          <div class="carousel-item"><img loading="lazy" src="pics_booking/bluelagoon_5.jpg" alt=""></div>
+          <div class="carousel-item"><img loading="lazy" src="pics_booking/bluelagoon_6.jpg" alt=""></div>
+        </div>
+        <button class="carousel-nav-btn prev" onclick="carouselScroll(this,-1)">‹</button>
+        <button class="carousel-nav-btn next" onclick="carouselScroll(this,1)">›</button>
+      </div>
+      <div class="carousel-pager"><span class="active"></span><span></span><span></span><span></span><span></span><span></span><span class="swipe-hint">6 фото</span></div>
+      <div class="h-body">
+        <div class="h-name">Blue Lagoon Chalets (Маэ)</div>
+        <div class="h-stats">
+          <div class="stat rate gold"><div class="label">Рейтинг</div><div class="value">9.5</div></div>
+          <div class="stat"><div class="label">Звёзды</div><div class="value">3★</div></div>
+          <div class="stat"><div class="label">Спа</div><div class="value no">—</div></div>
+          <div class="stat"><div class="label">A-incl.</div><div class="value sm no">B&B</div></div>
+          <div class="stat"><div class="label">Adults</div><div class="value no">—</div></div>
+        </div>
+        <div class="h-pc">
+          <ul>
+            <li class="pro">Самый высокий рейтинг подборки — 9.5 (441 отзыв)</li>
+            <li class="pro">Самый бюджетный на Сейшелах — ₽ 13 т./ночь</li>
+            <li class="pro">Юг Маэ (Бэ Лазар) — тихий нетуристический район</li>
+            <li class="pro">Шале-формат, камерно</li>
+            <li class="con">3★ — простой формат, не премиум</li>
+            <li class="con">Без спа</li>
+          </ul>
+        </div>
+        <div class="h-pricing">
+          <div class="price-tile"><div class="label">Ночь</div><div class="value"><span class="rub">₽</span><span class="num">13</span><span class="suf">т.</span></div></div>
+          <div class="price-tile"><div class="label">10 ночей</div><div class="value"><span class="rub">₽</span><span class="num">130</span><span class="suf">т.</span></div></div>
+          <div class="price-tile"><div class="label">13 ночей</div><div class="value"><span class="rub">₽</span><span class="num">170</span><span class="suf">т.</span></div></div>
+        </div>
+        <div class="h-actions">
+          <a class="btn-book" href="https://www.booking.com/hotel/sc/blue-lagoon-chalets.html?checkin=2026-07-17&checkout=2026-07-20&group_adults=2&selected_currency=RUB&lang=ru" target="_blank">Booking</a>
+          <a class="btn-site" href="https://www.bluelagoonseychelles.com" target="_blank">Сайт</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="hotel" data-region="seychelles" data-rating="9.2" data-price="37" data-stars="5" data-meal="HB" data-spa="1" data-adults="0" data-beach="granite" data-water="27">
+      <div class="carousel-wrap">
+        <div class="carousel">
+          <div class="carousel-item"><img loading="lazy" src="pics_booking/mango_1.jpg" alt=""></div>
+          <div class="carousel-item"><img loading="lazy" src="pics_booking/mango_2.jpg" alt=""></div>
+          <div class="carousel-item"><img loading="lazy" src="pics_booking/mango_3.jpg" alt=""></div>
+          <div class="carousel-item"><img loading="lazy" src="pics_booking/mango_4.jpg" alt=""></div>
+          <div class="carousel-item"><img loading="lazy" src="pics_booking/mango_5.jpg" alt=""></div>
+          <div class="carousel-item"><img loading="lazy" src="pics_booking/mango_6.jpg" alt=""></div>
+        </div>
+        <button class="carousel-nav-btn prev" onclick="carouselScroll(this,-1)">‹</button>
+        <button class="carousel-nav-btn next" onclick="carouselScroll(this,1)">›</button>
+      </div>
+      <div class="carousel-pager"><span class="active"></span><span></span><span></span><span></span><span></span><span></span><span class="swipe-hint">6 фото</span></div>
+      <div class="h-body">
+        <div class="h-name">Mango House Seychelles — LXR / Hilton (Маэ)</div>
+        <div class="h-stats">
+          <div class="stat rate gold"><div class="label">Рейтинг</div><div class="value">9.2</div></div>
+          <div class="stat"><div class="label">Звёзды</div><div class="value">5★</div></div>
+          <div class="stat"><div class="label">Спа</div><div class="value yes">✓</div></div>
+          <div class="stat"><div class="label">A-incl.</div><div class="value sm yes">HB</div></div>
+          <div class="stat"><div class="label">Adults</div><div class="value no">—</div></div>
+        </div>
+        <div class="h-pc">
+          <ul>
+            <li class="pro">LXR by Hilton — премиум-бренд</li>
+            <li class="pro">Свой пляж Anse aux Poules Bleues (юг Маэ)</li>
+            <li class="pro">Полупансион (HB) — завтрак + ужин</li>
+            <li class="pro">Спа на территории + фитнес</li>
+            <li class="pro">5★ премиум, тихая часть Маэ</li>
+            <li class="pro">255 отзывов, рейтинг 9.2</li>
+            <li class="pro">Накопление Hilton Honors</li>
+            <li class="con">Один из самых дорогих — ₽ 37 т./ночь</li>
+          </ul>
+        </div>
+        <div class="h-pricing">
+          <div class="price-tile"><div class="label">Ночь</div><div class="value"><span class="rub">₽</span><span class="num">37</span><span class="suf">т.</span></div></div>
+          <div class="price-tile"><div class="label">10 ночей</div><div class="value"><span class="rub">₽</span><span class="num">370</span><span class="suf">т.</span></div></div>
+          <div class="price-tile"><div class="label">13 ночей</div><div class="value"><span class="rub">₽</span><span class="num">480</span><span class="suf">т.</span></div></div>
+        </div>
+        <div class="h-actions">
+          <a class="btn-book" href="https://www.booking.com/hotel/sc/mango-house-seychelles-lxr-hotels-resorts.html?checkin=2026-07-17&checkout=2026-07-20&group_adults=2&selected_currency=RUB&lang=ru" target="_blank">Booking</a>
+          <a class="btn-site" href="https://www.hilton.com/en/hotels/sezbool-mango-house-seychelles" target="_blank">Сайт</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="hotel" data-region="seychelles" data-rating="9.1" data-price="23" data-stars="5" data-meal="B&B" data-spa="1" data-adults="0" data-beach="sand" data-water="27">
+      <div class="carousel-wrap">
+        <div class="carousel">
+          <div class="carousel-item"><img loading="lazy" src="pics_booking/avani_1.jpg" alt=""></div>
+          <div class="carousel-item"><img loading="lazy" src="pics_booking/avani_2.jpg" alt=""></div>
+          <div class="carousel-item"><img loading="lazy" src="pics_booking/avani_3.jpg" alt=""></div>
+          <div class="carousel-item"><img loading="lazy" src="pics_booking/avani_4.jpg" alt=""></div>
+          <div class="carousel-item"><img loading="lazy" src="pics_booking/avani_5.jpg" alt=""></div>
+          <div class="carousel-item"><img loading="lazy" src="pics_booking/avani_6.jpg" alt=""></div>
+        </div>
+        <button class="carousel-nav-btn prev" onclick="carouselScroll(this,-1)">‹</button>
+        <button class="carousel-nav-btn next" onclick="carouselScroll(this,1)">›</button>
+      </div>
+      <div class="carousel-pager"><span class="active"></span><span></span><span></span><span></span><span></span><span></span><span class="swipe-hint">6 фото</span></div>
+      <div class="h-body">
+        <div class="h-name">Avani+ Barbarons Seychelles (Маэ)</div>
+        <div class="h-stats">
+          <div class="stat rate gold"><div class="label">Рейтинг</div><div class="value">9.1</div></div>
+          <div class="stat"><div class="label">Звёзды</div><div class="value">5★</div></div>
+          <div class="stat"><div class="label">Спа</div><div class="value yes">✓</div></div>
+          <div class="stat"><div class="label">A-incl.</div><div class="value sm no">B&B</div></div>
+          <div class="stat"><div class="label">Adults</div><div class="value no">—</div></div>
+        </div>
+        <div class="h-pc">
+          <ul>
+            <li class="pro">5★ resort на западе Маэ, длинный пляж Барбаронс</li>
+            <li class="pro">Спа Avani на территории</li>
+            <li class="pro">Самый доступный 5★ в подборке — ₽ 23 т./ночь</li>
+            <li class="pro">Бренд Minor Hotels (Avani by Anantara)</li>
+            <li class="pro">220 отзывов, рейтинг 9.1</li>
+            <li class="pro">Бассейны, рестораны, дайвинг-центр</li>
+            <li class="con">Только B&B по умолчанию</li>
+            <li class="con">Большой курортный комплекс — не камерно</li>
+          </ul>
+        </div>
+        <div class="h-pricing">
+          <div class="price-tile"><div class="label">Ночь</div><div class="value"><span class="rub">₽</span><span class="num">23</span><span class="suf">т.</span></div></div>
+          <div class="price-tile"><div class="label">10 ночей</div><div class="value"><span class="rub">₽</span><span class="num">230</span><span class="suf">т.</span></div></div>
+          <div class="price-tile"><div class="label">13 ночей</div><div class="value"><span class="rub">₽</span><span class="num">300</span><span class="suf">т.</span></div></div>
+        </div>
+        <div class="h-actions">
+          <a class="btn-book" href="https://www.booking.com/hotel/sc/avani-seychelles-barbarons-resort-amp-spa.html?checkin=2026-07-17&checkout=2026-07-20&group_adults=2&selected_currency=RUB&lang=ru" target="_blank">Booking</a>
+          <a class="btn-site" href="https://www.avanihotels.com/en/seychelles-barbarons" target="_blank">Сайт</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="hotel" data-region="seychelles" data-rating="9.1" data-price="31" data-stars="4" data-meal="B&B" data-spa="0" data-adults="0" data-beach="granite" data-water="27">
+      <div class="carousel-wrap">
+        <div class="carousel">
+          <div class="carousel-item"><img loading="lazy" src="pics_booking/lerepaire_1.jpg" alt=""></div>
+          <div class="carousel-item"><img loading="lazy" src="pics_booking/lerepaire_2.jpg" alt=""></div>
+          <div class="carousel-item"><img loading="lazy" src="pics_booking/lerepaire_3.jpg" alt=""></div>
+          <div class="carousel-item"><img loading="lazy" src="pics_booking/lerepaire_4.jpg" alt=""></div>
+          <div class="carousel-item"><img loading="lazy" src="pics_booking/lerepaire_5.jpg" alt=""></div>
+          <div class="carousel-item"><img loading="lazy" src="pics_booking/lerepaire_6.jpg" alt=""></div>
+        </div>
+        <button class="carousel-nav-btn prev" onclick="carouselScroll(this,-1)">‹</button>
+        <button class="carousel-nav-btn next" onclick="carouselScroll(this,1)">›</button>
+      </div>
+      <div class="carousel-pager"><span class="active"></span><span></span><span></span><span></span><span></span><span></span><span class="swipe-hint">6 фото</span></div>
+      <div class="h-body">
+        <div class="h-name">Le Repaire — Boutique Hotel (Ла-Диг)</div>
+        <div class="h-stats">
+          <div class="stat rate gold"><div class="label">Рейтинг</div><div class="value">9.1</div></div>
+          <div class="stat"><div class="label">Звёзды</div><div class="value">4★</div></div>
+          <div class="stat"><div class="label">Спа</div><div class="value no">—</div></div>
+          <div class="stat"><div class="label">A-incl.</div><div class="value sm no">B&B</div></div>
+          <div class="stat"><div class="label">Adults</div><div class="value no">—</div></div>
+        </div>
+        <div class="h-pc">
+          <ul>
+            <li class="pro">На Ла-Диге — самом красивом и спокойном острове Сейшел</li>
+            <li class="pro">Пешком до Anse Source d'Argent — один из лучших пляжей мира</li>
+            <li class="pro">Камерный бутик-отель + свой ресторан</li>
+            <li class="pro">505 отзывов / рейтинг 9.1 — топ статистика для Ла-Дига</li>
+            <li class="pro">Велосипеды на территории (на Ла-Диге нет машин)</li>
+            <li class="pro">Первая линия пляжа La Passe + 5–10 мин до Anse Source d'Argent</li>
+            <li class="con">Без спа, только B&B</li>
+            <li class="con">До Ла-Дига — паром из Маэ или Праслина</li>
+          </ul>
+        </div>
+        <div class="h-pricing">
+          <div class="price-tile"><div class="label">Ночь</div><div class="value"><span class="rub">₽</span><span class="num">31</span><span class="suf">т.</span></div></div>
+          <div class="price-tile"><div class="label">10 ночей</div><div class="value"><span class="rub">₽</span><span class="num">310</span><span class="suf">т.</span></div></div>
+          <div class="price-tile"><div class="label">13 ночей</div><div class="value"><span class="rub">₽</span><span class="num">400</span><span class="suf">т.</span></div></div>
+        </div>
+        <div class="h-actions">
+          <a class="btn-book" href="https://www.booking.com/hotel/sc/le-repaire-boutique-amp-restaurant.html?checkin=2026-07-17&checkout=2026-07-20&group_adults=2&selected_currency=RUB&lang=ru" target="_blank">Booking</a>
+          <a class="btn-site" href="https://www.lerepaireseychelles.com" target="_blank">Сайт</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="hotel" data-region="seychelles" data-rating="9.1" data-price="73" data-stars="5" data-meal="B&B" data-spa="1" data-adults="0" data-beach="granite" data-water="27">
+      <div class="carousel-wrap">
+        <div class="carousel">
+          <div class="carousel-item"><img loading="lazy" src="pics_booking/ledomaine_1.jpg" alt=""></div>
+          <div class="carousel-item"><img loading="lazy" src="pics_booking/ledomaine_2.jpg" alt=""></div>
+          <div class="carousel-item"><img loading="lazy" src="pics_booking/ledomaine_3.jpg" alt=""></div>
+          <div class="carousel-item"><img loading="lazy" src="pics_booking/ledomaine_4.jpg" alt=""></div>
+          <div class="carousel-item"><img loading="lazy" src="pics_booking/ledomaine_5.jpg" alt=""></div>
+          <div class="carousel-item"><img loading="lazy" src="pics_booking/ledomaine_6.jpg" alt=""></div>
+        </div>
+        <button class="carousel-nav-btn prev" onclick="carouselScroll(this,-1)">‹</button>
+        <button class="carousel-nav-btn next" onclick="carouselScroll(this,1)">›</button>
+      </div>
+      <div class="carousel-pager"><span class="active"></span><span></span><span></span><span></span><span></span><span></span><span class="swipe-hint">6 фото</span></div>
+      <div class="h-body">
+        <div class="h-name">Le Domaine de L'Orangeraie Resort & Spa (Ла-Диг)</div>
+        <div class="h-stats">
+          <div class="stat rate gold"><div class="label">Рейтинг</div><div class="value">9.1</div></div>
+          <div class="stat"><div class="label">Звёзды</div><div class="value">5★</div></div>
+          <div class="stat"><div class="label">Спа</div><div class="value yes">✓</div></div>
+          <div class="stat"><div class="label">A-incl.</div><div class="value sm no">B&B</div></div>
+          <div class="stat"><div class="label">Adults</div><div class="value no">—</div></div>
+        </div>
+        <div class="h-pc">
+          <ul>
+            <li class="pro">Единственный 5★ resort на Ла-Диге</li>
+            <li class="pro">Креольские виллы среди тропического сада</li>
+            <li class="pro">Спа на территории, бассейн с панорамой</li>
+            <li class="pro">Ресторан Le Combava (изысканная креольская кухня)</li>
+            <li class="pro">877 отзывов / рейтинг 9.1 — отличная статистика</li>
+            <li class="con">Самый дорогой в подборке Сейшел — ₽ 73 т./ночь</li>
+            <li class="con">До Ла-Дига — паром (~1 ч из Маэ)</li>
+          </ul>
+        </div>
+        <div class="h-pricing">
+          <div class="price-tile"><div class="label">Ночь</div><div class="value"><span class="rub">₽</span><span class="num">73</span><span class="suf">т.</span></div></div>
+          <div class="price-tile"><div class="label">10 ночей</div><div class="value"><span class="rub">₽</span><span class="num">730</span><span class="suf">т.</span></div></div>
+          <div class="price-tile"><div class="label">13 ночей</div><div class="value"><span class="rub">₽</span><span class="num">950</span><span class="suf">т.</span></div></div>
+        </div>
+        <div class="h-actions">
+          <a class="btn-book" href="https://www.booking.com/hotel/sc/le-domaine-de-l-orangeraie.html?checkin=2026-07-17&checkout=2026-07-20&group_adults=2&selected_currency=RUB&lang=ru" target="_blank">Booking</a>
+          <a class="btn-site" href="https://www.orangeraie.sc" target="_blank">Сайт</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="hotel" data-region="seychelles" data-rating="9.0" data-price="19" data-stars="4" data-meal="B&B" data-spa="0" data-adults="0" data-beach="granite" data-water="27">
+      <div class="carousel-wrap">
+        <div class="carousel">
+          <div class="carousel-item"><img loading="lazy" src="pics_booking/colibri_1.jpg" alt=""></div>
+          <div class="carousel-item"><img loading="lazy" src="pics_booking/colibri_2.jpg" alt=""></div>
+          <div class="carousel-item"><img loading="lazy" src="pics_booking/colibri_3.jpg" alt=""></div>
+          <div class="carousel-item"><img loading="lazy" src="pics_booking/colibri_4.jpg" alt=""></div>
+          <div class="carousel-item"><img loading="lazy" src="pics_booking/colibri_5.jpg" alt=""></div>
+          <div class="carousel-item"><img loading="lazy" src="pics_booking/colibri_6.jpg" alt=""></div>
+        </div>
+        <button class="carousel-nav-btn prev" onclick="carouselScroll(this,-1)">‹</button>
+        <button class="carousel-nav-btn next" onclick="carouselScroll(this,1)">›</button>
+      </div>
+      <div class="carousel-pager"><span class="active"></span><span></span><span></span><span></span><span></span><span></span><span class="swipe-hint">6 фото</span></div>
+      <div class="h-body">
+        <div class="h-name">Colibri Hotel (Праслин)</div>
+        <div class="h-stats">
+          <div class="stat rate gold"><div class="label">Рейтинг</div><div class="value">9.0</div></div>
+          <div class="stat"><div class="label">Звёзды</div><div class="value">4★</div></div>
+          <div class="stat"><div class="label">Спа</div><div class="value no">—</div></div>
+          <div class="stat"><div class="label">A-incl.</div><div class="value sm no">B&B</div></div>
+          <div class="stat"><div class="label">Adults</div><div class="value no">—</div></div>
+        </div>
+        <div class="h-pc">
+          <ul>
+            <li class="pro">849 отзывов — самая большая статистика подборки</li>
+            <li class="pro">Один из самых дешёвых на Сейшелах — ₽ 19 т./ночь</li>
+            <li class="pro">На Праслине, рядом с Vallée de Mai (нацпарк ЮНЕСКО)</li>
+            <li class="pro">Близко к пляжам Кот д'Ор и Анс Лацио</li>
+            <li class="pro">Бутик-формат, семейный приём</li>
+            <li class="con">Нет своего пляжа (5 мин пешком)</li>
+            <li class="con">Без спа, только B&B</li>
+          </ul>
+        </div>
+        <div class="h-pricing">
+          <div class="price-tile"><div class="label">Ночь</div><div class="value"><span class="rub">₽</span><span class="num">19</span><span class="suf">т.</span></div></div>
+          <div class="price-tile"><div class="label">10 ночей</div><div class="value"><span class="rub">₽</span><span class="num">190</span><span class="suf">т.</span></div></div>
+          <div class="price-tile"><div class="label">13 ночей</div><div class="value"><span class="rub">₽</span><span class="num">250</span><span class="suf">т.</span></div></div>
+        </div>
+        <div class="h-actions">
+          <a class="btn-book" href="https://www.booking.com/hotel/sc/colibri.html?checkin=2026-07-17&checkout=2026-07-20&group_adults=2&selected_currency=RUB&lang=ru" target="_blank">Booking</a>
+          <a class="btn-site" href="https://www.colibri-seychelles.com" target="_blank">Сайт</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="hotel" data-region="seychelles" data-rating="9.0" data-price="22" data-stars="4" data-meal="B&B" data-spa="0" data-adults="0" data-beach="sand" data-water="27">
+      <div class="carousel-wrap">
+        <div class="carousel">
+          <div class="carousel-item"><img loading="lazy" src="pics_booking/villasdemer_1.jpg" alt=""></div>
+          <div class="carousel-item"><img loading="lazy" src="pics_booking/villasdemer_2.jpg" alt=""></div>
+          <div class="carousel-item"><img loading="lazy" src="pics_booking/villasdemer_3.jpg" alt=""></div>
+          <div class="carousel-item"><img loading="lazy" src="pics_booking/villasdemer_4.jpg" alt=""></div>
+          <div class="carousel-item"><img loading="lazy" src="pics_booking/villasdemer_5.jpg" alt=""></div>
+          <div class="carousel-item"><img loading="lazy" src="pics_booking/villasdemer_6.jpg" alt=""></div>
+        </div>
+        <button class="carousel-nav-btn prev" onclick="carouselScroll(this,-1)">‹</button>
+        <button class="carousel-nav-btn next" onclick="carouselScroll(this,1)">›</button>
+      </div>
+      <div class="carousel-pager"><span class="active"></span><span></span><span></span><span></span><span></span><span></span><span class="swipe-hint">6 фото</span></div>
+      <div class="h-body">
+        <div class="h-name">Villas de Mer (Праслин — Гранд Анс)</div>
+        <div class="h-stats">
+          <div class="stat rate gold"><div class="label">Рейтинг</div><div class="value">9.0</div></div>
+          <div class="stat"><div class="label">Звёзды</div><div class="value">4★</div></div>
+          <div class="stat"><div class="label">Спа</div><div class="value no">—</div></div>
+          <div class="stat"><div class="label">A-incl.</div><div class="value sm no">B&B</div></div>
+          <div class="stat"><div class="label">Adults</div><div class="value no">—</div></div>
+        </div>
+        <div class="h-pc">
+          <ul>
+            <li class="pro">Прямой выход на пляж Гранд Анс — один из лучших на Праслине</li>
+            <li class="pro">Виллы вместо обычных номеров</li>
+            <li class="pro">Доступная цена для Сейшел — ₽ 22 т./ночь</li>
+            <li class="pro">Бассейн, бар, рейтинг 9.0</li>
+            <li class="con">Только 40 отзывов — небольшая статистика</li>
+            <li class="con">Без спа</li>
+            <li class="con">Только B&B</li>
+          </ul>
+        </div>
+        <div class="h-pricing">
+          <div class="price-tile"><div class="label">Ночь</div><div class="value"><span class="rub">₽</span><span class="num">22</span><span class="suf">т.</span></div></div>
+          <div class="price-tile"><div class="label">10 ночей</div><div class="value"><span class="rub">₽</span><span class="num">220</span><span class="suf">т.</span></div></div>
+          <div class="price-tile"><div class="label">13 ночей</div><div class="value"><span class="rub">₽</span><span class="num">290</span><span class="suf">т.</span></div></div>
+        </div>
+        <div class="h-actions">
+          <a class="btn-book" href="https://www.booking.com/hotel/sc/villas-de-mer.html?checkin=2026-07-17&checkout=2026-07-20&group_adults=2&selected_currency=RUB&lang=ru" target="_blank">Booking</a>
+          <a class="btn-site" href="https://www.villasdemer.com" target="_blank">Сайт</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="hotel" data-region="seychelles" data-rating="8.9" data-price="31" data-stars="3" data-meal="B&B" data-spa="0" data-adults="0" data-beach="sand" data-water="27">
+      <div class="carousel-wrap">
+        <div class="carousel">
+          <div class="carousel-item"><img loading="lazy" src="pics_booking/clubcotedor_1.jpg" alt=""></div>
+          <div class="carousel-item"><img loading="lazy" src="pics_booking/clubcotedor_2.jpg" alt=""></div>
+          <div class="carousel-item"><img loading="lazy" src="pics_booking/clubcotedor_3.jpg" alt=""></div>
+          <div class="carousel-item"><img loading="lazy" src="pics_booking/clubcotedor_4.jpg" alt=""></div>
+          <div class="carousel-item"><img loading="lazy" src="pics_booking/clubcotedor_5.jpg" alt=""></div>
+          <div class="carousel-item"><img loading="lazy" src="pics_booking/clubcotedor_6.jpg" alt=""></div>
+        </div>
+        <button class="carousel-nav-btn prev" onclick="carouselScroll(this,-1)">‹</button>
+        <button class="carousel-nav-btn next" onclick="carouselScroll(this,1)">›</button>
+      </div>
+      <div class="carousel-pager"><span class="active"></span><span></span><span></span><span></span><span></span><span></span><span class="swipe-hint">6 фото</span></div>
+      <div class="h-body">
+        <div class="h-name">Cote d'Or Lodge (Праслин)</div>
+        <div class="h-stats">
+          <div class="stat rate"><div class="label">Рейтинг</div><div class="value">8.9</div></div>
+          <div class="stat"><div class="label">Звёзды</div><div class="value">3★</div></div>
+          <div class="stat"><div class="label">Спа</div><div class="value no">—</div></div>
+          <div class="stat"><div class="label">A-incl.</div><div class="value sm no">B&B</div></div>
+          <div class="stat"><div class="label">Adults</div><div class="value no">—</div></div>
+        </div>
+        <div class="h-pc">
+          <ul>
+            <li class="pro">На пляже Кот д'Ор — один из топ пляжей Праслина</li>
+            <li class="pro">Рядом нацпарк Vallée de Mai (ЮНЕСКО)</li>
+            <li class="pro">120 отзывов, рейтинг 8.9</li>
+            <li class="con">3★ — простой формат</li>
+            <li class="con">Без спа</li>
+            <li class="con">Дорого для 3★ — ₽ 31 т./ночь</li>
+            <li class="con">Только B&B</li>
+          </ul>
+        </div>
+        <div class="h-pricing">
+          <div class="price-tile"><div class="label">Ночь</div><div class="value"><span class="rub">₽</span><span class="num">31</span><span class="suf">т.</span></div></div>
+          <div class="price-tile"><div class="label">10 ночей</div><div class="value"><span class="rub">₽</span><span class="num">310</span><span class="suf">т.</span></div></div>
+          <div class="price-tile"><div class="label">13 ночей</div><div class="value"><span class="rub">₽</span><span class="num">400</span><span class="suf">т.</span></div></div>
+        </div>
+        <div class="h-actions">
+          <a class="btn-book" href="https://www.booking.com/hotel/sc/club-cote-d-or.html?checkin=2026-07-17&checkout=2026-07-20&group_adults=2&selected_currency=RUB&lang=ru" target="_blank">Booking</a>
+          <a class="btn-site" href="https://www.cotedorlodge.com" target="_blank">Сайт</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="hotel" data-region="seychelles" data-rating="8.8" data-price="22" data-stars="5" data-meal="B&B" data-spa="1" data-adults="0" data-beach="granite" data-water="27">
+      <div class="carousel-wrap">
+        <div class="carousel">
+          <div class="carousel-item"><img loading="lazy" src="pics_booking/laila_1.jpg" alt=""></div>
+          <div class="carousel-item"><img loading="lazy" src="pics_booking/laila_2.jpg" alt=""></div>
+          <div class="carousel-item"><img loading="lazy" src="pics_booking/laila_3.jpg" alt=""></div>
+          <div class="carousel-item"><img loading="lazy" src="pics_booking/laila_4.jpg" alt=""></div>
+          <div class="carousel-item"><img loading="lazy" src="pics_booking/laila_5.jpg" alt=""></div>
+          <div class="carousel-item"><img loading="lazy" src="pics_booking/laila_6.jpg" alt=""></div>
+        </div>
+        <button class="carousel-nav-btn prev" onclick="carouselScroll(this,-1)">‹</button>
+        <button class="carousel-nav-btn next" onclick="carouselScroll(this,1)">›</button>
+      </div>
+      <div class="carousel-pager"><span class="active"></span><span></span><span></span><span></span><span></span><span></span><span class="swipe-hint">6 фото</span></div>
+      <div class="h-body">
+        <div class="h-name">laïla — Tribute Portfolio by Marriott (Маэ)</div>
+        <div class="h-stats">
+          <div class="stat rate"><div class="label">Рейтинг</div><div class="value">8.8</div></div>
+          <div class="stat"><div class="label">Звёзды</div><div class="value">5★</div></div>
+          <div class="stat"><div class="label">Спа</div><div class="value yes">✓</div></div>
+          <div class="stat"><div class="label">A-incl.</div><div class="value sm no">B&B</div></div>
+          <div class="stat"><div class="label">Adults</div><div class="value no">—</div></div>
+        </div>
+        <div class="h-pc">
+          <ul>
+            <li class="pro">5★ Marriott Tribute Portfolio</li>
+            <li class="pro">На скалистом мысе с панорамой океана</li>
+            <li class="pro">Спа на территории, инфинити-бассейны</li>
+            <li class="pro">706 отзывов, рейтинг 8.8</li>
+            <li class="pro">Накопление Marriott Bonvoy</li>
+            <li class="pro">Доступная цена для 5★ — ₽ 22 т./ночь</li>
+            <li class="con">Не на пляже — на скалах (~5 мин до моря)</li>
+            <li class="con">Только B&B</li>
+          </ul>
+        </div>
+        <div class="h-pricing">
+          <div class="price-tile"><div class="label">Ночь</div><div class="value"><span class="rub">₽</span><span class="num">22</span><span class="suf">т.</span></div></div>
+          <div class="price-tile"><div class="label">10 ночей</div><div class="value"><span class="rub">₽</span><span class="num">220</span><span class="suf">т.</span></div></div>
+          <div class="price-tile"><div class="label">13 ночей</div><div class="value"><span class="rub">₽</span><span class="num">290</span><span class="suf">т.</span></div></div>
+        </div>
+        <div class="h-actions">
+          <a class="btn-book" href="https://www.booking.com/hotel/sc/laila-seychelles-a-tribute-portfolio-resort.html?checkin=2026-07-17&checkout=2026-07-20&group_adults=2&selected_currency=RUB&lang=ru" target="_blank">Booking</a>
+          <a class="btn-site" href="https://www.marriott.com/en-us/hotels/sezlx-laila-seychelles" target="_blank">Сайт</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="hotel" data-region="seychelles" data-rating="8.8" data-price="45" data-stars="5" data-meal="HB" data-spa="1" data-adults="0" data-beach="sand" data-water="27">
+      <div class="carousel-wrap">
+        <div class="carousel">
+          <div class="carousel-item"><img loading="lazy" src="pics_booking/story_1.jpg" alt=""></div>
+          <div class="carousel-item"><img loading="lazy" src="pics_booking/story_2.jpg" alt=""></div>
+          <div class="carousel-item"><img loading="lazy" src="pics_booking/story_3.jpg" alt=""></div>
+          <div class="carousel-item"><img loading="lazy" src="pics_booking/story_4.jpg" alt=""></div>
+          <div class="carousel-item"><img loading="lazy" src="pics_booking/story_5.jpg" alt=""></div>
+          <div class="carousel-item"><img loading="lazy" src="pics_booking/story_6.jpg" alt=""></div>
+        </div>
+        <button class="carousel-nav-btn prev" onclick="carouselScroll(this,-1)">‹</button>
+        <button class="carousel-nav-btn next" onclick="carouselScroll(this,1)">›</button>
+      </div>
+      <div class="carousel-pager"><span class="active"></span><span></span><span></span><span></span><span></span><span></span><span class="swipe-hint">6 фото</span></div>
+      <div class="h-body">
+        <div class="h-name">STORY Seychelles (Маэ — Бо-Валлон)</div>
+        <div class="h-stats">
+          <div class="stat rate"><div class="label">Рейтинг</div><div class="value">8.8</div></div>
+          <div class="stat"><div class="label">Звёзды</div><div class="value">5★</div></div>
+          <div class="stat"><div class="label">Спа</div><div class="value yes">✓</div></div>
+          <div class="stat"><div class="label">A-incl.</div><div class="value sm yes">HB</div></div>
+          <div class="stat"><div class="label">Adults</div><div class="value no">—</div></div>
+        </div>
+        <div class="h-pc">
+          <ul>
+            <li class="pro">На самом популярном пляже Маэ — Бо-Валлон</li>
+            <li class="pro">5★ resort, полупансион (HB) доступен</li>
+            <li class="pro">Спа, несколько ресторанов и баров</li>
+            <li class="pro">539 отзывов, рейтинг 8.8</li>
+            <li class="pro">Активная инфраструктура вокруг (рестораны, рынки, дайвинг)</li>
+            <li class="con">Дорого — ₽ 45 т./ночь</li>
+            <li class="con">Бо-Валлон — шумный туристический район</li>
+          </ul>
+        </div>
+        <div class="h-pricing">
+          <div class="price-tile"><div class="label">Ночь</div><div class="value"><span class="rub">₽</span><span class="num">45</span><span class="suf">т.</span></div></div>
+          <div class="price-tile"><div class="label">10 ночей</div><div class="value"><span class="rub">₽</span><span class="num">450</span><span class="suf">т.</span></div></div>
+          <div class="price-tile"><div class="label">13 ночей</div><div class="value"><span class="rub">₽</span><span class="num">590</span><span class="suf">т.</span></div></div>
+        </div>
+        <div class="h-actions">
+          <a class="btn-book" href="https://www.booking.com/hotel/sc/story-seychelles-beau-vallon-beach.html?checkin=2026-07-17&checkout=2026-07-20&group_adults=2&selected_currency=RUB&lang=ru" target="_blank">Booking</a>
+          <a class="btn-site" href="https://www.storyhotels.com/seychelles" target="_blank">Сайт</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="hotel" data-region="seychelles" data-rating="8.7" data-price="19" data-stars="4" data-meal="B&B" data-spa="0" data-adults="0" data-beach="sand" data-water="27">
+      <div class="carousel-wrap">
+        <div class="carousel">
+          <div class="carousel-item"><img loading="lazy" src="pics_booking/indianlodge_1.jpg" alt=""></div>
+          <div class="carousel-item"><img loading="lazy" src="pics_booking/indianlodge_2.jpg" alt=""></div>
+          <div class="carousel-item"><img loading="lazy" src="pics_booking/indianlodge_3.jpg" alt=""></div>
+          <div class="carousel-item"><img loading="lazy" src="pics_booking/indianlodge_4.jpg" alt=""></div>
+          <div class="carousel-item"><img loading="lazy" src="pics_booking/indianlodge_5.jpg" alt=""></div>
+          <div class="carousel-item"><img loading="lazy" src="pics_booking/indianlodge_6.jpg" alt=""></div>
+        </div>
+        <button class="carousel-nav-btn prev" onclick="carouselScroll(this,-1)">‹</button>
+        <button class="carousel-nav-btn next" onclick="carouselScroll(this,1)">›</button>
+      </div>
+      <div class="carousel-pager"><span class="active"></span><span></span><span></span><span></span><span></span><span></span><span class="swipe-hint">6 фото</span></div>
+      <div class="h-body">
+        <div class="h-name">Indian Ocean Lodge (Праслин — Гранд Анс)</div>
+        <div class="h-stats">
+          <div class="stat rate"><div class="label">Рейтинг</div><div class="value">8.7</div></div>
+          <div class="stat"><div class="label">Звёзды</div><div class="value">4★</div></div>
+          <div class="stat"><div class="label">Спа</div><div class="value no">—</div></div>
+          <div class="stat"><div class="label">A-incl.</div><div class="value sm no">B&B</div></div>
+          <div class="stat"><div class="label">Adults</div><div class="value no">—</div></div>
+        </div>
+        <div class="h-pc">
+          <ul>
+            <li class="pro">Прямой выход на пляж Гранд Анс — главный пляж Праслина</li>
+            <li class="pro">Один из самых дешёвых на Сейшелах — ₽ 19 т./ночь</li>
+            <li class="pro">Креольская архитектура, бассейн и бар</li>
+            <li class="pro">Удобный 4★ формат</li>
+            <li class="con">Без спа</li>
+            <li class="con">Всего 94 отзыва — мало статистики</li>
+            <li class="con">Только B&B</li>
+          </ul>
+        </div>
+        <div class="h-pricing">
+          <div class="price-tile"><div class="label">Ночь</div><div class="value"><span class="rub">₽</span><span class="num">19</span><span class="suf">т.</span></div></div>
+          <div class="price-tile"><div class="label">10 ночей</div><div class="value"><span class="rub">₽</span><span class="num">190</span><span class="suf">т.</span></div></div>
+          <div class="price-tile"><div class="label">13 ночей</div><div class="value"><span class="rub">₽</span><span class="num">250</span><span class="suf">т.</span></div></div>
+        </div>
+        <div class="h-actions">
+          <a class="btn-book" href="https://www.booking.com/hotel/sc/indian-lodge.html?checkin=2026-07-17&checkout=2026-07-20&group_adults=2&selected_currency=RUB&lang=ru" target="_blank">Booking</a>
+          <a class="btn-site" href="https://www.indianoceanlodge.com" target="_blank">Сайт</a>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<section id="decision-helper">
+  <h2 class="dh-title">Сложно определиться?</h2>
+  <p class="dh-lead">Выбери приоритет — соберу топ-варианты:</p>
+  <div class="dh-buttons">
+    <button class="dh-btn" data-pick="price" type="button">
+      <span class="dh-icon">💰</span>
+      <span class="dh-name">Топ по бюджету</span>
+      <span class="dh-sub">Самые доступные за ночь</span>
+    </button>
+    <button class="dh-btn" data-pick="services" type="button">
+      <span class="dh-icon">⭐</span>
+      <span class="dh-name">Топ по услугам</span>
+      <span class="dh-sub">5★, спа, HB, adults-only</span>
+    </button>
+    <button class="dh-btn" data-pick="logistics" type="button">
+      <span class="dh-icon">🛬</span>
+      <span class="dh-name">Топ по логистике</span>
+      <span class="dh-sub">Прямой рейс, короткий трансфер</span>
+    </button>
+  </div>
+  <div id="dhResults"></div>
+</section>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+function carouselScroll(btn, direction){
+  const wrap = btn.parentElement;
+  const carousel = wrap.querySelector('.carousel');
+  const width = carousel.clientWidth;
+  carousel.scrollBy({left: width * direction, behavior: 'smooth'});
+}
+document.querySelectorAll('.carousel').forEach(carousel=>{
+  const wrap = carousel.parentElement;
+  const pager = wrap.nextElementSibling && wrap.nextElementSibling.classList.contains('carousel-pager') ? wrap.nextElementSibling : null;
+  if(pager){
+    const dots = pager.querySelectorAll('span:not(.swipe-hint)');
+    carousel.addEventListener('scroll', ()=>{
+      const idx = Math.round(carousel.scrollLeft / carousel.clientWidth);
+      dots.forEach((d,i)=> d.classList.toggle('active', i===idx));
+    });
+  }
+  // No custom wheel handler — browser handles vertical wheel natively (was causing jank on macOS trackpads)
+});
+
+(function(){
+  const lb = document.createElement('div');
+  lb.className = 'lightbox';
+  lb.innerHTML = `<button class="lightbox-close" aria-label="Закрыть">×</button><button class="lightbox-nav prev" aria-label="Предыдущее">‹</button><button class="lightbox-nav next" aria-label="Следующее">›</button><div class="lightbox-carousel" id="lbCarousel"></div><div class="lightbox-counter" id="lbCounter">1 / 6</div>`;
+  document.body.appendChild(lb);
+  const lbCar = lb.querySelector('#lbCarousel');
+  const lbCounter = lb.querySelector('#lbCounter');
+  function openLB(srcs, startIdx){
+    lbCar.innerHTML = srcs.map(s=>`<div class="item"><img src="${s}" alt=""></div>`).join('');
+    lb.classList.add('open');
+    document.body.classList.add('lightbox-open');
+    requestAnimationFrame(()=>{ lbCar.scrollLeft = startIdx * lbCar.clientWidth; updateCounter(); });
+  }
+  function closeLB(){ lb.classList.remove('open'); document.body.classList.remove('lightbox-open'); }
+  function lbScroll(dir){ lbCar.scrollBy({left: dir * lbCar.clientWidth, behavior:'smooth'}); }
+  function updateCounter(){
+    const idx = Math.round(lbCar.scrollLeft / lbCar.clientWidth) + 1;
+    const total = lbCar.children.length;
+    lbCounter.textContent = `${idx} / ${total}`;
+  }
+  lbCar.addEventListener('scroll', updateCounter);
+  lb.querySelector('.lightbox-close').addEventListener('click', closeLB);
+  lb.querySelector('.lightbox-nav.prev').addEventListener('click', ()=> lbScroll(-1));
+  lb.querySelector('.lightbox-nav.next').addEventListener('click', ()=> lbScroll(1));
+  lb.addEventListener('click', (e)=>{ if(e.target === lb) closeLB(); });
+  document.addEventListener('keydown', (e)=>{
+    if(!lb.classList.contains('open')) return;
+    if(e.key === 'Escape') closeLB();
+    if(e.key === 'ArrowLeft') lbScroll(-1);
+    if(e.key === 'ArrowRight') lbScroll(1);
+  });
+  document.querySelectorAll('.carousel-item img').forEach(img => {
+    img.addEventListener('click', (e)=>{
+      e.preventDefault();
+      const carousel = img.closest('.carousel');
+      const imgs = Array.from(carousel.querySelectorAll('.carousel-item img'));
+      const srcs = imgs.map(i => i.src);
+      const idx = imgs.indexOf(img);
+      openLB(srcs, idx);
+    });
+  });
+})();
+
+const hotels = [
+  {name:'GAIA Alaçatı by the Sea', rate:'9.1', area:'Çeşme/Alaçatı', lat:38.2738, lng:26.3911, color:'#3478ff'},
+  {name:'Layla Gocek Adults only', rate:'8.7', area:'Гёчек, Inlice', lat:36.7350, lng:28.9100, color:'#3478ff'},
+  {name:'Z-Villas Beach Hotel', rate:'9.8', area:'Турунч, Мармарис', lat:36.7826, lng:28.2392, color:'#3478ff'},
+  {name:'Perdue Hotel', rate:'8.4', area:'Фаралия', lat:36.4868, lng:29.1019, color:'#3478ff'},
+  {name:'Lov Faralya Adults Only', rate:'8.9', area:'Фаралия', lat:36.4878, lng:29.1025, color:'#3478ff'},
+  {name:'Jade Residence', rate:'8.9', area:'Олюдениз', lat:36.5530, lng:29.1340, color:'#3478ff'},
+  {name:'La Gaia Adult Only', rate:'9.0', area:'Аланья', lat:36.5440, lng:31.9970, color:'#f59e0b'},
+  {name:'Suna Sun Hotel Adult Only', rate:'9.1', area:'Каш', lat:36.1996, lng:29.6320, color:'#f59e0b'},
+  {name:'Day One Beach Resort & SPA', rate:'8.6', area:'Аланья', lat:36.5400, lng:31.9870, color:'#f59e0b'},
+  {name:'Nayu Igneada', rate:'9.0', area:'İğneada / Demirköy', lat:41.8800, lng:27.9700, color:'#16a34a'}
+];
+
+function pinIcon(color, rate){
+  return L.divIcon({
+    className:'custom-pin',
+    html:`<div style="background:${color};color:#fff;width:34px;height:34px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;box-shadow:0 2px 6px rgba(0,0,0,.3);border:2px solid #fff;"><span style="transform:rotate(45deg)">${rate}</span></div>`,
+    iconSize:[34,34],iconAnchor:[17,34],popupAnchor:[0,-32]
+  });
+}
+function makePopup(h){
+  return `<div class="popup-name">${h.name}</div><div class="popup-meta">📍 ${h.area} <span class="popup-rate">${h.rate}</span></div>`;
+}
+
+const CARTO_TILES = 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png';
+const CARTO_ATTR  = '&copy; <a href="https://carto.com/attributions">CARTO</a>, &copy; <a href="https://openstreetmap.org/copyright">OpenStreetMap</a>';
+
+const map = L.map('turkey-map',{zoomControl:true,scrollWheelZoom:false,attributionControl:false}).setView([38.5,32.5],6);
+window._leafletMap = map;
+L.tileLayer(CARTO_TILES,{attribution:CARTO_ATTR,subdomains:'abcd',maxZoom:19}).addTo(map);
+hotels.forEach(h=>{L.marker([h.lat,h.lng],{icon:pinIcon(h.color,h.rate)}).addTo(map).bindPopup(makePopup(h));});
+map.fitBounds(L.latLngBounds(hotels.map(h=>[h.lat,h.lng])),{padding:[50,50]});
+
+/* ====== SEYCHELLES MAP ====== */
+const seyHotels = [
+  {name:'Mango House LXR / Hilton',     rate:'9.2', area:'Anse aux Poules Bleues, Mahé', lat:-4.7689, lng:55.5029, color:'#06b6d4'},
+  {name:'Avani+ Barbarons Seychelles',  rate:'9.1', area:'Grand Anse, Mahé',             lat:-4.6889, lng:55.4322, color:'#06b6d4'},
+  {name:'Blue Lagoon Chalets',          rate:'9.5', area:'Baie Lazare, Mahé',            lat:-4.7619, lng:55.4855, color:'#06b6d4'},
+  {name:'laïla Tribute (Marriott)',     rate:'8.8', area:'Anse Royale, Mahé',            lat:-4.7106, lng:55.4778, color:'#06b6d4'},
+  {name:'STORY Seychelles',             rate:'8.8', area:'Beau Vallon, Mahé',            lat:-4.6206, lng:55.4297, color:'#06b6d4'},
+  {name:'Colibri Hotel',                rate:'9.0', area:'Baie Sainte Anne, Praslin',    lat:-4.3239, lng:55.7611, color:'#ec4899'},
+  {name:'Villas de Mer',                rate:'9.0', area:'Grand Anse, Praslin',          lat:-4.3287, lng:55.7011, color:'#ec4899'},
+  {name:'Cote d\'Or Lodge',             rate:'8.9', area:'Anse Volbert, Praslin',        lat:-4.3175, lng:55.7464, color:'#ec4899'},
+  {name:'Indian Ocean Lodge',           rate:'8.7', area:'Grand Anse, Praslin',          lat:-4.3303, lng:55.7059, color:'#ec4899'},
+  {name:'Le Repaire — Boutique',        rate:'9.1', area:'La Passe, La Digue',           lat:-4.3593, lng:55.8348, color:'#16a34a'},
+  {name:'Le Domaine de L\'Orangeraie',  rate:'9.1', area:'L\'Union, La Digue',           lat:-4.3669, lng:55.8344, color:'#16a34a'}
+];
+
+const seyMapEl = document.getElementById('seychelles-map');
+if (seyMapEl) {
+  const seyMap = L.map('seychelles-map',{zoomControl:true,scrollWheelZoom:false,attributionControl:false}).setView([-4.55, 55.65], 10);
+  window._seyMap = seyMap;
+  L.tileLayer(CARTO_TILES,{attribution:CARTO_ATTR,subdomains:'abcd',maxZoom:19}).addTo(seyMap);
+  seyHotels.forEach(h=>{L.marker([h.lat,h.lng],{icon:pinIcon(h.color,h.rate)}).addTo(seyMap).bindPopup(makePopup(h));});
+  seyMap.fitBounds(L.latLngBounds(seyHotels.map(h=>[h.lat,h.lng])),{padding:[50,50]});
+}
+
+/* ========== DECISION HELPER ========== */
+(function(){
+  const PICKS = {
+    price:     ['lagaia','bluelagoon','colibri','indianlodge','villasdemer','laila','layla','avani'],
+    services:  ['gaia','mango','story','dayone','ledomaine','avani','laila','nayu'],
+    logistics: ['story','mango','laila','avani','dayone','lagaia','gaia','layla']
+  };
+  const TITLES = {
+    price:     'Топ-8 по цене за ночь (от дешёвых)',
+    services:  'Топ-8 по уровню сервиса (5★, спа, HB, adults)',
+    logistics: 'Топ-8 по удобству перелёта и трансфера'
+  };
+
+  function shortName(full){
+    return full.split(/\s+[—–-]\s+/)[0].replace(/\s*\([^)]*\)\s*$/,'').trim();
+  }
+  function extractArea(full){
+    const m = full.match(/\(([^)]+)\)\s*$/);
+    if (m) return m[1];
+    const d = full.split(/\s+[—–-]\s+/);
+    return d.length > 1 ? d.slice(1).join(' — ') : '';
+  }
+  function cardBySlug(slug){
+    const img = document.querySelector(`img[src="pics_booking/${slug}_1.jpg"]`);
+    return img ? img.closest('.hotel') : null;
+  }
+  function rowFor(card){
+    const nameEl = card.querySelector('.h-name');
+    const full = nameEl ? nameEl.textContent.trim() : '';
+    const name = shortName(full);
+    const area = extractArea(full);
+    const rating = card.dataset.rating;
+    const ratingCls = parseFloat(rating) >= 9.0 ? '' : 'gray';
+    const stars = card.dataset.stars;
+    const meal = card.dataset.meal;
+    const mealCls = (meal === 'HB' || meal === 'AI' || meal === 'FB') ? 'green' : '';
+    const spa = card.dataset.spa === '1';
+    const adults = card.dataset.adults === '1';
+    const price = card.dataset.price;
+    const bookLink = card.querySelector('.btn-book');
+    const href = bookLink ? bookLink.getAttribute('href') : '#';
+    return `<tr>
+      <td class="sticky-col">
+        <div class="h-name">${name}</div>
+        ${area ? `<div class="h-area">${area}</div>` : ''}
+      </td>
+      <td><span class="h-rate ${ratingCls}">${rating}</span></td>
+      <td>${stars}★</td>
+      <td><span class="h-meal ${mealCls}">${meal}</span></td>
+      <td>${spa ? '<span class="h-yes">✓</span>' : '<span class="h-no">—</span>'}</td>
+      <td>${adults ? '<span class="h-yes">✓</span>' : '<span class="h-no">—</span>'}</td>
+      <td class="h-price"><span class="ru">₽</span>${price} <span class="ru">т.</span></td>
+      <td><a class="h-link" href="${href}" target="_blank" rel="noopener">Booking ↗</a></td>
+    </tr>`;
+  }
+  function buildTable(slugs){
+    const cards = slugs.map(cardBySlug).filter(Boolean);
+    const rows = cards.map(rowFor).join('');
+    return `<div class="hotel-table-wrap" style="display:block;">
+      <div class="hotel-table-scroll">
+        <table class="hotel-table">
+          <thead><tr>
+            <th class="sticky-col">Отель</th>
+            <th>Рейтинг</th>
+            <th>★</th>
+            <th>Питание</th>
+            <th>Спа</th>
+            <th>Adults</th>
+            <th>Цена / ночь</th>
+            <th></th>
+          </tr></thead>
+          <tbody>${rows}</tbody>
+        </table>
+      </div>
+    </div>`;
+  }
+
+  const results = document.getElementById('dhResults');
+  if (!results) return;
+  let currentPick = null;
+
+  document.querySelectorAll('.dh-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const pick = btn.dataset.pick;
+      const allBtns = document.querySelectorAll('.dh-btn');
+
+      if (currentPick === pick) {
+        // toggle off
+        allBtns.forEach(b => b.classList.remove('active'));
+        results.innerHTML = '';
+        currentPick = null;
+        return;
+      }
+
+      allBtns.forEach(b => b.classList.toggle('active', b === btn));
+      currentPick = pick;
+      const slugs = PICKS[pick];
+      const title = TITLES[pick];
+      results.innerHTML = `<div class="dh-result-title">${title}</div>${buildTable(slugs)}`;
+      // Smooth scroll into view
+      requestAnimationFrame(() => {
+        results.scrollIntoView({behavior:'smooth', block:'nearest'});
+      });
+    });
+  });
+})();
+
+/* ========== STICKY H2 SHADOW ========== */
+(function(){
+  if (!('IntersectionObserver' in window)) return;
+  const obs = new IntersectionObserver(
+    entries => entries.forEach(e => e.target.classList.toggle('is-stuck', e.intersectionRatio < 1)),
+    { threshold: [1], rootMargin: '-63px 0px 0px 0px' }
+  );
+  document.querySelectorAll('section h2').forEach(h => obs.observe(h));
+})();
+
+/* ========== MAP TOGGLE ========== */
+(function(){
+  function bind(cardId, headId, mapKey){
+    const card = document.getElementById(cardId);
+    const head = document.getElementById(headId);
+    if (!card || !head) return;
+    const txt = head.querySelector('.map-toggle-txt');
+    head.addEventListener('click', () => {
+      const collapsed = card.classList.toggle('collapsed');
+      if (txt) txt.textContent = collapsed ? 'Показать карту' : 'Скрыть карту';
+      if (!collapsed && window[mapKey]) {
+        setTimeout(() => window[mapKey].invalidateSize(), 360);
+      }
+    });
+  }
+  bind('mapCard',    'mapHead',    '_leafletMap');
+  bind('seyMapCard', 'seyMapHead', '_seyMap');
+})();
+
+/* ========== VIEW SWITCHER (cards <-> table) ========== */
+(function(){
+  function shortName(full){
+    return full.split(/\s+[—–-]\s+/)[0].replace(/\s*\([^)]*\)\s*$/,'').trim();
+  }
+  function extractArea(full){
+    const m = full.match(/\(([^)]+)\)\s*$/);
+    if (m) return m[1];
+    const dash = full.split(/\s+[—–-]\s+/);
+    return dash.length > 1 ? dash.slice(1).join(' — ') : '';
+  }
+  function buildTable(section){
+    const wrap = section.querySelector('.hotel-table-wrap .hotel-table-scroll');
+    if (!wrap) return;
+    const cards = Array.from(section.querySelectorAll('.hotel[data-rating]'));
+    const rows = cards.map(c => {
+      const nameEl = c.querySelector('.h-name');
+      const full = nameEl ? nameEl.textContent.trim() : '';
+      const name = shortName(full);
+      const area = extractArea(full);
+      const rating = c.dataset.rating;
+      const ratingCls = parseFloat(rating) >= 9.0 ? '' : 'gray';
+      const stars = c.dataset.stars;
+      const meal = c.dataset.meal;
+      const mealCls = (meal === 'HB' || meal === 'AI' || meal === 'FB') ? 'green' : '';
+      const spa = c.dataset.spa === '1';
+      const adults = c.dataset.adults === '1';
+      const price = c.dataset.price;
+      const bookLink = c.querySelector('.btn-book');
+      const href = bookLink ? bookLink.getAttribute('href') : '#';
+      return `<tr>
+        <td class="sticky-col">
+          <div class="h-name">${name}</div>
+          ${area ? `<div class="h-area">${area}</div>` : ''}
+        </td>
+        <td><span class="h-rate ${ratingCls}">${rating}</span></td>
+        <td>${stars}★</td>
+        <td><span class="h-meal ${mealCls}">${meal}</span></td>
+        <td>${spa ? '<span class="h-yes">✓</span>' : '<span class="h-no">—</span>'}</td>
+        <td>${adults ? '<span class="h-yes">✓</span>' : '<span class="h-no">—</span>'}</td>
+        <td class="h-price"><span class="ru">₽</span>${price} <span class="ru">т.</span></td>
+        <td><a class="h-link" href="${href}" target="_blank" rel="noopener">Booking ↗</a></td>
+      </tr>`;
+    }).join('');
+    wrap.innerHTML = `<table class="hotel-table">
+      <thead><tr>
+        <th class="sticky-col">Отель</th>
+        <th>Рейтинг</th>
+        <th>★</th>
+        <th>Питание</th>
+        <th>Спа</th>
+        <th>Adults</th>
+        <th>Цена / ночь</th>
+        <th></th>
+      </tr></thead>
+      <tbody>${rows}</tbody>
+    </table>`;
+  }
+
+  const STAGGER = 22;        // ms between each card's animation start
+  const CARD_OUT = 260;      // ms for one card to fade out
+  const CARD_IN  = 340;      // ms for one card to fade in
+  const TABLE_OUT = 240;
+  const TABLE_IN  = 300;
+
+  document.querySelectorAll('.view-btn').forEach(btn => {
+    const section = btn.closest('section');
+    const txt = btn.querySelector('.view-btn-txt');
+    let busy = false;
+
+    btn.addEventListener('click', () => {
+      if (busy) return;
+      busy = true;
+      btn.setAttribute('disabled','');
+
+      const goingToTable = !section.classList.contains('table-view');
+
+      if (goingToTable) {
+        // 1) Cards fade out (staggered)
+        const cards = Array.from(section.querySelectorAll('.hotel[data-rating]'))
+          .filter(c => c.style.display !== 'none');
+        cards.forEach((h, i) => {
+          h.style.animationDelay = (i * STAGGER) + 'ms';
+          h.classList.add('is-fading-out');
+        });
+        const outDuration = cards.length * STAGGER + CARD_OUT;
+        setTimeout(() => {
+          cards.forEach(h => {
+            h.classList.remove('is-fading-out');
+            h.style.animationDelay = '';
+          });
+          // 2) Build table if needed
+          const scroll = section.querySelector('.hotel-table-wrap .hotel-table-scroll');
+          if (scroll && !scroll.children.length) buildTable(section);
+          // 3) Switch view + animate table in
+          section.classList.add('table-view');
+          const table = section.querySelector('.hotel-table-wrap');
+          table.classList.add('is-fading-in');
+          setTimeout(() => {
+            table.classList.remove('is-fading-in');
+            busy = false;
+            btn.removeAttribute('disabled');
+          }, TABLE_IN);
+        }, outDuration);
+        txt.textContent = 'Развернуть карточки';
+      } else {
+        // 1) Table fades out
+        const table = section.querySelector('.hotel-table-wrap');
+        table.classList.add('is-fading-out');
+        setTimeout(() => {
+          table.classList.remove('is-fading-out');
+          // 2) Switch back to cards
+          section.classList.remove('table-view');
+          // 3) Animate cards in (staggered)
+          const cards = Array.from(section.querySelectorAll('.hotel[data-rating]'))
+            .filter(c => c.style.display !== 'none');
+          cards.forEach((h, i) => {
+            h.style.animationDelay = (i * STAGGER) + 'ms';
+            h.classList.add('is-fading-in');
+          });
+          const inDuration = cards.length * STAGGER + CARD_IN;
+          setTimeout(() => {
+            cards.forEach(h => {
+              h.classList.remove('is-fading-in');
+              h.style.animationDelay = '';
+            });
+            busy = false;
+            btn.removeAttribute('disabled');
+          }, inDuration);
+        }, TABLE_OUT);
+        txt.textContent = 'Свернуть в таблицу';
+      }
+    });
+  });
+})();
+
+/* ========== FILTERS ========== */
+(function(){
+  const toggleBtn = document.getElementById('filterToggle');
+  const panel     = document.getElementById('filterPanel');
+  const resetBtn  = document.getElementById('filterReset');
+  const closeBtn  = document.getElementById('filterCloseBtn');
+  const visEl     = document.getElementById('filterVisible');
+  const countEl   = document.getElementById('filterCount');
+  const allHotels = Array.from(document.querySelectorAll('.hotel[data-rating]'));
+  const total     = allHotels.length;
+  countEl.textContent = total;
+  visEl.textContent   = total;
+
+  // Active filters
+  const active = {}; // {region:'aegean', 'min-rating':'9.0', stars:Set, meal:Set, beach:'sand', water:'warm', spa:true, adults:true, 'max-price':'30'}
+  const singleKeys = new Set(['region','min-rating','max-price','beach','water']);
+  const multiKeys  = new Set(['stars','meal']);
+  const toggleKeys = new Set(['spa','adults']);
+
+  function activeCount(){
+    let n = 0;
+    for (const k in active){
+      const v = active[k];
+      if (v instanceof Set) n += v.size;
+      else if (v === true)  n += 1;
+      else if (v != null)   n += 1;
+    }
+    return n;
+  }
+
+  function matchWater(h, v){
+    const w = parseInt(h.dataset.water);
+    if (v === 'warm') return w >= 26;
+    if (v === 'mid')  return w >= 24 && w < 26;
+    if (v === 'cool') return w < 24;
+    return true;
+  }
+
+  function matches(h){
+    if (active.region && h.dataset.region !== active.region) return false;
+    if (active['min-rating'] && parseFloat(h.dataset.rating) < parseFloat(active['min-rating'])) return false;
+    if (active['max-price'] && parseInt(h.dataset.price) > parseInt(active['max-price'])) return false;
+    if (active.stars && active.stars.size && !active.stars.has(h.dataset.stars)) return false;
+    if (active.meal && active.meal.size && !active.meal.has(h.dataset.meal)) return false;
+    if (active.beach && h.dataset.beach !== active.beach) return false;
+    if (active.water && !matchWater(h, active.water)) return false;
+    if (active.spa === true && h.dataset.spa !== '1') return false;
+    if (active.adults === true && h.dataset.adults !== '1') return false;
+    return true;
+  }
+
+  function apply(){
+    let visible = 0;
+    allHotels.forEach(h => {
+      const ok = matches(h);
+      h.style.display = ok ? '' : 'none';
+      if (ok) visible++;
+    });
+    visEl.textContent = visible;
+    const ac = activeCount();
+    countEl.textContent = ac > 0 ? visible : total;
+    countEl.style.background = ac > 0 ? '#22c55e' : '';
+    countEl.style.color      = ac > 0 ? '#0a0a0a' : '';
+    toggleBtn.classList.toggle('has-active', ac > 0);
+
+    // Hide entire sections with no visible hotels (but keep .region-info visible if section is region-matched)
+    document.querySelectorAll('section[id]').forEach(sec => {
+      const sh = sec.querySelectorAll('.hotel[data-rating]');
+      if (!sh.length) return;
+      const any = Array.from(sh).some(h => h.style.display !== 'none');
+      sec.style.display = any ? '' : 'none';
+    });
+  }
+
+  // Chip click handler
+  document.querySelectorAll('.fchip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      const f = chip.dataset.filter;
+      const v = chip.dataset.value;
+      if (singleKeys.has(f)){
+        if (active[f] === v){
+          delete active[f];
+          chip.classList.remove('selected');
+        } else {
+          active[f] = v;
+          document.querySelectorAll(`.fchip[data-filter="${f}"]`).forEach(c => c.classList.remove('selected'));
+          chip.classList.add('selected');
+        }
+      } else if (multiKeys.has(f)){
+        if (!active[f]) active[f] = new Set();
+        if (active[f].has(v)){
+          active[f].delete(v);
+          chip.classList.remove('selected');
+          if (active[f].size === 0) delete active[f];
+        } else {
+          active[f].add(v);
+          chip.classList.add('selected');
+        }
+      } else if (toggleKeys.has(f)){
+        if (active[f]){
+          delete active[f];
+          chip.classList.remove('selected');
+        } else {
+          active[f] = true;
+          chip.classList.add('selected');
+        }
+      }
+      apply();
+    });
+  });
+
+  // Toggle panel
+  toggleBtn.addEventListener('click', () => {
+    const open = panel.classList.toggle('open');
+    toggleBtn.classList.toggle('active', open);
+    toggleBtn.setAttribute('aria-expanded', String(open));
+  });
+  closeBtn.addEventListener('click', () => {
+    panel.classList.remove('open');
+    toggleBtn.classList.remove('active');
+    toggleBtn.setAttribute('aria-expanded', 'false');
+  });
+
+  // Reset
+  resetBtn.addEventListener('click', () => {
+    for (const k in active) delete active[k];
+    document.querySelectorAll('.fchip').forEach(c => c.classList.remove('selected'));
+    apply();
+  });
+})();
+</script>
+
+</body>
+</html>
