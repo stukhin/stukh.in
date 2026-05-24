@@ -10,6 +10,40 @@ Use this alongside [PROJECT.md](./PROJECT.md) at session start.
 
 ---
 
+## ⚑ Working protocol — design system discipline
+
+(Added 2026-05-24 after the country-panel iteration that drifted
+from the rest of the site and had to be folded back in twice.)
+
+Every UI addition or change on this project must live INSIDE the
+existing design system, not next to it. Reuse tokens before
+inventing.
+
+- **Source of truth:** `/system` (hand-maintained reference) and
+  `/system/blog-panel` (per-surface audit/proposal pattern).
+  Read both before starting any non-trivial UI task.
+- **Canonical scales as of v5 (commit `0efbfd7`):**
+  - Type ramp: 20 / 18 / 17 / 14 / 13 / 12 / 11 / 9 px
+  - Weights: 200 / 300 / 400 only (no 500 / 600)
+  - Letter-spacing: strict 3-value scale — `0` body, `-0.02em`
+    display country name, `0.08em` every uppercase / spec label
+  - Easings: `cubic-bezier(0.65, 0, 0.25, 1)` for big surfaces;
+    `cubic-bezier(0.2, 0.7, 0.4, 1)` for entrance scales
+  - Case: lowercase everywhere; capitalize only country names;
+    uppercase only on spec / kicker labels
+  - Spacing: multiples of 4; 16 / 20 / 32 / 48 / 66 / 96 most common
+- **New tokens require explicit user approval.** If a feature needs
+  a value outside the canonical scales, raise it first ("I need a
+  new tracking value because X") and get a sign-off before adding.
+- **For non-trivial UI changes, build an audit page.** Use the
+  `/system/blog-panel` format: real-DOM before/after pairs, severity
+  tags (high / med / low), one-paragraph rationale per row,
+  numbered for approval. Apply only what's approved.
+- Motion + decoration are part of the system. No inventing new
+  curves, shadow recipes, or border patterns mid-task.
+
+---
+
 ## Starting a new Claude Code session
 
 1. **Worktree:** the project lives in a Claude worktree branch
