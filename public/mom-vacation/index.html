@@ -2340,8 +2340,9 @@ if (seyMapEl) {
     if (!container) return;
     const cRect = container.getBoundingClientRect();
     const lRect = link.getBoundingClientRect();
-    // Align active button's left edge with container's left edge
-    const target = container.scrollLeft + (lRect.left - cRect.left);
+    // Offset so active button aligns with content/cards left edge, and previous button peeks
+    const PEEK = 56;
+    const target = container.scrollLeft + (lRect.left - cRect.left) - PEEK;
     container.scrollTo({ left: Math.max(0, target), behavior: 'smooth' });
   }
   function setActive(id){
