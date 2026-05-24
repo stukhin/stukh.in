@@ -1,37 +1,36 @@
-/* Right-side slide-in panel. The /blog map enters "focus mode" when
-   a country is clicked — the country shifts to the left third of
-   the viewport, the rest of the world explodes outward, and this
-   panel slides in from the right covering ~60 % of the viewport
-   width with the country's story. The panel is its OWN container
-   (no fullscreen backdrop) so the map stays interactive on the
-   left and the user can see the selected country at all times. */
+/* ============================================================
+   Country "field notebook" — horizontally paged spreads.
 
-.backdrop {
+   Layout: fixed-position aside on the right (full-screen on
+   mobile). Inside is a flex row with CSS scroll-snap, one spread
+   per snap stop. Each spread renders its own micro-layout
+   (cover · sheet · taste · map · notes); no shared subheaders.
+
+   The visual language stays Swiss-typographic — no paper textures,
+   no skeuomorphic decoration — relying on geometry + per-spread
+   layout shift to break the dossier formula.
+   ============================================================ */
+
+/* ---- panel container ---- */
+
+.panel {
   position: fixed;
   top: 0;
   right: 0;
   bottom: 0;
-  /* Sits above EdgeNav (z 7), the map (z 8), the gallery position
-     slider (z 9), and the modal-class overlays (z 40); below the
-     logo (z 45) and burger (z 60) so the user can still escape
-     through the menu. .root on /blog has pointer-events: none for
-     EdgeNav pass-through, so this aside has to opt back in
-     explicitly to receive its own click events. */
-  pointer-events: auto;
-  z-index: 30;
   width: clamp(360px, 60vw, 880px);
-  background: rgba(245, 244, 241, 0.92);
+  background: rgba(245, 244, 241, 0.94);
   backdrop-filter: blur(28px) saturate(160%);
   -webkit-backdrop-filter: blur(28px) saturate(160%);
   border-left: 1px solid rgba(0, 0, 0, 0.08);
+  box-shadow: -24px 0 60px rgba(0, 0, 0, 0.12);
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  z-index: 30;
+  pointer-events: auto;
   cursor: none;
-  /* Slide in from the right edge. The translate is done in % so
-     the same animation works at every breakpoint. */
   animation: panelIn 0.6s cubic-bezier(0.5, 0, 0.4, 1) both;
-  box-shadow: -24px 0 60px rgba(0, 0, 0, 0.12);
 }
 
 @keyframes panelIn {
@@ -46,18 +45,12 @@
 }
 
 @media (max-width: 597px) {
-  .backdrop {
-    /* Mobile: full-screen popup. The map is non-interactive
-       underneath while this is open; the X button is the only
-       dismiss path (tapping outside isn't useful when there's
-       no outside). Slide up from the bottom — feels native for
-       a full-screen card and signals a different mode than the
-       desktop side panel. */
+  .panel {
     width: 100vw;
     left: 0;
-    animation: panelInMobile 0.4s cubic-bezier(0.5, 0, 0.4, 1) both;
     box-shadow: none;
     border-left: none;
+    animation: panelInMobile 0.4s cubic-bezier(0.5, 0, 0.4, 1) both;
   }
 }
 
@@ -72,29 +65,7 @@
   }
 }
 
-/* Inner content container so we can pad and scroll independently
-   of the panel's frosted-glass backdrop. */
-.box {
-  position: relative;
-  width: 100%;
-  height: 100%;
-  padding: 88px 64px 64px 56px;
-  color: #1a1a1a;
-  overflow-y: auto;
-  cursor: none;
-}
-
-@media (max-width: 1024px) {
-  .box {
-    padding: 80px 40px 48px 40px;
-  }
-}
-
-@media (max-width: 597px) {
-  .box {
-    padding: 64px 28px 36px 28px;
-  }
-}
+/* ---- close ---- */
 
 .close {
   position: absolute;
@@ -112,113 +83,711 @@
   line-height: 1;
   color: #1a1a1a;
   cursor: none;
-  transition: opacity 0.15s ease;
   opacity: 0.55;
+  transition: opacity 0.15s ease;
+  z-index: 4;
 }
 
 .close:hover {
   opacity: 1;
 }
 
-.head {
-  margin-bottom: 32px;
-  padding-bottom: 22px;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
-}
+/* ---- footer title (shows current spread when not on cover) ---- */
 
-.name {
-  margin: 0;
-  font-size: 56px;
-  font-weight: 300;
-  letter-spacing: -0.025em;
-  text-transform: lowercase;
-  line-height: 0.95;
-}
-
-@media (max-width: 1024px) {
-  .name {
-    font-size: 44px;
-  }
-}
-
-@media (max-width: 597px) {
-  .name {
-    font-size: 34px;
-  }
-}
-
-.dates {
-  margin: 14px 0 0;
-  font-size: 13px;
-  letter-spacing: 0.1em;
-  text-transform: lowercase;
-  opacity: 0.55;
-}
-
-.body {
-  display: flex;
-  flex-direction: column;
-  gap: 28px;
-}
-
-.description {
-  margin: 0;
-  font-size: 16px;
-  line-height: 1.6;
-  font-weight: 300;
-  letter-spacing: -0.01em;
-}
-
-@media (max-width: 597px) {
-  .description {
-    font-size: 14px;
-  }
-}
-
-.section {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.sectionTitle {
-  margin: 0;
+.footerTitle {
+  position: absolute;
+  bottom: 22px;
+  left: 28px;
   font-size: 11px;
   letter-spacing: 0.18em;
   text-transform: uppercase;
-  opacity: 0.55;
-  font-weight: 300;
+  color: #1a1a1a;
+  opacity: 0.45;
+  z-index: 4;
+  pointer-events: none;
+  font-weight: 400;
 }
 
-.sectionBody {
+/* ---- horizontal scroller ---- */
+
+.scroller {
+  flex: 1;
+  display: flex;
+  flex-direction: row;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scroll-snap-type: x mandatory;
+  scroll-behavior: smooth;
+  /* Hide the scrollbar across engines. */
+  scrollbar-width: none;
+}
+.scroller::-webkit-scrollbar {
+  display: none;
+}
+
+.spread {
+  flex: 0 0 100%;
+  width: 100%;
+  height: 100%;
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: none;
+  padding: 80px 56px 80px 56px;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  color: #1a1a1a;
+}
+.spread::-webkit-scrollbar {
+  display: none;
+}
+
+@media (max-width: 1024px) {
+  .spread {
+    padding: 72px 40px 72px 40px;
+  }
+}
+
+@media (max-width: 597px) {
+  .spread {
+    padding: 60px 24px 72px 24px;
+  }
+}
+
+/* ---- page indicator (dots + spread label on hover/active) ---- */
+
+.pager {
+  position: absolute;
+  bottom: 22px;
+  right: 28px;
+  display: flex;
+  gap: 14px;
+  z-index: 4;
+  align-items: center;
+}
+
+.dot {
+  position: relative;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: transparent;
+  border: none;
+  padding: 0;
+  cursor: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.dot::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #1a1a1a;
+  opacity: 0.3;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+.dot:hover::before {
+  opacity: 0.7;
+}
+.dotActive::before {
+  opacity: 1;
+  transform: scale(1.4);
+}
+.dotLabel {
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%) translateY(-2px);
+  font-size: 9px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+  pointer-events: none;
+  white-space: nowrap;
+  color: #1a1a1a;
+}
+.dot:hover .dotLabel,
+.dotActive .dotLabel {
+  opacity: 0.7;
+}
+
+/* ============================================================
+   COVER spread
+   ============================================================ */
+
+.cover {
+  flex: 1;
+  display: grid;
+  grid-template-rows: auto 1fr auto auto;
+  gap: 0;
+  height: 100%;
+  padding-top: 8px;
+}
+
+.coverMeta {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 8px;
+}
+
+.coverIssue {
+  font-size: 12px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  opacity: 0.55;
+  font-weight: 400;
+}
+
+.coverFlag {
+  font-size: 32px;
+  line-height: 1;
+}
+
+.coverName {
   margin: 0;
-  font-size: 15px;
+  font-size: clamp(64px, 13vw, 140px);
+  font-weight: 200;
+  letter-spacing: -0.035em;
+  text-transform: lowercase;
+  line-height: 0.86;
+  align-self: end;
+  /* Hyphenate / break long names so they don't push the panel
+     wider than the column. */
+  word-break: break-word;
+  overflow-wrap: break-word;
+}
+
+/* Visa stamp: tilted rect with a dotted border, dates inside,
+   a hairline + "visited" tag below. Pure CSS, no SVG. */
+.coverStampWrap {
+  position: absolute;
+  top: 96px;
+  right: 64px;
+  pointer-events: none;
+}
+
+@media (max-width: 1024px) {
+  .coverStampWrap {
+    top: 84px;
+    right: 48px;
+  }
+}
+
+@media (max-width: 597px) {
+  .coverStampWrap {
+    top: 72px;
+    right: 32px;
+  }
+}
+
+.coverStamp {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 22px;
+  border: 1.5px dashed rgba(193, 74, 58, 0.55);
+  border-radius: 4px;
+  transform: rotate(-6deg);
+  color: rgba(193, 74, 58, 0.75);
+  font-weight: 400;
+  /* Faint inner glow so the stamp feels inked rather than drawn. */
+  background: rgba(193, 74, 58, 0.04);
+}
+
+.stampDates {
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.stampLine {
+  width: 36px;
+  height: 1px;
+  background: rgba(193, 74, 58, 0.55);
+}
+.stampTag {
+  font-size: 14px;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+}
+
+.coverDescription {
+  margin: 32px 0 0;
+  max-width: 56ch;
+  font-size: 16px;
   line-height: 1.55;
   font-weight: 300;
+  letter-spacing: -0.005em;
+  opacity: 0.85;
+}
+
+@media (max-width: 597px) {
+  .coverDescription {
+    font-size: 14px;
+    margin-top: 24px;
+  }
+}
+
+.coverFacts {
+  display: flex;
+  gap: 36px;
+  margin: 28px 0 0;
+  padding: 18px 0 0;
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
+}
+.fact {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.fact dt {
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  opacity: 0.5;
+}
+.fact dd {
+  margin: 0;
+  font-size: 26px;
+  font-weight: 300;
+  letter-spacing: -0.02em;
+}
+
+.coverAdvance {
+  margin-top: 24px;
+  align-self: flex-start;
+  background: transparent;
+  border: none;
+  padding: 0;
+  font-size: 12px;
+  letter-spacing: 0.16em;
+  text-transform: lowercase;
+  color: #1a1a1a;
+  opacity: 0.6;
+  cursor: none;
+  transition: opacity 0.15s ease;
+}
+.coverAdvance:hover {
+  opacity: 1;
+}
+
+/* ============================================================
+   Shared spread header (sheet · taste · map · notes)
+   ============================================================ */
+
+.spreadHeader {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 28px;
+}
+.spreadKicker {
+  font-size: 11px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  opacity: 0.55;
+  font-weight: 400;
+}
+.spreadCount {
+  font-size: 13px;
+  letter-spacing: -0.01em;
+  font-weight: 300;
+  opacity: 0.55;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ============================================================
+   SHEET — contact prints in a slightly tilted grid
+   ============================================================ */
+
+.sheet {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.sheetGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 28px 22px;
+  align-content: start;
+  flex: 1;
+  /* the grid itself scrolls within the spread when there are many
+     photos, so the page indicator stays in view */
+}
+
+@media (max-width: 597px) {
+  .sheetGrid {
+    grid-template-columns: 1fr;
+    gap: 22px;
+  }
+}
+
+.print {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  transform: rotate(var(--rot, 0deg));
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.print:hover {
+  transform: rotate(0deg) scale(1.015);
+}
+
+.printImage {
+  width: 100%;
+  aspect-ratio: 4 / 5;
+  background-size: cover;
+  background-position: center;
+  background-color: rgba(0, 0, 0, 0.06);
+  /* Subtle "print" border: thin dark inset + soft shadow. */
+  box-shadow:
+    0 1px 0 rgba(0, 0, 0, 0.04),
+    0 8px 20px rgba(0, 0, 0, 0.1),
+    inset 0 0 0 1px rgba(0, 0, 0, 0.06);
+}
+
+.printCaption {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 0 2px;
+}
+.printPlace {
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  opacity: 0.7;
+}
+.printNote {
+  font-size: 12px;
+  font-weight: 300;
+  line-height: 1.4;
+  opacity: 0.55;
+}
+
+/* ============================================================
+   TASTE — 4-quadrant flavour grid
+   ============================================================ */
+
+.taste {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.tasteCanvas {
+  position: relative;
+  flex: 1;
+  min-height: 480px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  background: rgba(255, 255, 255, 0.4);
+}
+
+.tasteAxisH,
+.tasteAxisV {
+  position: absolute;
+  background: rgba(0, 0, 0, 0.08);
+  pointer-events: none;
+}
+.tasteAxisH {
+  left: 0;
+  right: 0;
+  top: 50%;
+  height: 1px;
+}
+.tasteAxisV {
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  width: 1px;
+}
+
+/* Corner labels — sit in the four corners of the canvas. */
+.tasteCornerLabel {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  opacity: 0.5;
+  pointer-events: none;
+}
+.tasteCornerIcon {
+  font-size: 16px;
+  opacity: 0.85;
+}
+
+.corner_tl { top: 16px; left: 16px; }
+.corner_tr { top: 16px; right: 16px; flex-direction: row-reverse; }
+.corner_bl { bottom: 16px; left: 16px; }
+.corner_br { bottom: 16px; right: 16px; flex-direction: row-reverse; }
+
+/* Chips — placed via inline left/top % on the canvas. */
+.tasteChip {
+  position: absolute;
+  max-width: 220px;
+  padding: 8px 12px 9px;
+  background: #fff;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 2px;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  transform: rotate(var(--rot, 0deg));
+  transform-origin: top left;
+  /* Each category gets a left-edge colour stripe so the chip's
+     position on the grid is corroborated by its colour. */
+  border-left-width: 3px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, z-index 0s linear 0.2s;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+  cursor: none;
+}
+.tasteChip:hover {
+  transform: rotate(0deg) translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+  z-index: 2;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, z-index 0s linear 0s;
+}
+
+.tasteChip[data-category="coffee"] { border-left-color: #8a5a3b; }
+.tasteChip[data-category="nature"] { border-left-color: #4a6b3e; }
+.tasteChip[data-category="food"]   { border-left-color: #c14a3a; }
+.tasteChip[data-category="view"]   { border-left-color: #3a4a6b; }
+
+.tasteChipName {
+  font-size: 12px;
+  letter-spacing: -0.005em;
+  line-height: 1.3;
+  font-weight: 400;
+  color: #1a1a1a;
+}
+.tasteChipCity {
+  font-size: 9px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  opacity: 0.5;
+}
+
+@media (max-width: 597px) {
+  .tasteCanvas {
+    min-height: 420px;
+  }
+  .tasteChip {
+    max-width: 150px;
+    padding: 7px 10px 8px;
+  }
+  .tasteChipName { font-size: 11px; }
+}
+
+/* ============================================================
+   MAP — country silhouette + city pins
+   ============================================================ */
+
+.map {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.mapCanvas {
+  flex: 1;
+  min-height: 280px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 0;
+}
+
+.mapSvg {
+  width: 100%;
+  height: 100%;
+  max-height: 460px;
+  display: block;
+}
+
+.mapSilhouette {
+  fill: #1a1a1a;
+  fill-opacity: 0.08;
+  stroke: #1a1a1a;
+  stroke-opacity: 0.5;
+  stroke-width: 0.75;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+}
+
+.mapPin {
+  cursor: none;
+}
+.mapPinHalo {
+  fill: transparent;
+}
+.mapPinRing {
+  fill: transparent;
+  stroke: #c14a3a;
+  stroke-width: 1.5;
+  vector-effect: non-scaling-stroke;
+  transition: r 0.2s ease, stroke-width 0.2s ease;
+}
+.mapPinDot {
+  fill: #c14a3a;
+  transition: r 0.2s ease;
+}
+.mapPinActive .mapPinRing { stroke-width: 2; }
+.mapPinActive .mapPinDot { fill: #c14a3a; }
+
+.mapPinLabel {
+  font-size: 12px;
+  letter-spacing: 0.02em;
+  fill: #1a1a1a;
+  fill-opacity: 0.7;
+  font-weight: 400;
+  pointer-events: none;
+  /* Default fade — only active pin's label reads at full opacity. */
+  opacity: 0.55;
+  transition: opacity 0.2s ease;
+}
+.mapPin:hover .mapPinLabel,
+.mapPinActive .mapPinLabel {
+  opacity: 1;
+}
+
+.mapDetail {
+  margin-top: 24px;
+  display: grid;
+  grid-template-columns: 120px 1fr;
+  gap: 18px;
+  padding-top: 18px;
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+@media (max-width: 597px) {
+  .mapDetail {
+    grid-template-columns: 80px 1fr;
+    gap: 14px;
+    margin-top: 18px;
+  }
+}
+
+.mapDetailPhoto {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  background-size: cover;
+  background-position: center;
+  background-color: rgba(0, 0, 0, 0.06);
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.08);
+}
+
+.mapDetailBody {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding-top: 4px;
+}
+
+.mapDetailName {
+  font-size: 20px;
+  font-weight: 300;
+  letter-spacing: -0.015em;
   text-transform: lowercase;
 }
 
-.list {
+.mapDetailMemory {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.55;
+  font-weight: 300;
+  opacity: 0.75;
+}
+
+.mapEmpty {
+  margin: auto;
+  font-size: 13px;
+  opacity: 0.5;
+}
+
+/* ============================================================
+   NOTES — dispatch entries
+   ============================================================ */
+
+.notes {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.notesList {
   list-style: none;
   margin: 0;
   padding: 0;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 36px;
 }
 
-.listItem {
-  font-size: 15px;
-  line-height: 1.55;
-  font-weight: 300;
+.note {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-left: 18px;
+  position: relative;
+  /* Margin line, like a notebook */
+  border-left: 1px solid rgba(193, 74, 58, 0.35);
 }
 
-.placeholder {
-  margin: 18px 0 0;
-  padding-top: 18px;
-  border-top: 1px solid rgba(0, 0, 0, 0.1);
-  font-size: 11px;
-  letter-spacing: 0.16em;
+.noteHead {
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.noteDay {
+  font-size: 10px;
+  letter-spacing: 0.22em;
   text-transform: uppercase;
-  opacity: 0.4;
+  opacity: 0.6;
+  font-weight: 500;
+}
+
+.notePlace {
+  font-size: 14px;
+  font-weight: 400;
+  letter-spacing: -0.01em;
+  text-transform: lowercase;
+  opacity: 0.85;
+}
+
+.noteText {
+  margin: 0;
+  /* Italic serif as a stand-in for "handwritten" — keeps the
+     vibe without a webfont network round-trip. */
+  font-family: Georgia, "Times New Roman", serif;
+  font-style: italic;
+  font-size: 17px;
+  line-height: 1.55;
+  font-weight: 400;
+  color: #1a1a1a;
+  opacity: 0.85;
+  max-width: 56ch;
+}
+
+@media (max-width: 597px) {
+  .notesList {
+    gap: 28px;
+  }
+  .noteText {
+    font-size: 15px;
+  }
 }
