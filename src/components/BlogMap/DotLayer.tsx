@@ -1,6 +1,5 @@
 "use client";
 
-import { explodeStyleFor } from "./mapProjection";
 import styles from "./BlogMap.module.css";
 
 export type DotMarker = {
@@ -44,7 +43,6 @@ export default function DotLayer({
             className={`${styles.visitedDot} ${
               isActive || isSelected ? styles.visitedDotActive : ""
             } ${isSelected ? styles.selected : ""}`}
-            style={isSelected ? undefined : explodeStyleFor(m.iso)}
           />
         );
       })}
@@ -78,7 +76,6 @@ export function DotHits({
             className={`${styles.visitedDotHit} ${
               isSelected ? styles.selected : ""
             }`}
-            style={isSelected ? undefined : explodeStyleFor(m.iso)}
             onMouseEnter={() => onEnter(m.iso)}
             onMouseLeave={onLeave}
             onClick={() => onClick(m.iso)}

@@ -2,7 +2,7 @@
 
 import type { MutableRefObject } from "react";
 import CountryStroke from "./CountryStroke";
-import { explodeStyleFor, type CountryPath } from "./mapProjection";
+import type { CountryPath } from "./mapProjection";
 import styles from "./BlogMap.module.css";
 
 type Props = {
@@ -46,21 +46,21 @@ export default function CountryLayer({
 }: Props) {
   return (
     <>
-      {/* Default world: filled, no stroke, neighbours blur into
-          one continent silhouette. In focus mode (.root.focusing
-          applied) every unvisited country gets its inline
-          explode vector and the CSS rule transforms / fades it
-          out. */}
-      {unvisited.map((p) => (
-        <path
-          key={p.id}
-          d={p.d}
-          className={styles.country}
-          style={explodeStyleFor(p.id)}
-        >
-          <title>{p.name}</title>
-        </path>
-      ))}
+      {/* Default world wrapped in a single <g> so focus-mode's
+          opacity fade runs as ONE compositor-layer transition
+          instead of ~250 per-path transitions. The previous
+          per-path version paint-stormed when entering / exiting
+          focus on complex geometries (Indonesia's thousands of
+          subpath islands, France's overseas territories) — the
+          user saw the modal-open animation hitch. Group fade is
+          GPU-only; per-path geometry isn't re-paint-touched. */}
+      <g className={styles.unvisitedGroup}>
+        {unvisited.map((p) => (
+          <path key={p.id} d={p.d} className={styles.country}>
+            <title>{p.name}</title>
+          </path>
+        ))}
+      </g>
 
       {/* Visited countries: fill layer. The "active" class is
           applied from React state, not :hover. */}
@@ -74,7 +74,6 @@ export default function CountryLayer({
             className={`${styles.visitedVisual} ${
               isActive || isSelected ? styles.visitedVisualActive : ""
             } ${isSelected ? styles.selected : ""}`}
-            style={isSelected ? undefined : explodeStyleFor(p.id)}
           />
         );
       })}
@@ -129,7 +128,6 @@ export function CountryStrokesAndHits({
             className={`${styles.visitedHit} ${
               isSelected ? styles.selected : ""
             }`}
-            style={isSelected ? undefined : explodeStyleFor(p.id)}
             onMouseEnter={() => onEnter(p.id)}
             onMouseLeave={onLeave}
             onClick={() => onClick(p.id)}

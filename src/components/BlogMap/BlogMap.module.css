@@ -101,32 +101,39 @@
 /* Default country: solid pale fill, NO stroke. Continents read as
    one mass — neighbours' borders disappear into the shared fill.
    pointer-events: none so events fall through to EdgeNav (visited
-   countries opt back in via .visitedHit). transform-box +
-   transform-origin: centre let the per-path explode vector (set
-   inline by React) rotate / translate around each country's own
-   centroid in focus mode. */
+   countries opt back in via .visitedHit). No transition here:
+   the focus-mode opacity fade is driven by the `.unvisitedGroup`
+   parent below as a single GPU-composited layer fade, NOT per
+   path. The per-path version paint-stormed when entering /
+   exiting focus on complex geometries (Indonesia islands,
+   France overseas territories). */
 .country {
   fill: #d6d2c8;
   stroke: none;
   cursor: none;
   pointer-events: none;
-  transform-box: fill-box;
-  transform-origin: center center;
-  transition: opacity 1.5s cubic-bezier(0.7, 0, 0.84, 0),
-    transform 1.5s cubic-bezier(0.7, 0, 0.84, 0);
 }
 
-/* Focus mode: every path that does NOT carry .selected fades to
-   a faint neutral gray — both the visited-dark fills and the
-   cream-paper unvisited fills become the same low-opacity tone,
-   so the rest of the world reads as a single soft backdrop while
-   the selected country gets the stage. Opacity at 0.20 keeps the
-   contours BARELY perceptible (user explicitly asked to see them
-   at ~5 % visibility — 0.05 alpha was math-correct but
-   practically invisible against the cream paper bg, so we land
-   at the 0.20 sweet spot where the silhouettes read as a soft
-   ghost). */
-.focusing .country,
+/* Wrapper around all ~250 unvisited paths. Focus mode fades the
+   whole group to 0.2 via this single transition; browser
+   composites the group as one layer so no per-path re-paint
+   happens during the fade. */
+.unvisitedGroup {
+  opacity: 1;
+  transition: opacity 1.5s cubic-bezier(0.7, 0, 0.84, 0);
+}
+
+.focusing .unvisitedGroup {
+  opacity: 0.2;
+}
+
+/* Focus mode: visited / dot paths that do NOT carry .selected fade
+   to the same faint neutral gray as the unvisited mass — rest of
+   the world becomes one soft backdrop while the selected country
+   gets the stage. Opacity 0.20 keeps the contours barely
+   perceptible (user explicitly asked for ~5 % visibility — 0.05
+   alpha was math-correct but practically invisible against the
+   cream paper bg, so we land at 0.20 sweet spot). */
 .focusing .visitedVisual:not(.selected),
 .focusing .visitedDot:not(.selected) {
   fill: #d6d2c8;
@@ -151,9 +158,8 @@
    already paints the red fill via React state. */
 .visitedVisual.selected,
 .visitedDot.selected {
-  /* explicit transform reset so the not-selected rule above doesn't
-     leak through any later cascade adjustment. */
-  transform: none;
+  /* Keep the selected country fully opaque against the focusing
+     fade-to-0.2 rule above. */
   opacity: 1;
 }
 
@@ -177,17 +183,17 @@
 .visitedVisual {
   fill: #1a1a1a;
   pointer-events: none;
-  transform-box: fill-box;
-  transform-origin: center center;
   /* Fill transition matches opacity (1.5 s) so visited countries
      fade THROUGH gray smoothly during focus mode; the previous
      0.22 s fill made dark countries jump to cream after only a
      fraction of the fade and the user read it as "Brazil
      disappears while others stay". Hover-fill swap (#1a1a1a →
-     #c14a3a) is now handled separately on the active class. */
+     #c14a3a) is now handled separately on the active class.
+     Dropped the `transform 1.5s` from the transition list — no
+     rule ever applied a transform to these paths (leftover from
+     a never-shipped explode-out effect). */
   transition: fill 1.5s ease,
-    opacity 1.5s cubic-bezier(0.7, 0, 0.84, 0),
-    transform 1.5s cubic-bezier(0.7, 0, 0.84, 0);
+    opacity 1.5s cubic-bezier(0.7, 0, 0.84, 0);
 }
 
 /* Active hover (or focus): the country lights up red, with the
@@ -249,10 +255,6 @@
   stroke: none;
   pointer-events: fill;
   cursor: none;
-  transform-box: fill-box;
-  transform-origin: center center;
-  transition: opacity 1.5s cubic-bezier(0.7, 0, 0.84, 0),
-    transform 1.5s cubic-bezier(0.7, 0, 0.84, 0);
 }
 
 /* Bottom-left zoom controls. Two stacked square buttons in the same
@@ -359,11 +361,10 @@
 .visitedDot {
   fill: #1a1a1a;
   pointer-events: none;
-  transform-box: fill-box;
-  transform-origin: center center;
+  /* Same cleanup as .visitedVisual above: no rule ever applied a
+     transform here, so the transition slot is gone. */
   transition: fill 0.22s ease,
-    opacity 1.5s cubic-bezier(0.7, 0, 0.84, 0),
-    transform 1.5s cubic-bezier(0.7, 0, 0.84, 0);
+    opacity 1.5s cubic-bezier(0.7, 0, 0.84, 0);
 }
 
 .visitedDotActive {
@@ -374,10 +375,6 @@
   fill: transparent;
   pointer-events: all;
   cursor: none;
-  transform-box: fill-box;
-  transform-origin: center center;
-  transition: opacity 1.5s cubic-bezier(0.7, 0, 0.84, 0),
-    transform 1.5s cubic-bezier(0.7, 0, 0.84, 0);
 }
 
 /* Lat/long readout that follows the cursor over the map. Position

@@ -1,13 +1,10 @@
 /**
  * Pure helpers extracted from BlogMap: the d3-geo / topojson plumbing
- * that turns the world-atlas TopoJSON into projected SVG paths, plus
- * the deterministic `explodeStyleFor` vector used during focus mode.
- * Both are stateless — kept here so the React component file isn't
- * scrolling past 50 lines of cartographic glue before reaching its
- * first hook.
+ * that turns the world-atlas TopoJSON into projected SVG paths. State-
+ * less — kept here so the React component file isn't scrolling past
+ * 50 lines of cartographic glue before reaching its first hook.
  */
 
-import type { CSSProperties } from "react";
 import { feature } from "topojson-client";
 import { geoEqualEarth, geoPath } from "d3-geo";
 import worldRaw from "world-atlas/countries-50m.json";
@@ -111,30 +108,3 @@ export function buildMapProjection(): MapProjection {
   };
 }
 
-/**
- * Per-path explode vector. Same input → same output, so each
- * country always flies the same way every time the user enters
- * focus mode (deterministic feels intentional; truly random feels
- * jittery). Distance is in viewport pixels — large enough to clear
- * the screen even if the country starts at the far edge.
- */
-export function explodeStyleFor(id: string | number): CSSProperties {
-  let seed = 0;
-  if (typeof id === "string") {
-    for (let i = 0; i < id.length; i++) seed = seed * 31 + id.charCodeAt(i);
-  } else {
-    seed = id;
-  }
-  // Hash through a few rounds so neighbouring IDs (which are
-  // adjacent country numbers in the topology) don't fly in similar
-  // directions.
-  seed = Math.abs((seed * 2654435761) >>> 0);
-  const angle = (seed % 360) * (Math.PI / 180);
-  const distance = 900 + ((seed >> 8) % 700);
-  const rotation = (((seed >> 16) % 720) - 360) * 0.6;
-  return {
-    "--explode-x": `${Math.cos(angle) * distance}px`,
-    "--explode-y": `${Math.sin(angle) * distance}px`,
-    "--explode-rot": `${rotation}deg`,
-  } as CSSProperties;
-}
