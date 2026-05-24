@@ -71,11 +71,12 @@ section,h3.sub{scroll-margin-top:80px;}
 /* NAV — prominent sticky buttons + filter button */
 nav.toc{
   position:sticky;top:0;z-index:9999;
-  background:rgba(245,245,247,.85);
+  background:rgba(225,225,230,.94);
   backdrop-filter:saturate(180%) blur(20px);-webkit-backdrop-filter:saturate(180%) blur(20px);
-  border-bottom:1px solid var(--card-border);
+  border-bottom:1px solid rgba(0,0,0,.10);
   padding:14px 24px;
   display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:8px;
+  box-shadow:0 2px 8px -2px rgba(0,0,0,.08);
 }
 nav.toc .toc-spacer{}
 .toc-buttons{
@@ -86,10 +87,14 @@ nav.toc .toc-spacer{}
   font-size:15px;font-weight:700;letter-spacing:-.005em;
   color:#0a0a0a;
   background:#fff;
-  border:1.5px solid #d4d4d8;
-  box-shadow:0 1px 2px rgba(0,0,0,.06);
+  border:1.5px solid #c8c8d0;
+  box-shadow:0 1px 2px rgba(0,0,0,.08);
   transition:all .15s;
   cursor:pointer;
+}
+.toc-buttons a.active{
+  background:#0a0a0a;color:#fff;border-color:#0a0a0a;
+  box-shadow:0 3px 10px rgba(0,0,0,.25);
 }
 .toc-buttons a:hover{
   background:#0a0a0a;color:#fff;border-color:#0a0a0a;
@@ -230,13 +235,14 @@ section h2{
   font-size:clamp(22px,2.6vw,30px);line-height:1.15;letter-spacing:-0.025em;
   font-weight:800;margin:0 -24px 22px;display:flex;align-items:center;gap:12px;color:#0a0a0a;
   position:sticky;top:62px;z-index:50;
-  background:#f5f5f7;
+  background:#dfdfe5;
   padding:14px 24px 13px;
-  border-bottom:1px solid var(--card-border);
+  border-bottom:1px solid rgba(0,0,0,.10);
   transition:box-shadow .2s, background .2s;
 }
 section h2.is-stuck{
-  box-shadow:0 8px 18px -8px rgba(0,0,0,.15);
+  background:#d4d4dc;
+  box-shadow:0 8px 18px -8px rgba(0,0,0,.20);
 }
 section h2 .flag{font-size:24px;}
 @media (max-width:780px){
@@ -510,7 +516,7 @@ section.table-view .hotel{display:none !important;}
   scroll-snap-type:x mandatory;scroll-behavior:smooth;
   -webkit-overflow-scrolling:touch;scrollbar-width:none;
   aspect-ratio:16/10;
-  touch-action:pan-y pinch-zoom;
+  touch-action:pan-x pan-y pinch-zoom;
   overscroll-behavior-x:contain;overscroll-behavior-y:auto;
 }
 .carousel::-webkit-scrollbar{display:none;}
@@ -2300,6 +2306,55 @@ if (seyMapEl) {
     { threshold: [1], rootMargin: '-63px 0px 0px 0px' }
   );
   document.querySelectorAll('section h2').forEach(h => obs.observe(h));
+})();
+
+/* ========== SCROLL SPY (highlight active section in nav) ========== */
+(function(){
+  if (!('IntersectionObserver' in window)) return;
+  const navLinks = document.querySelectorAll('.toc-buttons a[href^="#"]');
+  if (!navLinks.length) return;
+  const linkMap = {};
+  navLinks.forEach(a => {
+    const id = a.getAttribute('href').slice(1);
+    if (document.getElementById(id)) linkMap[id] = a;
+  });
+  const sections = Object.keys(linkMap).map(id => document.getElementById(id));
+  if (!sections.length) return;
+
+  let activeId = null;
+  function setActive(id){
+    if (activeId === id) return;
+    activeId = id;
+    navLinks.forEach(a => a.classList.toggle('active', a === linkMap[id]));
+  }
+
+  // Track which section's top edge is just past the nav (active zone = ~80px from top).
+  // rootMargin top: nav height (~70px) + h2 sticky offset. We use -100px top so a section is "active"
+  // when its content reaches just under the nav.
+  const obs = new IntersectionObserver(entries => {
+    // Pick the section closest to top that's intersecting
+    const visible = entries.filter(e => e.isIntersecting).map(e => e.target.id);
+    if (visible.length) {
+      // Use document order — pick the one whose top is highest among visible
+      const ordered = sections.filter(s => visible.includes(s.id));
+      // The "top-most still in active band" section is the one above the others
+      let best = ordered[0];
+      ordered.forEach(s => { if (s.getBoundingClientRect().top < best.getBoundingClientRect().top) best = s; });
+      setActive(best.id);
+    } else {
+      // No section in band — find the last section whose top is above current viewport
+      let last = null;
+      sections.forEach(s => {
+        const top = s.getBoundingClientRect().top;
+        if (top < 100) last = s;
+      });
+      if (last) setActive(last.id);
+    }
+  }, {
+    rootMargin: '-100px 0px -65% 0px',
+    threshold: 0
+  });
+  sections.forEach(s => obs.observe(s));
 })();
 
 /* ========== MAP TOGGLE ========== */
