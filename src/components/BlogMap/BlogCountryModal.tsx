@@ -383,20 +383,6 @@ function TasteSpread({
           </div>
         ))}
 
-        {/* Empty quadrant placeholders — keep the geometry honest
-            when a country has no chips in a given category. */}
-        {CATEGORIES.map((cat) =>
-          grouped[cat.quadrant].length === 0 ? (
-            <div
-              key={`empty-${cat.key}`}
-              className={`${styles.tasteEmpty} ${styles[`empty_${cat.quadrant}`]}`}
-              aria-hidden="true"
-            >
-              —
-            </div>
-          ) : null
-        )}
-
         {(
           Object.entries(grouped) as Array<
             ["tl" | "tr" | "bl" | "br", Array<{ rec: Recommendation; i: number }>]
@@ -456,7 +442,7 @@ function ChipInQuadrant({
       onClick={onLock}
       data-cursor="hover"
       whileHover={{ scale: 1.06, rotate: 0 }}
-      transition={{ type: "spring", stiffness: 320, damping: 28 }}
+      transition={{ duration: 0.3, ease: [0.65, 0, 0.25, 1] }}
     >
       <motion.span layout="position" className={styles.tasteChipName}>
         {rec.name}
@@ -495,7 +481,7 @@ function LockedChipOverlay({
         className={`${styles.tasteChip} ${styles.lockedChip}`}
         data-category={rec.category}
         onClick={stop}
-        transition={{ type: "spring", stiffness: 280, damping: 30 }}
+        transition={{ duration: 0.5, ease: [0.65, 0, 0.25, 1] }}
       >
         {rec.photo && (
           <div
