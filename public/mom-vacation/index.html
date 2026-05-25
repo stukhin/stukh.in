@@ -75,12 +75,14 @@ nav.toc{
   backdrop-filter:saturate(180%) blur(20px);-webkit-backdrop-filter:saturate(180%) blur(20px);
   border-bottom:1px solid rgba(0,0,0,.10);
   padding:14px 24px;
-  display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:8px;
+  display:flex;align-items:center;gap:12px;
   box-shadow:0 2px 8px -2px rgba(0,0,0,.08);
 }
-nav.toc .toc-spacer{}
+/* Desktop/tablet: filter on LEFT, then buttons left-aligned */
+nav.toc .toc-spacer{display:none;}
+.toc-right{order:-1;}
 .toc-buttons{
-  display:flex;justify-content:center;gap:8px;flex-wrap:wrap;
+  display:flex;justify-content:flex-start;gap:8px;flex-wrap:wrap;flex:1;
 }
 .toc-buttons a{
   padding:11px 20px;border-radius:10px;
@@ -125,11 +127,10 @@ nav.toc .toc-spacer{}
 @media (max-width:780px){
   nav.toc{
     display:flex;align-items:center;gap:10px;
-    grid-template-columns:none;
     padding:12px 14px;
     position:sticky;top:0;
   }
-  nav.toc .toc-spacer{display:none;}
+  .toc-right{order:0;}  /* mobile: filter back to the right */
   .toc-buttons{
     flex:1 1 0;min-width:0;
     display:flex;flex-wrap:nowrap;gap:8px;
@@ -297,36 +298,29 @@ section .section-lead{
   transition:all .12s;
 }
 .map-toggle-btn:hover{background:#0a0a0a;color:#fff;border-color:#0a0a0a;}
-.map-toggle-btn .chev{transition:transform .25s;}
-.map-card.collapsed .map-toggle-btn .chev{transform:rotate(-180deg);}
-.map-body{max-height:560px;overflow:hidden;transition:max-height .35s ease;}
-.map-card.collapsed .map-body{max-height:0;}
+/* Map: collapsed by default on ALL viewports. Toggle via .expanded class */
+.map-body{max-height:0;overflow:hidden;transition:max-height .35s ease;}
+.map-card.expanded .map-body{max-height:560px;}
+.map-card:not(.expanded) .map-head{border-bottom-color:transparent;}
+.map-toggle-btn .chev{transition:transform .25s;transform:rotate(-180deg);}
+.map-card.expanded .map-toggle-btn .chev{transform:none;}
+/* Hide small chevron toggle in header when collapsed — big CTA does the job */
+.map-card:not(.expanded) .map-toggle-btn{display:none;}
 .leaflet-map{width:100%;height:520px;}
 
-/* Big "expand map" CTA — visible only on mobile when map is collapsed */
-.map-expand-cta{display:none;}
-@media (max-width:780px){
-  /* Mobile: map collapsed by default, .expanded class opens it */
-  .map-card .map-body{max-height:0;}
-  .map-card.expanded .map-body{max-height:560px;}
-  .map-card:not(.expanded) .map-head{border-bottom-color:transparent;}
-  .map-card:not(.expanded) .map-toggle-btn .chev{transform:rotate(-180deg);}
-  .map-card.expanded .map-toggle-btn .chev{transform:none;}
-  /* Hide small chevron-toggle on mobile when collapsed — big CTA takes its role */
-  .map-card:not(.expanded) .map-toggle-btn{display:none;}
-  /* Big CTA */
-  .map-expand-cta{
-    display:flex;align-items:center;justify-content:center;gap:10px;
-    width:100%;padding:28px 18px;
-    background:#fff;color:#0a0a0a;
-    border:0;border-top:1px solid var(--card-border);
-    font:inherit;font-size:15px;font-weight:700;letter-spacing:-.005em;
-    cursor:pointer;transition:background .12s;
-  }
-  .map-expand-cta:hover,.map-expand-cta:active{background:#f0f0f4;}
-  .map-expand-cta svg{width:22px;height:22px;flex-shrink:0;}
-  .map-card.expanded .map-expand-cta{display:none;}
+/* Big "Показать карту" CTA — visible when map is collapsed on any viewport */
+.map-expand-cta{
+  display:flex;align-items:center;justify-content:center;gap:10px;
+  width:100%;padding:22px 18px;
+  background:#fff;color:#0a0a0a;
+  border:0;border-top:1px solid var(--card-border);
+  font:inherit;font-size:15px;font-weight:700;letter-spacing:-.005em;
+  cursor:pointer;transition:background .12s;
 }
+.map-expand-cta:hover{background:#f0f0f4;}
+.map-expand-cta svg{width:22px;height:22px;flex-shrink:0;}
+.map-card.expanded .map-expand-cta{display:none;}
+@media (max-width:780px){.map-expand-cta{padding:28px 18px;}}
 .leaflet-popup-content-wrapper{border-radius:10px;}
 .popup-name{font-weight:600;font-size:14px;margin-bottom:3px;color:#0a0a0a;}
 .popup-meta{font-size:12px;color:#71717a;}
@@ -3569,10 +3563,7 @@ if (kzMapEl) {
 
 /* ========== MAP TOGGLE ========== */
 (function(){
-  // Desktop: map open by default, click header to collapse (.collapsed class).
-  // Mobile: map closed by default (CSS-only), .expanded class opens it; CTA button is prominent.
-  const MQ_MOBILE = window.matchMedia('(max-width: 780px)');
-
+  // All maps collapsed by default. .expanded class opens them. Big CTA expands.
   function bind(cardId, headId, mapKey){
     const card = document.getElementById(cardId);
     const head = document.getElementById(headId);
@@ -3580,18 +3571,9 @@ if (kzMapEl) {
     const txt = head.querySelector('.map-toggle-txt');
     const cta = card.querySelector('.map-expand-cta');
 
-    function isMobile(){ return MQ_MOBILE.matches; }
-    function isOpen(){
-      return isMobile()
-        ? card.classList.contains('expanded')
-        : !card.classList.contains('collapsed');
-    }
+    function isOpen(){ return card.classList.contains('expanded'); }
     function setOpen(open){
-      if (isMobile()){
-        card.classList.toggle('expanded', open);
-      } else {
-        card.classList.toggle('collapsed', !open);
-      }
+      card.classList.toggle('expanded', open);
       if (txt) txt.textContent = open ? 'Скрыть карту' : 'Показать карту';
       if (open && window[mapKey]){
         setTimeout(() => window[mapKey].invalidateSize(), 360);
@@ -3607,8 +3589,8 @@ if (kzMapEl) {
       });
     }
 
-    // Initialize header text for current viewport state
-    if (txt) txt.textContent = isOpen() ? 'Скрыть карту' : 'Показать карту';
+    // Initialize header text (collapsed by default)
+    if (txt) txt.textContent = 'Показать карту';
   }
   bind('ruMapCard',  'ruMapHead',  '_ruMap');
   bind('geMapCard',  'geMapHead',  '_geMap');
