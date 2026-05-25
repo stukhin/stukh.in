@@ -161,13 +161,19 @@ nav.toc .toc-spacer{display:none;}
   nav.toc{
     display:flex;align-items:center;gap:10px;
     padding:12px 14px;
-    position:sticky;top:0;
-    /* stronger backdrop on mobile so content doesn't merge with menu */
-    background:rgba(208,208,218,.82);
-    backdrop-filter:saturate(200%) blur(32px);
-    -webkit-backdrop-filter:saturate(200%) blur(32px);
-    box-shadow:0 8px 22px -6px rgba(0,0,0,.18);
-    border-bottom-color:rgba(0,0,0,.14);
+    position:-webkit-sticky;position:sticky;top:0;
+    /* Force own stacking context so backdrop-filter works on iOS Safari */
+    isolation:isolate;
+    /* Very transparent + strong blur so glass-effect is visible */
+    background:rgba(242,243,248,.68);
+    backdrop-filter:saturate(200%) blur(36px);
+    -webkit-backdrop-filter:saturate(200%) blur(36px);
+    box-shadow:0 8px 22px -6px rgba(0,0,0,.20);
+    border-bottom:1px solid rgba(0,0,0,.14);
+  }
+  /* Fallback for browsers that don't support backdrop-filter (or it fails) */
+  @supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){
+    nav.toc{background:rgba(225,225,232,.97);}
   }
   .toc-right{order:0;}  /* mobile: filter back to the right */
   .toc-buttons{
