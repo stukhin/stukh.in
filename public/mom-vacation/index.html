@@ -162,6 +162,12 @@ nav.toc .toc-spacer{display:none;}
     display:flex;align-items:center;gap:10px;
     padding:12px 14px;
     position:sticky;top:0;
+    /* stronger backdrop on mobile so content doesn't merge with menu */
+    background:rgba(208,208,218,.82);
+    backdrop-filter:saturate(200%) blur(32px);
+    -webkit-backdrop-filter:saturate(200%) blur(32px);
+    box-shadow:0 8px 22px -6px rgba(0,0,0,.18);
+    border-bottom-color:rgba(0,0,0,.14);
   }
   .toc-right{order:0;}  /* mobile: filter back to the right */
   .toc-buttons{
