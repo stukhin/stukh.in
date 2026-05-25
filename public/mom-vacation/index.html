@@ -808,7 +808,8 @@ body.lightbox-open{overflow:hidden;}
 <nav class="toc">
   <div class="toc-spacer"></div>
   <div class="toc-buttons">
-    <a href="#russia">🇷🇺 Россия</a>
+    <a href="#russia-ld">🇷🇺 Лен.область</a>
+    <a href="#russia-kld">🇷🇺 Калининград</a>
     <a href="#aegean">🇹🇷 Эгейское</a>
     <a href="#med">🇹🇷 Средиземное</a>
     <a href="#black">🇹🇷 Чёрное</a>
@@ -818,7 +819,7 @@ body.lightbox-open{overflow:hidden;}
     <button class="filter-btn" id="filterToggle" aria-expanded="false">
       <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 4h12M4 8h8M6 12h4"/></svg>
       <span class="label-txt">Фильтры</span>
-      <span class="badge" id="filterCount">23</span>
+      <span class="badge" id="filterCount">30</span>
     </button>
   </div>
 </nav>
@@ -828,7 +829,8 @@ body.lightbox-open{overflow:hidden;}
     <div class="filter-group">
       <div class="flabel">Регион</div>
       <div class="filter-chips">
-        <span class="fchip" data-filter="region" data-value="russia">🇷🇺 Россия</span>
+        <span class="fchip" data-filter="region" data-value="russia-ld">🇷🇺 Лен.область</span>
+        <span class="fchip" data-filter="region" data-value="russia-kld">🇷🇺 Калининград</span>
         <span class="fchip" data-filter="region" data-value="aegean">🇹🇷 Эгейское</span>
         <span class="fchip" data-filter="region" data-value="med">🇹🇷 Средиземное</span>
         <span class="fchip" data-filter="region" data-value="black">🇹🇷 Чёрное</span>
@@ -891,21 +893,20 @@ body.lightbox-open{overflow:hidden;}
       </div>
     </div>
     <div class="filter-actions">
-      <div class="filter-count"><b id="filterVisible">23</b> из 23 отелей</div>
+      <div class="filter-count"><b id="filterVisible">30</b> из 30 отелей</div>
       <button class="filter-reset" id="filterReset">Сбросить</button>
       <button class="filter-close" id="filterCloseBtn">Готово</button>
     </div>
   </div>
 </div>
 
-<section id="russia">
-  <h2><span class="flag">🇷🇺</span>Россия — Ленинградская область</h2>
-
+<section id="russia-overview">
   <div class="map-card" id="ruMapCard" style="margin-bottom:20px;">
     <div class="map-head" id="ruMapHead">
-      <h4>📍 2 отеля Ленинградской области</h4>
+      <h4>📍 Все 9 отелей России</h4>
       <div class="legend">
-        <span><i style="background:#d4202c"></i>Россия</span>
+        <span><i style="background:#d4202c"></i>Лен.обл. + Карелия</span>
+        <span><i style="background:#f59e0b"></i>Калининград</span>
       </div>
       <button class="map-toggle-btn" type="button">
         <span class="map-toggle-txt">Скрыть карту</span>
@@ -920,14 +921,18 @@ body.lightbox-open{overflow:hidden;}
       Показать карту России
     </button>
   </div>
+</section>
+
+<section id="russia-ld">
+  <h2><span class="flag">🇷🇺</span>Лен.область + Карелия</h2>
 
   <div class="grid">
 
     <div class="region-info">
       <div class="ri-about">
         <div class="ri-label">О регионе</div>
-        <p>Северо-запад России: <b>Ладога</b> (Приозерск, Карелия) и <b>Финский залив</b> (Курортный район СПб). Прохладное лето <b>20–24 °C</b>, белые ночи в начале июля, сосны и дюны, премиум-СПА в стиле скандинавских ретритов.</p>
-        <p>Купаться прохладно (<b>18–19 °C</b> вода), формат — расслабление, лес, бани, минеральная вода, прогулки.</p>
+        <p>Северо-запад: <b>Ладога</b> (карельская часть, Лахденпохья, Приозерск) и <b>Финский залив</b> (Курортный район СПб). Прохладное лето <b>20–24 °C</b>, белые ночи в начале июля, сосны, гранитные шхеры.</p>
+        <p>Купаться в Ладоге и Заливе прохладно (<b>18 °C</b>), формат — расслабление, лес, бани, рыбалка, природа Карелии.</p>
       </div>
       <div class="ri-flight">
         <div class="ri-label"><span class="ic">✈</span> Москва → Санкт-Петербург</div>
@@ -942,22 +947,22 @@ body.lightbox-open{overflow:hidden;}
           <div class="ri-stat"><div class="label">Длительность</div><div class="value">1,5 ч</div></div>
           <div class="ri-stat"><div class="label">Туда-обратно</div><div class="value"><span class="rub">₽</span><span class="num">10–15</span><span class="suf">т.</span></div></div>
         </div>
-        <div class="ri-note">Альтернатива самолёту — «Сапсан» 4 ч из Москвы (~₽ 5–8 т.). До Приозерска от СПб ~2 ч, до Репино — 40 мин.</div>
+        <div class="ri-note">Альтернатива — «Сапсан» 4 ч из Москвы (₽ 5–8 т.). До Приозерска от СПб ~2 ч, Лахденпохья ~3,5 ч, Кирьявалахти ~4 ч, Репино — 40 мин.</div>
       </div>
     </div>
 
     <div class="view-switcher">
-      <button class="view-btn" type="button" data-section="russia">
+      <button class="view-btn" type="button" data-section="russia-ld">
         <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="2" y1="4" x2="14" y2="4"/><line x1="2" y1="8" x2="14" y2="8"/><line x1="2" y1="12" x2="14" y2="12"/></svg>
         <span class="view-btn-txt">Свернуть в таблицу</span>
       </button>
     </div>
 
-    <div class="hotel-table-wrap" data-section="russia">
+    <div class="hotel-table-wrap" data-section="russia-ld">
       <div class="hotel-table-scroll"></div>
     </div>
 
-    <div class="hotel" data-region="russia" data-rating="9.6" data-price="20" data-stars="5" data-meal="B&B" data-spa="1" data-adults="0" data-beach="lake" data-water="18">
+    <div class="hotel" data-region="russia-ld" data-rating="9.6" data-price="20" data-stars="5" data-meal="HB" data-spa="1" data-adults="0" data-beach="lake" data-water="18">
       <div class="carousel-wrap">
         <div class="carousel">
           <div class="carousel-item"><img loading="lazy" src="/mom-vacation/pics_booking/tochka_1.jpg" alt=""></div>
@@ -984,10 +989,10 @@ body.lightbox-open{overflow:hidden;}
           <ul>
             <li class="pro">Премиум-ретрит в карельском лесу на берегу Ладоги</li>
             <li class="pro">Спа на территории + полупансион (HB) доступен</li>
-            <li class="pro">Самый высокий рейтинг подборки — 9.6 (20 отзывов)</li>
+            <li class="pro">Рейтинг 9.6 (20 отзывов)</li>
             <li class="pro">Сосновый воздух, тишина, рыбалка, лодки</li>
-            <li class="pro">Из Москвы 1,5 ч самолётом + 2 ч машиной (или Сапсан + такси)</li>
-            <li class="pro">Категория 5★ — уровень сервиса премиум</li>
+            <li class="pro">Из Москвы 1,5 ч самолётом + 2 ч машиной</li>
+            <li class="pro">Уровень премиум-сервиса</li>
             <li class="con">Купаться в Ладоге прохладно (~18 °C даже в июле)</li>
             <li class="con">Маленькая статистика (20 отзывов)</li>
           </ul>
@@ -1004,7 +1009,7 @@ body.lightbox-open{overflow:hidden;}
       </div>
     </div>
 
-    <div class="hotel" data-region="russia" data-rating="8.7" data-price="27" data-stars="5" data-meal="B&B" data-spa="1" data-adults="0" data-beach="sand" data-water="18">
+    <div class="hotel" data-region="russia-ld" data-rating="8.7" data-price="27" data-stars="5" data-meal="HB" data-spa="1" data-adults="0" data-beach="sand" data-water="18">
       <div class="carousel-wrap">
         <div class="carousel">
           <div class="carousel-item"><img loading="lazy" src="/mom-vacation/pics_booking/xclinic_1.jpg" alt=""></div>
@@ -1030,23 +1035,397 @@ body.lightbox-open{overflow:hidden;}
         <div class="h-pc">
           <ul>
             <li class="pro">5★ медицинский СПА-санаторий на берегу Финского залива</li>
-            <li class="pro">Полноценная wellness-программа: спа, сауна, бассейн</li>
+            <li class="pro">Wellness-программа: спа, сауна, бассейн</li>
             <li class="pro">Сосновый лес + морской воздух + диетическое питание</li>
             <li class="pro">До СПб 40 мин на машине или электричке</li>
-            <li class="pro">Возможность лечения и детокс-программ</li>
             <li class="pro">Полупансион (HB) включён в большинство тарифов</li>
-            <li class="con">10 отзывов — статистика небольшая</li>
+            <li class="pro">Лечение и детокс-программы</li>
+            <li class="con">Маленькая статистика (10 отзывов)</li>
             <li class="con">Купаться в Заливе прохладно (~18 °C)</li>
           </ul>
         </div>
         <div class="h-pricing">
           <div class="price-tile"><div class="label">Ночь</div><div class="value"><span class="rub">₽</span><span class="num">27</span><span class="suf">т.</span></div></div>
           <div class="price-tile"><div class="label">10 ночей</div><div class="value"><span class="rub">₽</span><span class="num">270</span><span class="suf">т.</span></div></div>
-          <div class="price-tile"><div class="label">13 ночей</div><div class="value"><span class="rub">₽</span><span class="num">360</span><span class="suf">т.</span></div></div>
+          <div class="price-tile"><div class="label">13 ночей</div><div class="value"><span class="rub">₽</span><span class="num">350</span><span class="suf">т.</span></div></div>
         </div>
         <div class="h-actions">
           <a class="btn-book ostrovok" href="https://ostrovok.ru/hotel/russia/repino/mid9291776/xclinic_hotel/?dates=17.07.2026-20.07.2026&guests=2" target="_blank">Островок</a>
           <a class="btn-site" href="https://xclinic.ru" target="_blank">Сайт</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="hotel" data-region="russia-ld" data-rating="9.1" data-price="64" data-stars="4" data-meal="HB" data-spa="1" data-adults="0" data-beach="lake" data-water="18">
+      <div class="carousel-wrap">
+        <div class="carousel">
+          <div class="carousel-item"><img loading="lazy" src="/mom-vacation/pics_booking/sorola_1.jpg" alt=""></div>
+          <div class="carousel-item"><img loading="lazy" src="/mom-vacation/pics_booking/sorola_2.jpg" alt=""></div>
+          <div class="carousel-item"><img loading="lazy" src="/mom-vacation/pics_booking/sorola_3.jpg" alt=""></div>
+          <div class="carousel-item"><img loading="lazy" src="/mom-vacation/pics_booking/sorola_4.jpg" alt=""></div>
+          <div class="carousel-item"><img loading="lazy" src="/mom-vacation/pics_booking/sorola_5.jpg" alt=""></div>
+          <div class="carousel-item"><img loading="lazy" src="/mom-vacation/pics_booking/sorola_6.jpg" alt=""></div>
+        </div>
+        <button class="carousel-nav-btn prev" onclick="carouselScroll(this,-1)">‹</button>
+        <button class="carousel-nav-btn next" onclick="carouselScroll(this,1)">›</button>
+      </div>
+      <div class="carousel-pager"><span class="active"></span><span></span><span></span><span></span><span></span><span></span><span class="swipe-hint">6 фото</span></div>
+      <div class="h-body">
+        <div class="h-name">Sorola Village — Лахденпохья (Карелия)</div>
+        <div class="h-stats">
+          <div class="stat rate gold"><div class="label">Рейтинг</div><div class="value">9.1</div></div>
+          <div class="stat"><div class="label">Звёзды</div><div class="value">4★</div></div>
+          <div class="stat"><div class="label">Спа</div><div class="value yes">✓</div></div>
+          <div class="stat"><div class="label">A-incl.</div><div class="value sm yes">HB</div></div>
+          <div class="stat"><div class="label">Adults</div><div class="value no">—</div></div>
+        </div>
+        <div class="h-pc">
+          <ul>
+            <li class="pro">Премиум-комплекс шале в карельском лесу</li>
+            <li class="pro">Северная Ладога, частный пляж и причал</li>
+            <li class="pro">Спа, сауна, бассейн на территории</li>
+            <li class="pro">Полупансион (HB) доступен</li>
+            <li class="pro">Рейтинг 9.1 (30 отзывов)</li>
+            <li class="pro">Лоса, лодки, рыбалка, баня по-чёрному</li>
+            <li class="con">Самый дорогой в Карелии — ₽ 64 т./ночь</li>
+            <li class="con">Из СПб ~3,5 ч на машине, из Москвы — далеко</li>
+            <li class="con">Купаться в Ладоге прохладно даже в июле</li>
+          </ul>
+        </div>
+        <div class="h-pricing">
+          <div class="price-tile"><div class="label">Ночь</div><div class="value"><span class="rub">₽</span><span class="num">64</span><span class="suf">т.</span></div></div>
+          <div class="price-tile"><div class="label">10 ночей</div><div class="value"><span class="rub">₽</span><span class="num">640</span><span class="suf">т.</span></div></div>
+          <div class="price-tile"><div class="label">13 ночей</div><div class="value"><span class="rub">₽</span><span class="num">830</span><span class="suf">т.</span></div></div>
+        </div>
+        <div class="h-actions">
+          <a class="btn-book ostrovok" href="https://ostrovok.ru/hotel/russia/lakhdenpokhya/mid6317102/sorola_village/?dates=17.07.2026-20.07.2026&guests=2" target="_blank">Островок</a>
+          <a class="btn-site" href="https://sorolavillage.ru" target="_blank">Сайт</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="hotel" data-region="russia-ld" data-rating="8.9" data-price="20" data-stars="3" data-meal="HB" data-spa="1" data-adults="0" data-beach="lake" data-water="18">
+      <div class="carousel-wrap">
+        <div class="carousel">
+          <div class="carousel-item"><img loading="lazy" src="/mom-vacation/pics_booking/rantala_1.jpg" alt=""></div>
+          <div class="carousel-item"><img loading="lazy" src="/mom-vacation/pics_booking/rantala_2.jpg" alt=""></div>
+          <div class="carousel-item"><img loading="lazy" src="/mom-vacation/pics_booking/rantala_3.jpg" alt=""></div>
+          <div class="carousel-item"><img loading="lazy" src="/mom-vacation/pics_booking/rantala_4.jpg" alt=""></div>
+          <div class="carousel-item"><img loading="lazy" src="/mom-vacation/pics_booking/rantala_5.jpg" alt=""></div>
+          <div class="carousel-item"><img loading="lazy" src="/mom-vacation/pics_booking/rantala_6.jpg" alt=""></div>
+        </div>
+        <button class="carousel-nav-btn prev" onclick="carouselScroll(this,-1)">‹</button>
+        <button class="carousel-nav-btn next" onclick="carouselScroll(this,1)">›</button>
+      </div>
+      <div class="carousel-pager"><span class="active"></span><span></span><span></span><span></span><span></span><span></span><span class="swipe-hint">6 фото</span></div>
+      <div class="h-body">
+        <div class="h-name">Лесной отель Rantala — Кирьявалахти (Карелия)</div>
+        <div class="h-stats">
+          <div class="stat rate"><div class="label">Рейтинг</div><div class="value">8.9</div></div>
+          <div class="stat"><div class="label">Звёзды</div><div class="value">3★</div></div>
+          <div class="stat"><div class="label">Спа</div><div class="value yes">✓</div></div>
+          <div class="stat"><div class="label">A-incl.</div><div class="value sm yes">HB</div></div>
+          <div class="stat"><div class="label">Adults</div><div class="value no">—</div></div>
+        </div>
+        <div class="h-pc">
+          <ul>
+            <li class="pro">Бюджетный карельский лесной отель — ₽ 20 т./ночь</li>
+            <li class="pro">На северной Ладоге, в заливе Кирьявалахти</li>
+            <li class="pro">Сауна и бассейн</li>
+            <li class="pro">Полупансион (HB) включён</li>
+            <li class="pro">Рейтинг 8.9 (46 отзывов)</li>
+            <li class="pro">Тишина, рыбалка, природа</li>
+            <li class="con">3★ — простой формат, не премиум</li>
+            <li class="con">Из СПб ~3,5–4 ч на машине</li>
+            <li class="con">Купаться в Ладоге прохладно</li>
+          </ul>
+        </div>
+        <div class="h-pricing">
+          <div class="price-tile"><div class="label">Ночь</div><div class="value"><span class="rub">₽</span><span class="num">20</span><span class="suf">т.</span></div></div>
+          <div class="price-tile"><div class="label">10 ночей</div><div class="value"><span class="rub">₽</span><span class="num">200</span><span class="suf">т.</span></div></div>
+          <div class="price-tile"><div class="label">13 ночей</div><div class="value"><span class="rub">₽</span><span class="num">260</span><span class="suf">т.</span></div></div>
+        </div>
+        <div class="h-actions">
+          <a class="btn-book ostrovok" href="https://ostrovok.ru/hotel/russia/kir%27yavalahti/mid9767910/lesnoi_otel_rantala/?dates=17.07.2026-20.07.2026&guests=2" target="_blank">Островок</a>
+          <a class="btn-site" href="https://rantala-hotel.ru" target="_blank">Сайт</a>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<section id="russia-kld">
+  <h2><span class="flag">🇷🇺</span>Калининградская область</h2>
+
+  <div class="grid">
+
+    <div class="region-info">
+      <div class="ri-about">
+        <div class="ri-label">О регионе</div>
+        <p>Самый западный регион России на Балтике. Климат мягче (<b>+22 °C</b>), <b>янтарное побережье</b>, дюны Куршской косы (ЮНЕСКО), исторические курорты — Светлогорск, Зеленоградск, Янтарный.</p>
+        <p>Сосновый бальзамический воздух, променады, староевропейская архитектура. Купаться в Балтике прохладно (<b>18–19 °C</b>), но загорать и гулять — комфортно.</p>
+      </div>
+      <div class="ri-flight">
+        <div class="ri-label"><span class="ic">✈</span> Москва → Калининград (Храброво)</div>
+        <div class="ri-airlines">
+          <span class="airline-chip"><span class="logo" style="background:#009edb">SU</span>Аэрофлот</span>
+          <span class="airline-chip"><span class="logo" style="background:#009d3f">S7</span>S7 Airlines</span>
+          <span class="airline-chip"><span class="logo" style="background:#ff7a00">DP</span>Победа</span>
+          <span class="airline-chip dim"><span class="logo" style="background:#003a96">U6</span>Уральские</span>
+          <span class="airline-chip dim"><span class="logo" style="background:#c8102e">FV</span>Россия</span>
+        </div>
+        <div class="ri-meta">
+          <div class="ri-stat"><div class="label">Длительность</div><div class="value">2 ч</div></div>
+          <div class="ri-stat"><div class="label">Туда-обратно</div><div class="value"><span class="rub">₽</span><span class="num">12–18</span><span class="suf">т.</span></div></div>
+        </div>
+        <div class="ri-note">Прямые рейсы каждые 1–2 ч. От Храброво: Светлогорск — 30 мин, Зеленоградск — 25 мин, Янтарный — 1 ч на машине.</div>
+      </div>
+    </div>
+
+    <div class="view-switcher">
+      <button class="view-btn" type="button" data-section="russia-kld">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="2" y1="4" x2="14" y2="4"/><line x1="2" y1="8" x2="14" y2="8"/><line x1="2" y1="12" x2="14" y2="12"/></svg>
+        <span class="view-btn-txt">Свернуть в таблицу</span>
+      </button>
+    </div>
+
+    <div class="hotel-table-wrap" data-section="russia-kld">
+      <div class="hotel-table-scroll"></div>
+    </div>
+
+    <div class="hotel" data-region="russia-kld" data-rating="9.6" data-price="21" data-stars="5" data-meal="HB" data-spa="1" data-adults="0" data-beach="sand" data-water="19">
+      <div class="carousel-wrap">
+        <div class="carousel">
+          <div class="carousel-item"><img loading="lazy" src="/mom-vacation/pics_booking/amber_1.jpg" alt=""></div>
+          <div class="carousel-item"><img loading="lazy" src="/mom-vacation/pics_booking/amber_2.jpg" alt=""></div>
+          <div class="carousel-item"><img loading="lazy" src="/mom-vacation/pics_booking/amber_3.jpg" alt=""></div>
+          <div class="carousel-item"><img loading="lazy" src="/mom-vacation/pics_booking/amber_4.jpg" alt=""></div>
+          <div class="carousel-item"><img loading="lazy" src="/mom-vacation/pics_booking/amber_5.jpg" alt=""></div>
+          <div class="carousel-item"><img loading="lazy" src="/mom-vacation/pics_booking/amber_6.jpg" alt=""></div>
+        </div>
+        <button class="carousel-nav-btn prev" onclick="carouselScroll(this,-1)">‹</button>
+        <button class="carousel-nav-btn next" onclick="carouselScroll(this,1)">›</button>
+      </div>
+      <div class="carousel-pager"><span class="active"></span><span></span><span></span><span></span><span></span><span></span><span class="swipe-hint">6 фото</span></div>
+      <div class="h-body">
+        <div class="h-name">Amber Shore Collection — Зеленоградск</div>
+        <div class="h-stats">
+          <div class="stat rate gold"><div class="label">Рейтинг</div><div class="value">9.6</div></div>
+          <div class="stat"><div class="label">Звёзды</div><div class="value">5★</div></div>
+          <div class="stat"><div class="label">Спа</div><div class="value yes">✓</div></div>
+          <div class="stat"><div class="label">A-incl.</div><div class="value sm yes">HB</div></div>
+          <div class="stat"><div class="label">Adults</div><div class="value no">—</div></div>
+        </div>
+        <div class="h-pc">
+          <ul>
+            <li class="pro">Топовый рейтинг 9.6 (88 отзывов) — лучший в Калининграде</li>
+            <li class="pro">5★ бутиковый отель на самой Балтике</li>
+            <li class="pro">Спа-центр, сауна, бассейн с подогревом</li>
+            <li class="pro">Полупансион (HB) доступен</li>
+            <li class="pro">Прямой выход к морю и променад Зеленоградска</li>
+            <li class="pro">Куршская коса 30 мин — нацпарк ЮНЕСКО</li>
+            <li class="pro">Доступная цена для премиума — ₽ 21 т./ночь</li>
+            <li class="con">Купаться в Балтике прохладно (18–19 °C)</li>
+          </ul>
+        </div>
+        <div class="h-pricing">
+          <div class="price-tile"><div class="label">Ночь</div><div class="value"><span class="rub">₽</span><span class="num">21</span><span class="suf">т.</span></div></div>
+          <div class="price-tile"><div class="label">10 ночей</div><div class="value"><span class="rub">₽</span><span class="num">210</span><span class="suf">т.</span></div></div>
+          <div class="price-tile"><div class="label">13 ночей</div><div class="value"><span class="rub">₽</span><span class="num">270</span><span class="suf">т.</span></div></div>
+        </div>
+        <div class="h-actions">
+          <a class="btn-book ostrovok" href="https://ostrovok.ru/hotel/russia/zelenogradsk/mid11320386/amber_shore_collection_hotel/?dates=17.07.2026-20.07.2026&guests=2" target="_blank">Островок</a>
+          <a class="btn-site" href="https://ambershore.ru" target="_blank">Сайт</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="hotel" data-region="russia-kld" data-rating="9.3" data-price="19" data-stars="4" data-meal="HB" data-spa="1" data-adults="0" data-beach="sand" data-water="19">
+      <div class="carousel-wrap">
+        <div class="carousel">
+          <div class="carousel-item"><img loading="lazy" src="/mom-vacation/pics_booking/kristall_1.jpg" alt=""></div>
+          <div class="carousel-item"><img loading="lazy" src="/mom-vacation/pics_booking/kristall_2.jpg" alt=""></div>
+          <div class="carousel-item"><img loading="lazy" src="/mom-vacation/pics_booking/kristall_3.jpg" alt=""></div>
+          <div class="carousel-item"><img loading="lazy" src="/mom-vacation/pics_booking/kristall_4.jpg" alt=""></div>
+          <div class="carousel-item"><img loading="lazy" src="/mom-vacation/pics_booking/kristall_5.jpg" alt=""></div>
+          <div class="carousel-item"><img loading="lazy" src="/mom-vacation/pics_booking/kristall_6.jpg" alt=""></div>
+        </div>
+        <button class="carousel-nav-btn prev" onclick="carouselScroll(this,-1)">‹</button>
+        <button class="carousel-nav-btn next" onclick="carouselScroll(this,1)">›</button>
+      </div>
+      <div class="carousel-pager"><span class="active"></span><span></span><span></span><span></span><span></span><span></span><span class="swipe-hint">6 фото</span></div>
+      <div class="h-body">
+        <div class="h-name">Кристалл Hotel & Spa 4★ — Светлогорск</div>
+        <div class="h-stats">
+          <div class="stat rate gold"><div class="label">Рейтинг</div><div class="value">9.3</div></div>
+          <div class="stat"><div class="label">Звёзды</div><div class="value">4★</div></div>
+          <div class="stat"><div class="label">Спа</div><div class="value yes">✓</div></div>
+          <div class="stat"><div class="label">A-incl.</div><div class="value sm yes">HB</div></div>
+          <div class="stat"><div class="label">Adults</div><div class="value no">—</div></div>
+        </div>
+        <div class="h-pc">
+          <ul>
+            <li class="pro">Бюджетный 4★ СПА у моря — ₽ 19 т./ночь</li>
+            <li class="pro">Крытый бассейн с подогревом круглый год</li>
+            <li class="pro">Спа-центр + сауна</li>
+            <li class="pro">Полупансион (HB) доступен</li>
+            <li class="pro">Рейтинг 9.3 (30 отзывов)</li>
+            <li class="pro">Светлогорск — самый красивый курорт Балтики</li>
+            <li class="con">4★, не премиум</li>
+            <li class="con">Купаться в Балтике прохладно (18–19 °C)</li>
+          </ul>
+        </div>
+        <div class="h-pricing">
+          <div class="price-tile"><div class="label">Ночь</div><div class="value"><span class="rub">₽</span><span class="num">19</span><span class="suf">т.</span></div></div>
+          <div class="price-tile"><div class="label">10 ночей</div><div class="value"><span class="rub">₽</span><span class="num">190</span><span class="suf">т.</span></div></div>
+          <div class="price-tile"><div class="label">13 ночей</div><div class="value"><span class="rub">₽</span><span class="num">250</span><span class="suf">т.</span></div></div>
+        </div>
+        <div class="h-actions">
+          <a class="btn-book ostrovok" href="https://ostrovok.ru/hotel/russia/svetlogorsk/mid10546593/hotel_kristall_hotel_spa_4/?dates=17.07.2026-20.07.2026&guests=2" target="_blank">Островок</a>
+          <a class="btn-site" href="https://kristall-spa.ru" target="_blank">Сайт</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="hotel" data-region="russia-kld" data-rating="9.4" data-price="33" data-stars="5" data-meal="HB" data-spa="1" data-adults="0" data-beach="sand" data-water="19">
+      <div class="carousel-wrap">
+        <div class="carousel">
+          <div class="carousel-item"><img loading="lazy" src="/mom-vacation/pics_booking/yantarhall_1.jpg" alt=""></div>
+          <div class="carousel-item"><img loading="lazy" src="/mom-vacation/pics_booking/yantarhall_2.jpg" alt=""></div>
+          <div class="carousel-item"><img loading="lazy" src="/mom-vacation/pics_booking/yantarhall_3.jpg" alt=""></div>
+          <div class="carousel-item"><img loading="lazy" src="/mom-vacation/pics_booking/yantarhall_4.jpg" alt=""></div>
+          <div class="carousel-item"><img loading="lazy" src="/mom-vacation/pics_booking/yantarhall_5.jpg" alt=""></div>
+          <div class="carousel-item"><img loading="lazy" src="/mom-vacation/pics_booking/yantarhall_6.jpg" alt=""></div>
+        </div>
+        <button class="carousel-nav-btn prev" onclick="carouselScroll(this,-1)">‹</button>
+        <button class="carousel-nav-btn next" onclick="carouselScroll(this,1)">›</button>
+      </div>
+      <div class="carousel-pager"><span class="active"></span><span></span><span></span><span></span><span></span><span></span><span class="swipe-hint">6 фото</span></div>
+      <div class="h-body">
+        <div class="h-name">Karmann's Hotel Yantar Hall 5★ — Светлогорск</div>
+        <div class="h-stats">
+          <div class="stat rate gold"><div class="label">Рейтинг</div><div class="value">9.4</div></div>
+          <div class="stat"><div class="label">Звёзды</div><div class="value">5★</div></div>
+          <div class="stat"><div class="label">Спа</div><div class="value yes">✓</div></div>
+          <div class="stat"><div class="label">A-incl.</div><div class="value sm yes">HB</div></div>
+          <div class="stat"><div class="label">Adults</div><div class="value no">—</div></div>
+        </div>
+        <div class="h-pc">
+          <ul>
+            <li class="pro">5★ премиум в Светлогорске</li>
+            <li class="pro">Рейтинг 9.4 (154 отзыва — самая большая статистика)</li>
+            <li class="pro">Спа на территории</li>
+            <li class="pro">Полупансион (HB) доступен</li>
+            <li class="pro">Концертный зал «Янтарь-Холл» рядом — конкурсы, спектакли</li>
+            <li class="pro">Центр Светлогорска, променад, променад</li>
+            <li class="con">Дороговато для региона — ₽ 33 т./ночь</li>
+            <li class="con">Купаться в Балтике прохладно (18–19 °C)</li>
+          </ul>
+        </div>
+        <div class="h-pricing">
+          <div class="price-tile"><div class="label">Ночь</div><div class="value"><span class="rub">₽</span><span class="num">33</span><span class="suf">т.</span></div></div>
+          <div class="price-tile"><div class="label">10 ночей</div><div class="value"><span class="rub">₽</span><span class="num">330</span><span class="suf">т.</span></div></div>
+          <div class="price-tile"><div class="label">13 ночей</div><div class="value"><span class="rub">₽</span><span class="num">430</span><span class="suf">т.</span></div></div>
+        </div>
+        <div class="h-actions">
+          <a class="btn-book ostrovok" href="https://ostrovok.ru/hotel/russia/svetlogorsk/mid9988086/karmanns_hotel_yantar_hall/?dates=17.07.2026-20.07.2026&guests=2" target="_blank">Островок</a>
+          <a class="btn-site" href="https://yantarhall.com" target="_blank">Сайт</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="hotel" data-region="russia-kld" data-rating="9.4" data-price="20" data-stars="4" data-meal="HB" data-spa="1" data-adults="0" data-beach="sand" data-water="19">
+      <div class="carousel-wrap">
+        <div class="carousel">
+          <div class="carousel-item"><img loading="lazy" src="/mom-vacation/pics_booking/berry_1.jpg" alt=""></div>
+          <div class="carousel-item"><img loading="lazy" src="/mom-vacation/pics_booking/berry_2.jpg" alt=""></div>
+          <div class="carousel-item"><img loading="lazy" src="/mom-vacation/pics_booking/berry_3.jpg" alt=""></div>
+          <div class="carousel-item"><img loading="lazy" src="/mom-vacation/pics_booking/berry_4.jpg" alt=""></div>
+          <div class="carousel-item"><img loading="lazy" src="/mom-vacation/pics_booking/berry_5.jpg" alt=""></div>
+          <div class="carousel-item"><img loading="lazy" src="/mom-vacation/pics_booking/berry_6.jpg" alt=""></div>
+        </div>
+        <button class="carousel-nav-btn prev" onclick="carouselScroll(this,-1)">‹</button>
+        <button class="carousel-nav-btn next" onclick="carouselScroll(this,1)">›</button>
+      </div>
+      <div class="carousel-pager"><span class="active"></span><span></span><span></span><span></span><span></span><span></span><span class="swipe-hint">6 фото</span></div>
+      <div class="h-body">
+        <div class="h-name">Berry Hotel & Spa 4★ — Светлогорск</div>
+        <div class="h-stats">
+          <div class="stat rate gold"><div class="label">Рейтинг</div><div class="value">9.4</div></div>
+          <div class="stat"><div class="label">Звёзды</div><div class="value">4★</div></div>
+          <div class="stat"><div class="label">Спа</div><div class="value yes">✓</div></div>
+          <div class="stat"><div class="label">A-incl.</div><div class="value sm yes">HB</div></div>
+          <div class="stat"><div class="label">Adults</div><div class="value no">—</div></div>
+        </div>
+        <div class="h-pc">
+          <ul>
+            <li class="pro">Современный 4★ СПА — ₽ 20 т./ночь</li>
+            <li class="pro">Рейтинг 9.4 (16 отзывов)</li>
+            <li class="pro">Крытый бассейн с подогревом</li>
+            <li class="pro">Спа + сауна на территории</li>
+            <li class="pro">Полупансион (HB) доступен</li>
+            <li class="pro">Центр Светлогорска, недалеко от Янтарь-Холла</li>
+            <li class="con">Всего 16 отзывов — маленькая статистика</li>
+            <li class="con">Купаться в Балтике прохладно (18–19 °C)</li>
+          </ul>
+        </div>
+        <div class="h-pricing">
+          <div class="price-tile"><div class="label">Ночь</div><div class="value"><span class="rub">₽</span><span class="num">20</span><span class="suf">т.</span></div></div>
+          <div class="price-tile"><div class="label">10 ночей</div><div class="value"><span class="rub">₽</span><span class="num">200</span><span class="suf">т.</span></div></div>
+          <div class="price-tile"><div class="label">13 ночей</div><div class="value"><span class="rub">₽</span><span class="num">260</span><span class="suf">т.</span></div></div>
+        </div>
+        <div class="h-actions">
+          <a class="btn-book ostrovok" href="https://ostrovok.ru/hotel/russia/svetlogorsk/mid10657253/hotel_berry_hotel_spa/?dates=17.07.2026-20.07.2026&guests=2" target="_blank">Островок</a>
+          <a class="btn-site" href="https://berryhotel.ru" target="_blank">Сайт</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="hotel" data-region="russia-kld" data-rating="9.0" data-price="31" data-stars="5" data-meal="HB" data-spa="1" data-adults="0" data-beach="sand" data-water="19">
+      <div class="carousel-wrap">
+        <div class="carousel">
+          <div class="carousel-item"><img loading="lazy" src="/mom-vacation/pics_booking/schloss_1.jpg" alt=""></div>
+          <div class="carousel-item"><img loading="lazy" src="/mom-vacation/pics_booking/schloss_2.jpg" alt=""></div>
+          <div class="carousel-item"><img loading="lazy" src="/mom-vacation/pics_booking/schloss_3.jpg" alt=""></div>
+          <div class="carousel-item"><img loading="lazy" src="/mom-vacation/pics_booking/schloss_4.jpg" alt=""></div>
+          <div class="carousel-item"><img loading="lazy" src="/mom-vacation/pics_booking/schloss_5.jpg" alt=""></div>
+          <div class="carousel-item"><img loading="lazy" src="/mom-vacation/pics_booking/schloss_6.jpg" alt=""></div>
+        </div>
+        <button class="carousel-nav-btn prev" onclick="carouselScroll(this,-1)">‹</button>
+        <button class="carousel-nav-btn next" onclick="carouselScroll(this,1)">›</button>
+      </div>
+      <div class="carousel-pager"><span class="active"></span><span></span><span></span><span></span><span></span><span></span><span class="swipe-hint">6 фото</span></div>
+      <div class="h-body">
+        <div class="h-name">Hotel Schloss 5★ — Янтарный</div>
+        <div class="h-stats">
+          <div class="stat rate gold"><div class="label">Рейтинг</div><div class="value">9.0</div></div>
+          <div class="stat"><div class="label">Звёзды</div><div class="value">5★</div></div>
+          <div class="stat"><div class="label">Спа</div><div class="value yes">✓</div></div>
+          <div class="stat"><div class="label">A-incl.</div><div class="value sm yes">HB</div></div>
+          <div class="stat"><div class="label">Adults</div><div class="value no">—</div></div>
+        </div>
+        <div class="h-pc">
+          <ul>
+            <li class="pro">5★ в Янтарном — янтарной столице мира</li>
+            <li class="pro">Рейтинг 9.0 (63 отзыва)</li>
+            <li class="pro">Крытый бассейн с подогревом</li>
+            <li class="pro">Полупансион (HB) доступен</li>
+            <li class="pro">Исторический фахверк-замок XIX века</li>
+            <li class="pro">Тише и аутентичнее, чем Светлогорск</li>
+            <li class="pro">Янтарный карьер рядом — экскурсии</li>
+            <li class="con">Купаться в Балтике прохладно (18–19 °C)</li>
+            <li class="con">₽ 31 т./ночь — премиум-сегмент</li>
+          </ul>
+        </div>
+        <div class="h-pricing">
+          <div class="price-tile"><div class="label">Ночь</div><div class="value"><span class="rub">₽</span><span class="num">31</span><span class="suf">т.</span></div></div>
+          <div class="price-tile"><div class="label">10 ночей</div><div class="value"><span class="rub">₽</span><span class="num">310</span><span class="suf">т.</span></div></div>
+          <div class="price-tile"><div class="label">13 ночей</div><div class="value"><span class="rub">₽</span><span class="num">400</span><span class="suf">т.</span></div></div>
+        </div>
+        <div class="h-actions">
+          <a class="btn-book ostrovok" href="https://ostrovok.ru/hotel/russia/yantarny/mid7678956/hotel_schloss/?dates=17.07.2026-20.07.2026&guests=2" target="_blank">Островок</a>
+          <a class="btn-site" href="https://schloss-hotel.ru" target="_blank">Сайт</a>
         </div>
       </div>
     </div>
@@ -2390,12 +2769,19 @@ if (seyMapEl) {
 
 /* ====== RUSSIA MAP ====== */
 const ruHotels = [
-  {name:'Точка на Карте',  rate:'9.6', area:'Приозерск, Ладога',         lat:61.04299, lng:30.18270, color:'#d4202c'},
-  {name:'Икс-Клиника',     rate:'8.7', area:'Репино, Финский залив',    lat:60.16342, lng:29.85738, color:'#d4202c'}
+  {name:'Точка на Карте',           rate:'9.6', area:'Приозерск, Ладога',           lat:61.04299, lng:30.18270, color:'#d4202c'},
+  {name:'Икс-Клиника',              rate:'8.7', area:'Репино, Финский залив',      lat:60.16342, lng:29.85738, color:'#d4202c'},
+  {name:'Sorola Village',           rate:'9.1', area:'Лахденпохья, Карелия',       lat:61.47990, lng:30.21874, color:'#d4202c'},
+  {name:'Лесной отель Rantala',     rate:'8.9', area:'Кирьявалахти, Карелия',      lat:61.78229, lng:30.78038, color:'#d4202c'},
+  {name:'Amber Shore Collection',   rate:'9.6', area:'Зеленоградск, Калининград',  lat:54.96177, lng:20.48125, color:'#f59e0b'},
+  {name:'Кристалл Hotel & Spa',     rate:'9.3', area:'Светлогорск, Калининград',   lat:54.94176, lng:20.13683, color:'#f59e0b'},
+  {name:"Karmann's Yantar Hall",    rate:'9.4', area:'Светлогорск, Калининград',   lat:54.94378, lng:20.16003, color:'#f59e0b'},
+  {name:'Berry Hotel & Spa',        rate:'9.4', area:'Светлогорск, Калининград',   lat:54.94393, lng:20.15816, color:'#f59e0b'},
+  {name:'Hotel Schloss',            rate:'9.0', area:'Янтарный, Калининград',      lat:54.86694, lng:19.93777, color:'#f59e0b'}
 ];
 const ruMapEl = document.getElementById('russia-map');
 if (ruMapEl) {
-  const ruMap = L.map('russia-map',{zoomControl:true,scrollWheelZoom:false,attributionControl:false}).setView([60.6, 30.0], 7);
+  const ruMap = L.map('russia-map',{zoomControl:true,scrollWheelZoom:false,attributionControl:false}).setView([58, 25], 5);
   window._ruMap = ruMap;
   L.tileLayer(CARTO_TILES,{attribution:CARTO_ATTR,subdomains:'abcd',maxZoom:19}).addTo(ruMap);
   ruHotels.forEach(h=>{L.marker([h.lat,h.lng],{icon:pinIcon(h.color,h.rate)}).addTo(ruMap).bindPopup(makePopup(h));});
