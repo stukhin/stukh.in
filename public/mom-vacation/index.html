@@ -470,12 +470,14 @@ section.table-view .hotel{display:none !important;}
   position:sticky;left:0;z-index:2;
   background:#fff;
   border-right:1px solid var(--card-border);
-  min-width:240px;max-width:300px;
+  min-width:240px;
   white-space:normal;
 }
 .hotel-table thead .sticky-col{background:#f6f6f9;}
 .hotel-table tbody tr:hover .sticky-col{background:#fafafa;}
-.hotel-table .sticky-col.clickable{display:flex;align-items:center;gap:12px;}
+/* Inner flex layout for clickable rows (used in decision-helper tables) */
+.hotel-table .sticky-col-inner{display:flex;align-items:center;gap:12px;width:100%;}
+.hotel-table .h-flag{display:inline-block;margin-right:4px;font-size:1.05em;line-height:1;}
 .hotel-table .rank-badge{
   flex:0 0 26px;width:26px;height:26px;
   display:inline-flex;align-items:center;justify-content:center;
@@ -3332,14 +3334,21 @@ if (kzMapEl) {
 /* ========== DECISION HELPER ========== */
 (function(){
   const PICKS = {
-    price:     ['lagaia','bluelagoon','colibri','indianlodge','villasdemer','laila','layla','avani'],
-    services:  ['gaia','mango','story','dayone','ledomaine','avani','laila','nayu'],
-    logistics: ['story','mango','laila','avani','dayone','lagaia','gaia','layla']
+    price:     ['orbi','sultan','lagaia','samal','bluelagoon','dom','colibri','indianlodge'],
+    services:  ['gaia','mango','story','tochka','xclinic','amber','yantarhall','schloss'],
+    logistics: ['amber','kristall','yantarhall','xclinic','tochka','orbi','dayone','samal']
   };
   const TITLES = {
     price:     'Топ-8 по цене за ночь (от дешёвых)',
     services:  'Топ-8 по уровню сервиса (5★, спа, HB, adults)',
     logistics: 'Топ-8 по удобству перелёта и трансфера'
+  };
+  const FLAGS = {
+    'russia-ld':'🇷🇺','russia-kld':'🇷🇺',
+    'batumi':'🇬🇪',
+    'kazakhstan':'🇰🇿',
+    'aegean':'🇹🇷','med':'🇹🇷','black':'🇹🇷',
+    'seychelles':'🇸🇨'
   };
 
   function shortName(full){
@@ -3371,12 +3380,18 @@ if (kzMapEl) {
     const bookLink = card.querySelector('.btn-book');
     const href = bookLink ? bookLink.getAttribute('href') : '#';
     const rankCls = rank <= 3 ? `r${rank}` : '';
+    const region = card.dataset.region || '';
+    const flag = FLAGS[region] || '';
+    const linkLabel = href.includes('ostrovok.ru') ? 'Островок ↗' : 'Booking ↗';
+    const linkCls = href.includes('ostrovok.ru') ? 'h-link ostrovok' : 'h-link';
     return `<tr data-slug="${slug}">
       <td class="sticky-col clickable">
-        <div class="rank-badge ${rankCls}">${rank}</div>
-        <div class="h-name-block">
-          <div class="h-name">${name}</div>
-          ${area ? `<div class="h-area">${area}</div>` : ''}
+        <div class="sticky-col-inner">
+          <div class="rank-badge ${rankCls}">${rank}</div>
+          <div class="h-name-block">
+            <div class="h-name">${flag ? `<span class="h-flag">${flag}</span> ` : ''}${name}</div>
+            ${area ? `<div class="h-area">${area}</div>` : ''}
+          </div>
         </div>
       </td>
       <td><span class="h-rate ${ratingCls}">${rating}</span></td>
@@ -3385,7 +3400,7 @@ if (kzMapEl) {
       <td>${spa ? '<span class="h-yes">✓</span>' : '<span class="h-no">—</span>'}</td>
       <td>${adults ? '<span class="h-yes">✓</span>' : '<span class="h-no">—</span>'}</td>
       <td class="h-price"><span class="ru">₽</span>${price} <span class="ru">т.</span></td>
-      <td><a class="h-link" href="${href}" target="_blank" rel="noopener">Booking ↗</a></td>
+      <td><a class="${linkCls}" href="${href}" target="_blank" rel="noopener">${linkLabel}</a></td>
     </tr>`;
   }
   function buildTable(slugs){
@@ -3613,6 +3628,12 @@ if (kzMapEl) {
     const dash = full.split(/\s+[—–-]\s+/);
     return dash.length > 1 ? dash.slice(1).join(' — ') : '';
   }
+  const SECTION_FLAGS = {
+    'russia-ld':'🇷🇺','russia-kld':'🇷🇺',
+    'batumi':'🇬🇪','kazakhstan':'🇰🇿',
+    'aegean':'🇹🇷','med':'🇹🇷','black':'🇹🇷',
+    'seychelles':'🇸🇨'
+  };
   function buildTable(section){
     const wrap = section.querySelector('.hotel-table-wrap .hotel-table-scroll');
     if (!wrap) return;
@@ -3632,9 +3653,15 @@ if (kzMapEl) {
       const price = c.dataset.price;
       const bookLink = c.querySelector('.btn-book');
       const href = bookLink ? bookLink.getAttribute('href') : '#';
-      return `<tr>
+      const flag = SECTION_FLAGS[c.dataset.region || ''] || '';
+      // Find slug from first image src
+      const img = c.querySelector('img');
+      const slug = img ? (img.getAttribute('src').match(/pics_booking\/([^_]+)_1\.jpg/) || [])[1] : '';
+      const linkLabel = href.includes('ostrovok.ru') ? 'Островок ↗' : 'Booking ↗';
+      const linkCls = href.includes('ostrovok.ru') ? 'h-link ostrovok' : 'h-link';
+      return `<tr${slug ? ` data-slug="${slug}"` : ''}>
         <td class="sticky-col">
-          <div class="h-name">${name}</div>
+          <div class="h-name">${flag ? `<span class="h-flag">${flag}</span> ` : ''}${name}</div>
           ${area ? `<div class="h-area">${area}</div>` : ''}
         </td>
         <td><span class="h-rate ${ratingCls}">${rating}</span></td>
@@ -3643,7 +3670,7 @@ if (kzMapEl) {
         <td>${spa ? '<span class="h-yes">✓</span>' : '<span class="h-no">—</span>'}</td>
         <td>${adults ? '<span class="h-yes">✓</span>' : '<span class="h-no">—</span>'}</td>
         <td class="h-price"><span class="ru">₽</span>${price} <span class="ru">т.</span></td>
-        <td><a class="h-link" href="${href}" target="_blank" rel="noopener">Booking ↗</a></td>
+        <td><a class="${linkCls}" href="${href}" target="_blank" rel="noopener">${linkLabel}</a></td>
       </tr>`;
     }).join('');
     wrap.innerHTML = `<table class="hotel-table">
