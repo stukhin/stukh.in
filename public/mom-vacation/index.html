@@ -898,14 +898,14 @@ body.lightbox-open{overflow:hidden;}
   </div>
 </div>
 
-<section id="map-section">
-  <div class="map-card" id="mapCard">
-    <div class="map-head" id="mapHead">
-      <h4>📍 Все 10 отелей на карте Турции</h4>
+<section id="russia">
+  <h2><span class="flag">🇷🇺</span>Россия — Ленинградская область</h2>
+
+  <div class="map-card" id="ruMapCard" style="margin-bottom:20px;">
+    <div class="map-head" id="ruMapHead">
+      <h4>📍 2 отеля Ленинградской области</h4>
       <div class="legend">
-        <span><i style="background:#3478ff"></i>Эгейское</span>
-        <span><i style="background:#f59e0b"></i>Средиземное</span>
-        <span><i style="background:#16a34a"></i>Чёрное море</span>
+        <span><i style="background:#d4202c"></i>Россия</span>
       </div>
       <button class="map-toggle-btn" type="button">
         <span class="map-toggle-txt">Скрыть карту</span>
@@ -913,17 +913,13 @@ body.lightbox-open{overflow:hidden;}
       </button>
     </div>
     <div class="map-body">
-      <div id="turkey-map" class="leaflet-map"></div>
+      <div id="russia-map" class="leaflet-map"></div>
     </div>
-    <button class="map-expand-cta" type="button" id="mapExpandCta">
+    <button class="map-expand-cta" type="button">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg>
-      Показать карту Турции
+      Показать карту России
     </button>
   </div>
-</section>
-
-<section id="russia">
-  <h2><span class="flag">🇷🇺</span>Россия — Ленинградская область</h2>
 
   <div class="grid">
 
@@ -1055,6 +1051,30 @@ body.lightbox-open{overflow:hidden;}
       </div>
     </div>
 
+  </div>
+</section>
+
+<section id="map-section">
+  <div class="map-card" id="mapCard">
+    <div class="map-head" id="mapHead">
+      <h4>📍 Все 10 отелей на карте Турции</h4>
+      <div class="legend">
+        <span><i style="background:#3478ff"></i>Эгейское</span>
+        <span><i style="background:#f59e0b"></i>Средиземное</span>
+        <span><i style="background:#16a34a"></i>Чёрное море</span>
+      </div>
+      <button class="map-toggle-btn" type="button">
+        <span class="map-toggle-txt">Скрыть карту</span>
+        <svg class="chev" width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 6 8 10 12 6"/></svg>
+      </button>
+    </div>
+    <div class="map-body">
+      <div id="turkey-map" class="leaflet-map"></div>
+    </div>
+    <button class="map-expand-cta" type="button" id="mapExpandCta">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg>
+      Показать карту Турции
+    </button>
   </div>
 </section>
 
@@ -2368,6 +2388,20 @@ if (seyMapEl) {
   seyMap.fitBounds(L.latLngBounds(seyHotels.map(h=>[h.lat,h.lng])),{padding:[50,50]});
 }
 
+/* ====== RUSSIA MAP ====== */
+const ruHotels = [
+  {name:'Точка на Карте',  rate:'9.6', area:'Приозерск, Ладога',         lat:61.04299, lng:30.18270, color:'#d4202c'},
+  {name:'Икс-Клиника',     rate:'8.7', area:'Репино, Финский залив',    lat:60.16342, lng:29.85738, color:'#d4202c'}
+];
+const ruMapEl = document.getElementById('russia-map');
+if (ruMapEl) {
+  const ruMap = L.map('russia-map',{zoomControl:true,scrollWheelZoom:false,attributionControl:false}).setView([60.6, 30.0], 7);
+  window._ruMap = ruMap;
+  L.tileLayer(CARTO_TILES,{attribution:CARTO_ATTR,subdomains:'abcd',maxZoom:19}).addTo(ruMap);
+  ruHotels.forEach(h=>{L.marker([h.lat,h.lng],{icon:pinIcon(h.color,h.rate)}).addTo(ruMap).bindPopup(makePopup(h));});
+  ruMap.fitBounds(L.latLngBounds(ruHotels.map(h=>[h.lat,h.lng])),{padding:[60,60]});
+}
+
 /* ========== DECISION HELPER ========== */
 (function(){
   const PICKS = {
@@ -2634,6 +2668,7 @@ if (seyMapEl) {
     // Initialize header text for current viewport state
     if (txt) txt.textContent = isOpen() ? 'Скрыть карту' : 'Показать карту';
   }
+  bind('ruMapCard',  'ruMapHead',  '_ruMap');
   bind('mapCard',    'mapHead',    '_leafletMap');
   bind('seyMapCard', 'seyMapHead', '_seyMap');
 })();
