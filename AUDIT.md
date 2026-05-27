@@ -10,6 +10,25 @@ Use this alongside [PROJECT.md](./PROJECT.md) at session start.
 
 ---
 
+## Deferred — cursor strict monochrome
+
+Cursor currently uses `mix-blend-mode: difference` on a white-painted
+shape (same trick as Logo). This XORs cursor pixels with bg per
+pixel — great auto-contrast on neutral bgs, but **leaves a chromatic
+shift on highly saturated colour bgs**. Most visible spot: hovering
+a country on `/blog` (terracotta `#c14a3a` fill) — cursor reads
+cyan-ish (the mathematical complement of the red).
+
+User flagged this and accepted the trade-off for now. Future fix:
+swap `mix-blend-mode: difference` for `backdrop-filter: invert(1)
+grayscale(1)` + `clip-path: path(evenodd, …)` to carve the ring
+shape. `clip-path` avoids the `mask` + `backdrop-filter` interaction
+that broke in commit `0853bbe` (reverted in `f49b819`). Untested in
+browser — needs a careful prove-then-ship pass, ideally with a
+test on the country hover + WallsGallery zoom modal first.
+
+---
+
 ## ⚑ Working protocol — design system discipline
 
 (Added 2026-05-24 after the country-panel iteration that drifted
