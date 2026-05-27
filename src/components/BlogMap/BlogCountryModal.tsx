@@ -543,26 +543,37 @@ function GallerySpread({ photos }: { photos: Photo[] }) {
             sensitivity={150}
             sendToBackOnClick
             mobileClickOnly
-            cards={photos.map((p, i) => (
-              <figure key={i} className={styles.galleryStackCard}>
-                <div
-                  className={styles.galleryStackImage}
-                  style={{ backgroundImage: `url(${p.src})` }}
-                  role="img"
-                  aria-label={p.caption ?? p.place ?? "photograph"}
-                />
-                {(p.place || p.caption) && (
-                  <figcaption className={styles.galleryStackCaption}>
-                    {p.place && (
-                      <span className={styles.printPlace}>{p.place}</span>
-                    )}
-                    {p.caption && (
-                      <span className={styles.printNote}>{p.caption}</span>
-                    )}
-                  </figcaption>
-                )}
-              </figure>
-            ))}
+            cards={photos.map((p, i) => {
+              const aspectClass =
+                p.aspect === "landscape"
+                  ? styles.galleryStackCardLandscape
+                  : p.aspect === "square"
+                  ? styles.galleryStackCardSquare
+                  : styles.galleryStackCardPortrait;
+              return (
+                <figure
+                  key={i}
+                  className={`${styles.galleryStackCard} ${aspectClass}`}
+                >
+                  <div
+                    className={styles.galleryStackImage}
+                    style={{ backgroundImage: `url(${p.src})` }}
+                    role="img"
+                    aria-label={p.caption ?? p.place ?? "photograph"}
+                  />
+                  {(p.place || p.caption) && (
+                    <figcaption className={styles.galleryStackCaption}>
+                      {p.place && (
+                        <span className={styles.printPlace}>{p.place}</span>
+                      )}
+                      {p.caption && (
+                        <span className={styles.printNote}>{p.caption}</span>
+                      )}
+                    </figcaption>
+                  )}
+                </figure>
+              );
+            })}
           />
         </div>
       )}

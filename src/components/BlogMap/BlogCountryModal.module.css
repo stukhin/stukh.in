@@ -621,20 +621,29 @@
 
 /* Stack of photo cards — replaces the prior 2-col contact-print
    grid. The Stack component itself handles drag / click / rotate /
-   spring motion; we just size its container and style each card. */
+   spring motion; we size its container generously and let each
+   card take its own aspect-driven dimensions inside.
+
+   Stack's .card wrapper is now a transparent positioning frame
+   (flex-centred), so cards of different aspects all stack at the
+   same centre point without affecting the spring animation. */
 .galleryStackWrap {
   position: relative;
-  width: clamp(260px, 70%, 360px);
-  height: clamp(340px, 70vh, 460px);
+  /* Generous box — needs to fit a portrait, landscape, or square
+     card without clipping. Aspect-specific cards take a % of these
+     bounds so they all share the same stacking centre. */
+  width: clamp(300px, 82%, 420px);
+  height: clamp(340px, 64vh, 460px);
   margin: 12px auto 0;
   flex: 1;
 }
 
+/* Base card style — visible polaroid-ish surface. The size
+   modifier (Portrait / Landscape / Square) is applied alongside
+   this base class to choose the bounding box. */
 .galleryStackCard {
   position: relative;
   margin: 0;
-  width: 100%;
-  height: 100%;
   background: #fff;
   display: flex;
   flex-direction: column;
@@ -643,6 +652,21 @@
   box-shadow:
     0 1px 0 rgba(0, 0, 0, 0.04),
     0 14px 30px rgba(0, 0, 0, 0.18);
+}
+
+.galleryStackCardPortrait {
+  width: 68%;
+  height: 98%;
+}
+
+.galleryStackCardLandscape {
+  width: 98%;
+  height: 70%;
+}
+
+.galleryStackCardSquare {
+  width: 80%;
+  height: 88%;
 }
 
 .galleryStackImage {

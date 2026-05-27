@@ -38,6 +38,11 @@ export type Photo = {
   caption?: string;
   /** Optional place name (often a city). */
   place?: string;
+  /** Card aspect ratio in the gallery Stack. Defaults to portrait
+   *  (matches the /walls 9:16 stock we currently demo with). Mix
+   *  landscape / square photos in for visual variety — each gets
+   *  its own card shape inside the same stacking origin. */
+  aspect?: "portrait" | "landscape" | "square";
 };
 
 export type Visit = {
@@ -132,10 +137,10 @@ export const VISITS: Visit[] = [
       },
     ],
     photos: [
-      { src: wall("wall-1-december25-h"), place: "costa brava", caption: "violet sky, long exposure" },
+      { src: wall("wall-1-december25-h"), place: "costa brava", caption: "violet sky, long exposure", aspect: "landscape" },
       { src: wall("wall-1-december25-t"), place: "cap de creus", caption: "wind-shaped pine after sundown" },
       { src: wall("wall-2-january10-s"), place: "girona", caption: "old town at first light" },
-      { src: wall("wall-3-july11-ca"), place: "barcelona" },
+      { src: wall("wall-3-july11-ca"), place: "barcelona", aspect: "square" },
       { src: wall("wall-4-march11-s"), place: "valencia" },
       { src: wall("wall-4-march11-sp"), place: "el port de la selva", caption: "monastery from below" },
     ],
