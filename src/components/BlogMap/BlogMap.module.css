@@ -98,19 +98,18 @@
   pointer-events: none;
 }
 
-/* Default country: solid pale fill, NO stroke. Continents read as
-   one mass — neighbours' borders disappear into the shared fill.
-   pointer-events: none so events fall through to EdgeNav (visited
-   countries opt back in via .visitedHit). No transition here:
-   the focus-mode opacity fade is driven by the `.unvisitedGroup`
-   parent below as a single GPU-composited layer fade, NOT per
-   path. The per-path version paint-stormed when entering /
-   exiting focus on complex geometries (Indonesia islands,
-   France overseas territories). */
-.country {
-  fill: #d6d2c8;
-  stroke: none;
-  cursor: none;
+/* Frosted-glass tile inside the foreignObject that's clipped to
+   the union of all unvisited country silhouettes. Backdrop-blur
+   pulls the Grainient surface behind into a softened gray, plus a
+   faint cream tint to lift the country shapes off the noise. No
+   shadow, no stroke — the silhouette is defined entirely by the
+   parent <g>'s clip-path. */
+.frostedGlass {
+  width: 100%;
+  height: 100%;
+  backdrop-filter: blur(10px) saturate(1.15);
+  -webkit-backdrop-filter: blur(10px) saturate(1.15);
+  background-color: rgba(245, 244, 241, 0.18);
   pointer-events: none;
 }
 

@@ -6,7 +6,6 @@ import type { CountryPath } from "./mapProjection";
 import styles from "./BlogMap.module.css";
 
 type Props = {
-  unvisited: CountryPath[];
   visited: CountryPath[];
   /** `visited` reordered so the currently-hovered country renders
    *  last (SVG paint order = z-index). Caller does the sort. */
@@ -27,14 +26,16 @@ type Props = {
  *   1. visual fill (colour-only on hover, no scale)
  *   2. stroke trace (WAAPI-driven dashoffset animating perimeter)
  *   3. hit area (transparent, captures pointer events)
- * Unvisited countries render as a single fill layer with no events.
+ *
+ * Unvisited countries are now rendered separately in BlogMap as a
+ * single frosted-glass foreignObject clipped to the union of all
+ * unvisited paths — no per-path fill here.
  *
  * The LiquidEther <foreignObject> sits BETWEEN the visual and stroke
  * layers in BlogMap's render — keep that ordering when wiring this
  * layer back into the SVG.
  */
 export default function CountryLayer({
-  unvisited,
   visited,
   visitedSorted,
   hoveredIso,
@@ -46,22 +47,6 @@ export default function CountryLayer({
 }: Props) {
   return (
     <>
-      {/* Default world wrapped in a single <g> so focus-mode's
-          opacity fade runs as ONE compositor-layer transition
-          instead of ~250 per-path transitions. The previous
-          per-path version paint-stormed when entering / exiting
-          focus on complex geometries (Indonesia's thousands of
-          subpath islands, France's overseas territories) — the
-          user saw the modal-open animation hitch. Group fade is
-          GPU-only; per-path geometry isn't re-paint-touched. */}
-      <g className={styles.unvisitedGroup}>
-        {unvisited.map((p) => (
-          <path key={p.id} d={p.d} className={styles.country}>
-            <title>{p.name}</title>
-          </path>
-        ))}
-      </g>
-
       {/* Visited countries: fill layer. The "active" class is
           applied from React state, not :hover. */}
       {visitedSorted.map((p) => {
@@ -95,7 +80,7 @@ export function CountryStrokesAndHits({
   onLeave,
   onClick,
   visitedPathRefs,
-}: Omit<Props, "unvisited" | "visitedSorted">) {
+}: Omit<Props, "visitedSorted">) {
   return (
     <>
       {/* Stroke-trace overlay — one path per visited country,

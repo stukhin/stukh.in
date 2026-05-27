@@ -745,14 +745,46 @@ export default function BlogMap() {
                 <path d={p.d} />
               </clipPath>
             ))}
+
+            {/* Union clipPath of all unvisited countries — used by the
+                frosted-glass foreignObject below to mask one blur
+                layer to every non-clickable country at once (cheaper
+                than 180 separate backdrop-filter elements). */}
+            <clipPath id="unvisited-union-clip">
+              {unvisited.map((p) => (
+                <path key={`unv-clip-${p.id}`} d={p.d} />
+              ))}
+            </clipPath>
           </defs>
 
-          {/* Country geometry: unvisited fills + visited fills.
+          {/* Frosted-glass layer for unvisited (non-clickable)
+              countries. A single foreignObject hosts a div that
+              backdrop-filter-blurs everything behind the SVG (the
+              Grainient surface), and the parent <g>'s clip-path
+              constrains that blur to the silhouette of every
+              non-visited country. No shadow, no stroke — just a
+              piece of frosted glass over the Grainient.
+              Clip on the <g> rather than directly on the
+              foreignObject because clip-path on a foreignObject
+              with composited content inside is unreliable across
+              Chromium / WebKit (same fix the LiquidEther layer
+              uses below). The .unvisitedGroup class continues to
+              own the focus-mode opacity fade. */}
+          <g
+            className={styles.unvisitedGroup}
+            clipPath="url(#unvisited-union-clip)"
+            pointerEvents="none"
+          >
+            <foreignObject x={vb.x} y={vb.y} width={vb.w} height={vb.h}>
+              <div className={styles.frostedGlass} />
+            </foreignObject>
+          </g>
+
+          {/* Country geometry: visited fills.
               Visited stroke + hit areas render LATER, after the
               LiquidEther layer below — SVG paint order = z-stacking,
               and the stroke needs to draw on top of the fluid. */}
           <CountryLayer
-            unvisited={unvisited}
             visited={visited}
             visitedSorted={visitedSorted}
             hoveredIso={hover?.visit.iso ?? null}
