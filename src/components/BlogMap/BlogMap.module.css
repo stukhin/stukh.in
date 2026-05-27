@@ -99,17 +99,19 @@
 }
 
 /* Frosted-glass tile inside the foreignObject that's clipped to
-   the union of all unvisited country silhouettes. Backdrop-blur
-   pulls the Grainient surface behind into a softened gray, plus a
-   faint cream tint to lift the country shapes off the noise. No
-   shadow, no stroke — the silhouette is defined entirely by the
-   parent <g>'s clip-path. */
+   the union of all unvisited country silhouettes. Heavy backdrop
+   blur smooths the Grainient noise inside country shapes into a
+   soft gray, while sharp Grainient noise stays visible in oceans.
+   The tint is intentionally very faint — the perceived "lightness"
+   should come from the blur softening the noise, not a tinted
+   overlay. No shadow, no stroke; the silhouette is defined
+   entirely by the parent <g>'s clip-path. */
 .frostedGlass {
   width: 100%;
   height: 100%;
-  backdrop-filter: blur(10px) saturate(1.15);
-  -webkit-backdrop-filter: blur(10px) saturate(1.15);
-  background-color: rgba(245, 244, 241, 0.18);
+  backdrop-filter: blur(24px) saturate(1.2) brightness(1.05);
+  -webkit-backdrop-filter: blur(24px) saturate(1.2) brightness(1.05);
+  background-color: rgba(255, 255, 255, 0.06);
   pointer-events: none;
 }
 
@@ -201,41 +203,6 @@
 .visitedVisualActive {
   fill: #c14a3a;
   transition: fill 0.22s ease;
-}
-
-/* Stroke-trace overlay: invisible by default; on hover the 1 px
-   outline draws around the country's perimeter. dasharray + dashoffset
-   are set imperatively in <CountryStroke> from getTotalLength(); WAAPI
-   animates dashoffset between 0 (drawn) and total (hidden). Off-state
-   opacity fade is still CSS. */
-.visitedStroke {
-  fill: none;
-  /* Match the page's cream-paper background so the trace reads as a
-     hairline cut into the country's red fill rather than a bright
-     white line on top. */
-  stroke: #f5f4f1;
-  stroke-width: 1;
-  /* Lock the stroke at 1 px regardless of the map's CSS scale.
-     When focus mode zooms the country to 60 % vh, the country
-     fill scales with the wrap; the stroke MUST NOT scale or it
-     reads as a chunky border on the focused country. The dash
-     pattern still scales with geometry (SVG can't help that)
-     but the FINAL dashoffset=0 state draws every subpath
-     fully, so the in-focus terminal frame is clean. */
-  vector-effect: non-scaling-stroke;
-  /* Round caps + joins fill any micro-seam where the dash pattern
-     terminates between two sub-paths so the trace reads
-     continuous around all islands. */
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  pointer-events: none;
-  opacity: 0;
-  transition: opacity 0.25s ease;
-}
-
-.visitedStrokeActive {
-  opacity: 1;
-  transition: opacity 0.08s ease;
 }
 
 /* Hit area: same path as the visual, transparent. Used to be

@@ -35,7 +35,15 @@
    two grain layers would just read as noise on noise. */
 .bg {
   position: fixed;
-  inset: -15vh -15vw;
+  /* Generous overflow so the layer can pan with the map at default
+     + moderate zoom levels without revealing an edge. Earlier 15%
+     overflow proved insufficient — cursor-far-right pan at default
+     zoom can exceed 19% of viewport width, revealing the page bg
+     beyond .bg's right edge. 30% covers default-zoom comfortably;
+     at max zoom 3.2× edges may still appear, in which case the
+     page's #8a8a8a fallback shows through (close to the Grainient
+     mid-tone so the boundary is much softer). */
+  inset: -30vh -30vw;
   z-index: 0;
   pointer-events: none;
   transform: translate(

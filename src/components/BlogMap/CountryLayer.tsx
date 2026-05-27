@@ -1,7 +1,6 @@
 "use client";
 
 import type { MutableRefObject } from "react";
-import CountryStroke from "./CountryStroke";
 import type { CountryPath } from "./mapProjection";
 import styles from "./BlogMap.module.css";
 
@@ -67,36 +66,24 @@ export default function CountryLayer({
 }
 
 /**
- * Stroke + hit-area layers for visited countries. Rendered AFTER
- * the LiquidEther foreignObject in BlogMap so the stroke draws over
- * the fluid and the hit area sits on top of everything to catch
- * pointer events.
+ * Hit-area layer for visited countries. Rendered AFTER the
+ * LiquidEther foreignObject in BlogMap so the hit area sits on
+ * top of everything to catch pointer events.
+ *
+ * (Earlier this also rendered a CountryStroke trace outline on
+ * hover; the user asked to remove that animation — the red fill
+ * + LiquidEther fluid inside the country are enough hover cue.)
  */
 export function CountryStrokesAndHits({
   visited,
-  hoveredIso,
   selectedIso,
   onEnter,
   onLeave,
   onClick,
   visitedPathRefs,
-}: Omit<Props, "visitedSorted">) {
+}: Omit<Props, "visitedSorted" | "hoveredIso">) {
   return (
     <>
-      {/* Stroke-trace overlay — one path per visited country,
-          always rendered so the motion transition runs between
-          states. */}
-      {visited.map((p) => {
-        const isSelected = selectedIso === p.id;
-        return (
-          <CountryStroke
-            key={`stroke-${p.id}`}
-            d={p.d}
-            active={hoveredIso === p.id || isSelected}
-          />
-        );
-      })}
-
       {/* Hit area on top — captures all mouse events for the
           country. Transparent fill so it stays invisible. The
           parent stashes a live handle so focus-mode entry can

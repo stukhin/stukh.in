@@ -863,12 +863,13 @@ export default function BlogMap() {
             </g>
           )}
 
-          {/* Stroke trace + hit areas, drawn ABOVE the fluid layer
-              so the trace reads as drawn over the bubbling colour
-              and pointer events land on the hit paths. */}
+          {/* Hit areas only, drawn ABOVE the fluid layer so pointer
+              events land on the hit paths. The previous stroke-trace
+              outline animation on hover was removed per user request
+              — the red fill + LiquidEther fluid already signal hover
+              loud enough. */}
           <CountryStrokesAndHits
             visited={visited}
-            hoveredIso={hover?.visit.iso ?? null}
             selectedIso={selectedIso}
             onEnter={onCountryEnter}
             onLeave={onCountryLeave}
