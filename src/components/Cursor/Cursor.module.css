@@ -9,24 +9,28 @@
    --cursor-rot so the transform chain stays a single declaration —
    no rule has to repeat the position component.
 
-   Colour: instead of painting the cursor in a fixed white/dark
-   tone via `--shell-fg-*`, every variant is now transparent + a
-   `backdrop-filter: invert(1) grayscale(1)` sampled per pixel
-   from whatever is behind. Shape is carved by `mask` (radial
-   gradient for rings, SVG for the iconic cursors, none for the
-   filled disc / arrow square — which use border-radius / box
-   geometry instead). Effect:
+   Colour: instead of swapping between fixed white / dark tones per
+   page theme, the cursor is painted white and composited against
+   the page with `mix-blend-mode: difference` — same technique the
+   Logo uses for the moving colour-boundary effect. The browser
+   XORs each cursor pixel with the bg pixel underneath, so:
 
-   - On a dark bg the cursor renders light, on a light bg it
-     renders dark, on a colourful photo it renders mid-grey —
-     never coloured. Always maximum contrast against whatever it
-     sits on.
-   - The `dark` modifier prop survives for API compat but is now
-     a no-op (inversion already adapts; no per-page colour
-     needed). */
+     · dark bg → cursor reads light
+     · light bg → cursor reads dark
+     · neutral / desaturated photo bg → cursor reads near-monochrome
+     · saturated colour bg → light chromatic tint (rare on this
+       site, which is grayscale-heavy photography)
+
+   The `.dark` variant class becomes a no-op — inversion adapts to
+   the bg automatically, so per-page colour intent is redundant.
+   The prop survives so existing AppShell call-sites don't have to
+   change. */
 .cursor {
   width: 16px;
   height: 16px;
+  border: 2px solid #fefefe;
+  border-radius: 100%;
+  background-color: transparent;
   position: fixed;
   top: 0;
   left: 0;
@@ -34,45 +38,15 @@
     translate(-50%, -50%) rotate(var(--cursor-rot, 0deg));
   pointer-events: none;
   transition: width 0.15s ease, height 0.15s ease,
-    border-radius 0.15s ease, opacity 0.2s ease;
+    border-radius 0.15s ease, box-shadow 0.15s ease,
+    opacity 0.2s ease;
   /* Stays above every other shell layer (Burger z:60, Logo z:45,
      WallsGallery zoom z:100) — picked 200 to give explicit headroom
      while keeping every z-index in the codebase under three digits. */
   z-index: 200;
   opacity: 1;
   will-change: transform;
-
-  background: transparent;
-  border: none;
-  backdrop-filter: invert(1) grayscale(1);
-  -webkit-backdrop-filter: invert(1) grayscale(1);
-
-  /* Default shape: 2px ring around a transparent hole. Outer
-     radius 8 (16/2), inner 6. The half-pixel overlaps soften the
-     anti-aliasing seam between mask stops on retina. */
-  -webkit-mask: radial-gradient(
-    circle,
-    transparent 0 5.5px,
-    black 6px 8px,
-    transparent 8.5px 100%
-  );
-  mask: radial-gradient(
-    circle,
-    transparent 0 5.5px,
-    black 6px 8px,
-    transparent 8.5px 100%
-  );
-}
-
-/* Fallback for very old browsers without backdrop-filter support
-   (basically pre-2022 Firefox / pre-Chromium Edge). A neutral
-   50%-grey fill stays at least faintly visible on any bg. */
-@supports not (
-  (backdrop-filter: invert(1)) or (-webkit-backdrop-filter: invert(1))
-) {
-  .cursor {
-    background: rgba(128, 128, 128, 0.85);
-  }
+  mix-blend-mode: difference;
 }
 
 /* Cursor "dissolves" during a navigation. Two signal classes:
@@ -95,8 +69,8 @@
   opacity: 0;
 }
 
-/* `dark` is now a no-op — inversion adapts to the bg per pixel,
-   so per-page colour intent is unnecessary. Kept around so the
+/* `dark` is now a no-op — `mix-blend-mode: difference` on the base
+   adapts to dark / light bgs automatically. Kept around so the
    `variant="dark"` prop call-sites don't have to change. */
 .dark {
   /* no-op */
@@ -105,41 +79,21 @@
 .hover {
   width: 6px;
   height: 6px;
-  /* Tiny ring (2px stroke around a 1px hole) — visually reads as
-     a small dot at glance but keeps the same anatomy as the
-     default cursor. */
-  -webkit-mask: radial-gradient(
-    circle,
-    transparent 0 0.5px,
-    black 1px 3px,
-    transparent 3.5px 100%
-  );
-  mask: radial-gradient(
-    circle,
-    transparent 0 0.5px,
-    black 1px 3px,
-    transparent 3.5px 100%
-  );
 }
 
-/* Arrow shapes: a 10×10 visible square placed (-2, +2) from the
-   element's geometric centre — matching the historical
-   `box-shadow: -2px 2px 0` offset. We use a slightly larger 14×14
-   element with an SVG mask positioning the visible rect at
-   (0, 4)–(10, 14) inside it, which puts the rect's centre at
-   (5, 9). Element centre is (7, 7). Delta = (-2, +2). ✓ Same
-   pixel placement as before, but backdrop-filter applies cleanly
-   to the masked region. */
+/* Arrow shapes: a small square with one inset corner painted via
+   box-shadow — when rotated it reads as an arrowhead. The shadow
+   is white; mix-blend-mode on the base inverts it against the bg. */
 .arrowLeft,
 .arrowRight,
 .arrowUp,
 .arrowDown {
-  width: 14px;
-  height: 14px;
-  -webkit-mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 14 14'><rect x='0' y='4' width='10' height='10' fill='black'/></svg>")
-    no-repeat center / contain;
-  mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 14 14'><rect x='0' y='4' width='10' height='10' fill='black'/></svg>")
-    no-repeat center / contain;
+  width: 10px;
+  height: 10px;
+  border: none;
+  border-radius: 0;
+  outline: none;
+  box-shadow: -2px 2px 0 #fefefe;
 }
 
 .arrowLeft {
@@ -159,29 +113,42 @@
 }
 
 /* "Picture" cursor: shown when hovering an active gallery frame
-   (signals click to open the full-screen modal). The SVG file is
-   alpha-shaped so it works as a mask straight away — we just
-   point the cursor's mask at it and let backdrop-filter colour
-   the visible silhouette per pixel. */
+   (signals click to open the full-screen modal). White silhouette;
+   the base's mix-blend-mode inverts it against the bg. */
 .picture {
+  border: none;
   width: 28px;
   height: 28px;
-  -webkit-mask: url(/icons/picture.dd122c30.svg) no-repeat center / contain;
-  mask: url(/icons/picture.dd122c30.svg) no-repeat center / contain;
+  background-color: #fefefe;
+  background-image: none;
+  -webkit-mask-image: url(/icons/picture.dd122c30.svg);
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-size: contain;
+  -webkit-mask-position: center;
+  mask-image: url(/icons/picture.dd122c30.svg);
+  mask-repeat: no-repeat;
+  mask-size: contain;
+  mask-position: center;
 }
 
 /* Magnifier cursor: shown over wallpaper cards on /walls and over
-   visited countries on /blog. Same circle + handle SVG as before,
-   now used as a mask (the stroke colour is irrelevant — only its
-   alpha defines the visible region). Diameter matches the default
-   ring's 16px outer dimension so the cursor feels consistent. */
+   visited countries on /blog. The CIRCLE part is the same outer
+   diameter as the default ring (16 px / 1 px stroke) so it doesn't
+   feel oversized; the small extra bump is just a handle pointing
+   bottom-right that signals "magnify". User explicitly asked to
+   match the base ring size — 32 px was too big. */
 .magnifier {
+  border: none;
   width: 24px;
   height: 24px;
-  -webkit-mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round'><circle cx='12' cy='12' r='7'/><path d='m17.5 17.5 3 3'/></svg>")
-    no-repeat center / contain;
-  mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round'><circle cx='12' cy='12' r='7'/><path d='m17.5 17.5 3 3'/></svg>")
-    no-repeat center / contain;
+  background-color: transparent;
+  /* Stroke-width 2 matches the default ring's `border: 2px` so the
+     magnifier's circle reads as the same line weight as the base
+     cursor. r=7 + stroke 2 → outer diameter exactly 16, identical
+     to the default ring's 16 px outer dimension. */
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round'><circle cx='12' cy='12' r='7'/><path d='m17.5 17.5 3 3'/></svg>");
+  background-repeat: no-repeat;
+  background-size: contain;
 }
 
 /* "Grab" / "grabbing": shown over the gallery slider thumb on /nature
@@ -192,16 +159,11 @@
    both states so the transition feels like the ring "filling in"
    rather than resizing. */
 .grab {
-  /* Inherits default ring mask from .cursor */
+  /* Ring outline — matches .cursor's default look */
 }
 
 .grabbing {
-  /* Filled disc — drop the ring mask, use border-radius to clip
-     the backdrop-filter area to a circle. Gives a solid inverted
-     dot on any bg. */
-  -webkit-mask: none;
-  mask: none;
-  border-radius: 50%;
+  background-color: #fefefe;
 }
 
 @media (hover: none), (max-width: 597px) {
