@@ -43,6 +43,7 @@
      at max zoom 3.2× edges may still appear, in which case the
      page's #8a8a8a fallback shows through (close to the Grainient
      mid-tone so the boundary is much softer). */
+  /* 30% overflow on each axis. */
   inset: -30vh -30vw;
   z-index: 0;
   pointer-events: none;
