@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, LayoutGroup, motion } from "motion/react";
+import Stack from "@/components/Stack/Stack";
 import type { Visit, Recommendation, Photo } from "./visits";
 import { VISITS } from "./visits";
 import styles from "./BlogCountryModal.module.css";
@@ -519,10 +520,8 @@ function LockedChipOverlay({
 }
 
 /* ------------------------------------------------------------------ */
-/* GALLERY                                                            */
+/* GALLERY — Stack of polaroid-ish photo cards                        */
 /* ------------------------------------------------------------------ */
-
-const PRINT_ROTATIONS = [-2.4, 1.6, -0.8, 2.2, -1.4, 1.0, -2.0, 0.6];
 
 function GallerySpread({ photos }: { photos: Photo[] }) {
   return (
@@ -538,23 +537,22 @@ function GallerySpread({ photos }: { photos: Photo[] }) {
           <span className={styles.galleryEmptyText}>frames coming soon</span>
         </div>
       ) : (
-        <div className={styles.galleryGrid}>
-          {photos.map((p, i) => {
-            const rot = PRINT_ROTATIONS[i % PRINT_ROTATIONS.length];
-            return (
-              <figure
-                key={i}
-                className={styles.print}
-                style={{ ["--rot" as string]: `${rot}deg` }}
-              >
+        <div className={styles.galleryStackWrap}>
+          <Stack
+            randomRotation
+            sensitivity={150}
+            sendToBackOnClick
+            mobileClickOnly
+            cards={photos.map((p, i) => (
+              <figure key={i} className={styles.galleryStackCard}>
                 <div
-                  className={styles.printImage}
+                  className={styles.galleryStackImage}
                   style={{ backgroundImage: `url(${p.src})` }}
                   role="img"
                   aria-label={p.caption ?? p.place ?? "photograph"}
                 />
                 {(p.place || p.caption) && (
-                  <figcaption className={styles.printCaption}>
+                  <figcaption className={styles.galleryStackCaption}>
                     {p.place && (
                       <span className={styles.printPlace}>{p.place}</span>
                     )}
@@ -564,8 +562,8 @@ function GallerySpread({ photos }: { photos: Photo[] }) {
                   </figcaption>
                 )}
               </figure>
-            );
-          })}
+            ))}
+          />
         </div>
       )}
     </div>

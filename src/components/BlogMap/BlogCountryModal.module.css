@@ -619,51 +619,47 @@
   flex-direction: column;
 }
 
-.galleryGrid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 28px 22px;
-  align-content: start;
+/* Stack of photo cards — replaces the prior 2-col contact-print
+   grid. The Stack component itself handles drag / click / rotate /
+   spring motion; we just size its container and style each card. */
+.galleryStackWrap {
+  position: relative;
+  width: clamp(260px, 70%, 360px);
+  height: clamp(340px, 70vh, 460px);
+  margin: 12px auto 0;
   flex: 1;
 }
 
-@media (max-width: 597px) {
-  .galleryGrid {
-    grid-template-columns: 1fr;
-    gap: 22px;
-  }
-}
-
-.print {
+.galleryStackCard {
+  position: relative;
   margin: 0;
+  width: 100%;
+  height: 100%;
+  background: #fff;
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  transform: rotate(var(--rot, 0deg));
-  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-.print:hover {
-  transform: rotate(0deg) scale(1.015);
+  padding: 10px 10px 14px;
+  box-sizing: border-box;
+  box-shadow:
+    0 1px 0 rgba(0, 0, 0, 0.04),
+    0 14px 30px rgba(0, 0, 0, 0.18);
 }
 
-.printImage {
-  width: 100%;
-  aspect-ratio: 4 / 5;
+.galleryStackImage {
+  flex: 1;
   background-size: cover;
   background-position: center;
   background-color: rgba(0, 0, 0, 0.06);
-  box-shadow:
-    0 1px 0 rgba(0, 0, 0, 0.04),
-    0 8px 20px rgba(0, 0, 0, 0.1),
-    inset 0 0 0 1px rgba(0, 0, 0, 0.06);
 }
 
-.printCaption {
+.galleryStackCaption {
+  margin-top: 10px;
   display: flex;
   flex-direction: column;
   gap: 2px;
   padding: 0 2px;
 }
+
 .printPlace {
   font-size: 11px;
   letter-spacing: 0.08em;
