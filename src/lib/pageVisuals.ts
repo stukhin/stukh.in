@@ -29,13 +29,13 @@ export const PAGE_VISUALS: Readonly<Record<string, PageVisual>> = {
     color: "#0a0a0c",
   },
   "/blog": {
-    /* /blog is the light page in the strip (cream paper-like bg).
-       The slide-bridge previously painted blog as #0a0a0c which
-       caused a visible flash from dark → cream as the slide
-       handed off to the live page; matching the slide colour to
-       blog's actual background makes the transition read as one
-       continuous slide instead of slide-then-fade. */
-    color: "#f5f4f1",
+    /* /blog is now backed by a Grainient WebGL surface in cool
+       monochrome grays (color2/color3 = #727272/#717171, color1 =
+       #c5c5c5). The slide-bridge colour stands in for the live
+       page during the transition; #888 is the visual mid-tone of
+       the Grainient palette so the hand-off lands without a
+       bright flash. (Pre-Grainient this was cream #f5f4f1.) */
+    color: "#888888",
   },
 };
 

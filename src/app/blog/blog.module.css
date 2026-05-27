@@ -7,7 +7,6 @@
      paint regardless of browser chrome. */
   height: 100vh;
   height: 100dvh;
-  background-color: #f5f4f1;
   overflow: hidden;
   color: #1a1a1a;
   /* Disable native scroll / pinch-zoom on the whole /blog page —
@@ -19,16 +18,16 @@
   touch-action: none;
 }
 
-/* Subtle paper texture: a faint grain washed over the page so the
-   light background doesn't read as a flat dead surface. Reuses the
-   tile already shipped with the site. */
-.page::before {
-  content: "";
-  position: absolute;
+/* Grainient WebGL bg fills the viewport behind the map + shell.
+   Same pattern as /walls. Grainient itself paints its own film
+   grain (uGrainAmount) so the previous paper-texture tile overlay
+   is dropped — stacking two grain layers would just read as noise
+   on noise. */
+.bg {
+  position: fixed;
   inset: 0;
-  background-image: url(/images/misc/tile.webp);
-  background-repeat: repeat;
-  opacity: 0.05;
+  width: 100vw;
+  height: 100vh;
+  z-index: 0;
   pointer-events: none;
-  z-index: 1;
 }
