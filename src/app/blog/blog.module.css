@@ -9,6 +9,9 @@
   height: 100dvh;
   overflow: hidden;
   color: #1a1a1a;
+  /* Mid-gray matches the Grainient palette midpoint — only visible
+     if .bg's pan offset reveals an edge at extreme zoom levels. */
+  background-color: #8a8a8a;
   /* Disable native scroll / pinch-zoom on the whole /blog page —
      BlogMap's JS owns all gestures (drag-pan + pinch-zoom). Without
      this the iOS rubber-band scroll fires before our preventDefault
@@ -19,15 +22,24 @@
 }
 
 /* Grainient WebGL bg fills the viewport behind the map + shell.
-   Same pattern as /walls. Grainient itself paints its own film
-   grain (uGrainAmount) so the previous paper-texture tile overlay
-   is dropped — stacking two grain layers would just read as noise
-   on noise. */
+   Same pattern as /walls, with two differences:
+     · Larger than the viewport (15% overflow each side) so the
+       layer can pan in sync with the map without revealing the
+       fallback page bg at the edges.
+     · `transform: translate(--blog-map-pan-x, --blog-map-pan-y)`
+       binds the layer's position to the map's pan vars (which
+       BlogMap mirrors onto documentElement). Result: when the
+       map pans, the bg pans with it, 1:1 — feels attached.
+   Grainient itself paints its own film grain (uGrainAmount) so
+   the previous paper-texture tile overlay is dropped — stacking
+   two grain layers would just read as noise on noise. */
 .bg {
   position: fixed;
-  inset: 0;
-  width: 100vw;
-  height: 100vh;
+  inset: -15vh -15vw;
   z-index: 0;
   pointer-events: none;
+  transform: translate(
+    var(--blog-map-pan-x, 0px),
+    var(--blog-map-pan-y, 0px)
+  );
 }

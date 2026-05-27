@@ -181,8 +181,24 @@ export default function BlogMap() {
     if (typeof window === "undefined") return;
 
     wrap.style.setProperty("--zoom", String(ZOOM_INITIAL));
-    wrap.style.setProperty("--pan-x", "0px");
-    wrap.style.setProperty("--pan-y", "0px");
+
+    /**
+     * Pan vars are written to BOTH the map wrap (consumed by the
+     * map's own SVG transform) AND `document.documentElement` (so
+     * sibling layers like /blog's Grainient bg can read the same
+     * values via `var(--blog-map-pan-x)` and translate in sync —
+     * makes the bg feel attached to the map rather than static
+     * underneath it). Distinct global names so we don't collide
+     * with the map's own `--pan-x` / `--pan-y` consumers.
+     */
+    const docEl = document.documentElement;
+    const setPanVars = (xPx: string, yPx: string) => {
+      wrap.style.setProperty("--pan-x", xPx);
+      wrap.style.setProperty("--pan-y", yPx);
+      docEl.style.setProperty("--blog-map-pan-x", xPx);
+      docEl.style.setProperty("--blog-map-pan-y", yPx);
+    };
+    setPanVars("0px", "0px");
 
     /**
      * Compute max pan slack at the current zoom. The map's baseline
@@ -215,8 +231,7 @@ export default function BlogMap() {
       const m = maxPan();
       const panX = (1 - 2 * cursorRef.current.mx) * m.x;
       const panY = (1 - 2 * cursorRef.current.my) * m.y;
-      wrap.style.setProperty("--pan-x", `${panX}px`);
-      wrap.style.setProperty("--pan-y", `${panY}px`);
+      setPanVars(`${panX}px`, `${panY}px`);
     };
     recomputePanRef.current = recomputePan;
 
@@ -243,8 +258,7 @@ export default function BlogMap() {
       const m = maxPan();
       panXAbs = Math.max(-m.x, Math.min(m.x, panXAbs));
       panYAbs = Math.max(-m.y, Math.min(m.y, panYAbs));
-      wrap.style.setProperty("--pan-x", `${panXAbs}px`);
-      wrap.style.setProperty("--pan-y", `${panYAbs}px`);
+      setPanVars(`${panXAbs}px`, `${panYAbs}px`);
     };
 
     const touchDist = (a: Touch, b: Touch) =>
@@ -418,6 +432,10 @@ export default function BlogMap() {
         wrap.removeEventListener("wheel", onWheel);
         if (raf !== null) cancelAnimationFrame(raf);
       }
+      // Global pan vars only live while /blog is mounted — wipe so
+      // other routes never inherit a stale pan offset.
+      docEl.style.removeProperty("--blog-map-pan-x");
+      docEl.style.removeProperty("--blog-map-pan-y");
     };
   }, [mapAspect, isTouch]);
 
