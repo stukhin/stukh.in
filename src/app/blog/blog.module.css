@@ -43,8 +43,13 @@
      at max zoom 3.2× edges may still appear, in which case the
      page's #8a8a8a fallback shows through (close to the Grainient
      mid-tone so the boundary is much softer). */
-  /* 30% overflow on each axis. */
-  inset: -30vh -30vw;
+  /* 60% overflow on each axis. 30% turned out to be insufficient on
+     narrower / taller viewports where the map's aspect ratio
+     pushes max pan past 30% of viewport width. 60% covers the
+     pan range at default zoom across every reasonable viewport
+     shape; at extreme zooms (>2x) the #8a8a8a page-bg fallback
+     bridges any remaining edge reveal. */
+  inset: -60vh -60vw;
   z-index: 0;
   pointer-events: none;
   transform: translate(
