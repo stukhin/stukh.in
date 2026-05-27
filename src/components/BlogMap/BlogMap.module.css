@@ -103,15 +103,15 @@
    blur smooths the Grainient noise inside country shapes into a
    soft gray, while sharp Grainient noise stays visible in oceans.
    The tint is intentionally very faint — the perceived "lightness"
-   should come from the blur softening the noise, not a tinted
+   comes from the blur softening the noise, not from a tinted
    overlay. No shadow, no stroke; the silhouette is defined
    entirely by the parent <g>'s clip-path. */
 .frostedGlass {
   width: 100%;
   height: 100%;
-  backdrop-filter: blur(24px) saturate(1.2) brightness(1.05);
-  -webkit-backdrop-filter: blur(24px) saturate(1.2) brightness(1.05);
-  background-color: rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(28px) saturate(1.25) brightness(1.06);
+  -webkit-backdrop-filter: blur(28px) saturate(1.25) brightness(1.06);
+  background-color: rgba(255, 255, 255, 0.05);
   pointer-events: none;
 }
 
