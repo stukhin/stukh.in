@@ -228,6 +228,12 @@ export default function BlogMap() {
      *   cx = 0.5 → 0          (centred)
      */
     const recomputePan = () => {
+      // Freeze the map + bg pan while a country is in focus. The
+      // modal owns the right half of the screen — the cursor lives
+      // mostly inside it while the user reads, and having the
+      // unfocused map drift in response felt off. Last computed pan
+      // values stay applied until the user closes the modal.
+      if (selectedIsoRef.current) return;
       const m = maxPan();
       const panX = (1 - 2 * cursorRef.current.mx) * m.x;
       const panY = (1 - 2 * cursorRef.current.my) * m.y;
@@ -255,6 +261,9 @@ export default function BlogMap() {
     let dragExceededTapSlop = false;
 
     const applyPan = () => {
+      // Same freeze as recomputePan — touch drag shouldn't move
+      // the map while the country modal is open.
+      if (selectedIsoRef.current) return;
       const m = maxPan();
       panXAbs = Math.max(-m.x, Math.min(m.x, panXAbs));
       panYAbs = Math.max(-m.y, Math.min(m.y, panYAbs));
