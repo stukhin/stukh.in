@@ -1071,15 +1071,30 @@ body.quiz-open{overflow:hidden;}
   .quiz-alt-body{padding:12px 14px 12px 0;}
 }
 
-.quiz-result-foot{margin-top:32px;display:flex;flex-direction:column;gap:10px;}
+.quiz-result-foot{margin-top:36px;display:flex;flex-direction:column;gap:12px;}
+.quiz-cta-all{
+  width:100%;
+  padding:20px 26px;font-family:inherit;
+  background:linear-gradient(135deg,#7d8aff 0%, #a855f7 100%);
+  color:#fff;font-size:17px;font-weight:800;letter-spacing:-.01em;
+  border:none;border-radius:18px;cursor:pointer;
+  box-shadow:0 12px 32px rgba(125,138,255,.32);
+  transition:transform .2s ease, box-shadow .2s ease;
+  -webkit-tap-highlight-color:transparent;
+}
+.quiz-cta-all:hover{transform:translateY(-2px);box-shadow:0 18px 44px rgba(125,138,255,.42);}
+.quiz-cta-all:active{transform:translateY(0);}
+@media (min-width:781px){.quiz-cta-all{padding:24px 30px;font-size:18px;}}
 .quiz-restart{
-  padding:14px 22px;font-size:15px;font-weight:600;font-family:inherit;
+  padding:12px 18px;font-size:14px;font-weight:600;font-family:inherit;
   background:transparent;color:var(--ink-soft);
-  border:1.5px solid var(--card-border-strong);border-radius:99px;cursor:pointer;
+  border:none;border-radius:99px;cursor:pointer;
   transition:all .18s ease;
   -webkit-tap-highlight-color:transparent;
 }
 .quiz-restart:hover{background:rgba(0,0,0,.04);color:var(--ink);}
+.quiz-bonus{margin-top:32px;padding-top:24px;border-top:1px solid var(--card-border);}
+.quiz-bonus .quiz-alt-head{color:#7d8aff;}
 
 /* Hero CTA when catalog visible — leads back to quiz */
 .catalog-back-to-quiz{
@@ -4807,10 +4822,10 @@ if (kzMapEl) {
       title:'Какая погода в июле больше нравится?',
       hint:'Можно выбрать несколько',
       options:[
-        { v:'cool',   icon:'❄️', label:'Прохладная',     sub:'18–22°, северный климат' },
-        { v:'mild',   icon:'🌤️', label:'Мягкая тёплая',   sub:'22–26°, комфортно' },
-        { v:'hot',    icon:'☀️', label:'Жаркое лето',     sub:'26–30°, курортная жара' },
-        { v:'tropic', icon:'🌴', label:'Тропики',         sub:'30°+, влажно' }
+        { v:'cool',   icon:'⛅', label:'Нежаркое лето',  sub:'18–22°, как в средней полосе' },
+        { v:'mild',   icon:'🌤️', label:'Мягкая тёплая',  sub:'22–26°, комфортно' },
+        { v:'hot',    icon:'☀️', label:'Жаркое лето',    sub:'26–30°, курортная жара' },
+        { v:'tropic', icon:'🌴', label:'Тропики',        sub:'30°+, влажно' }
       ]
     },
     {
@@ -4818,9 +4833,9 @@ if (kzMapEl) {
       title:'Хочется купаться?',
       hint:'Выбери один вариант',
       options:[
-        { v:'sea',  icon:'🏖️', label:'Да, в тёплом море',          sub:'обязательно (25°+)' },
-        { v:'lake', icon:'🌊', label:'Можно и в прохладном озере', sub:'18–20°, лес и тишина' },
-        { v:'none', icon:'🏔️', label:'Купаться не обязательно',    sub:'спа, бассейн, прогулки' }
+        { v:'sea',  icon:'🏖️', label:'Да, обязательно в тёплом море', sub:'температура 25°+' },
+        { v:'lake', icon:'🌊', label:'Главное, чтобы была вода',       sub:'море или озеро, не критично' },
+        { v:'none', icon:'💧', label:'Купаться не самое главное',     sub:'но наличие воды — приятный плюс' }
       ]
     },
     {
@@ -4856,10 +4871,10 @@ if (kzMapEl) {
       title:'Бюджет за ночь',
       hint:'В рублях',
       options:[
-        { v:15,  icon:'💰', label:'До ₽ 15 т.',     sub:'эконом' },
-        { v:25,  icon:'💵', label:'До ₽ 25 т.',     sub:'средне' },
-        { v:45,  icon:'💎', label:'До ₽ 45 т.',     sub:'комфортно' },
-        { v:999, icon:'⭐', label:'Без ограничений', sub:'если оно того стоит' }
+        { v:15,  icon:'💰', label:'До 15 000 ₽ за ночь', sub:'эконом' },
+        { v:25,  icon:'💵', label:'До 25 000 ₽ за ночь', sub:'средне' },
+        { v:45,  icon:'💎', label:'До 45 000 ₽ за ночь', sub:'комфортно' },
+        { v:999, icon:'⭐', label:'Без ограничений',      sub:'если место того стоит' }
       ]
     },
     {
@@ -4868,8 +4883,8 @@ if (kzMapEl) {
       hint:'Что хотелось бы',
       options:[
         { v:'B&B',  icon:'🥐', label:'Только завтрак' },
-        { v:'HB',   icon:'🍽️', label:'Завтрак + ужин',     sub:'полупансион' },
-        { v:'AI',   icon:'🥂', label:'Всё включено',       sub:'мало вариантов в выборке' },
+        { v:'HB',   icon:'🍽️', label:'Завтрак + ужин',  sub:'полупансион' },
+        { v:'AI',   icon:'🥂', label:'Всё включено',    sub:'сильно сократит выбор — таких отелей единицы' },
         { v:'any',  icon:'·',  label:'Не важно' }
       ]
     },
@@ -4879,9 +4894,9 @@ if (kzMapEl) {
       hint:'Какой формат комфортен',
       options:[
         { v:5,       icon:'⭐', label:'Только 5★' },
-        { v:4,       icon:'🏨', label:'4★ — норм' },
-        { v:'sanat', icon:'🏥', label:'Можно санаторий или бутик' },
-        { v:'any',   icon:'✨', label:'Не критично',                sub:'главное хорошее место' }
+        { v:4,       icon:'🏨', label:'4★ окей' },
+        { v:'sanat', icon:'🏥', label:'Можно санаторий' },
+        { v:'any',   icon:'✨', label:'Не критично',    sub:'главное — хорошее место' }
       ]
     },
     {
@@ -4979,8 +4994,8 @@ if (kzMapEl) {
     if (ans.swim) {
       max += 10;
       if (ans.swim === 'sea')        total += h.water >= 22 ? 10 : (h.water >= 18 ? 3 : 0);
-      else if (ans.swim === 'lake')  total += h.water > 0 ? 10 : 7;
-      else if (ans.swim === 'none')  total += 10;
+      else if (ans.swim === 'lake')  total += h.water > 0 ? 10 : 4;   // user wants water — punish no-water
+      else if (ans.swim === 'none')  total += h.water > 0 ? 10 : 8;   // any ok, but water = small bonus
     }
     // purpose
     if (ans.purpose && ans.purpose.length) {
@@ -5077,7 +5092,10 @@ if (kzMapEl) {
     }
     // swim
     if (ans.swim === 'sea' && h.water >= 22) out.push(`Купаться можно в тёплой воде (${h.water}°)`);
-    else if (ans.swim === 'sea' && h.water < 18) out.push({con:true, text:'Здесь моря с тёплой водой нет'});
+    else if (ans.swim === 'sea' && h.water < 18) out.push({con:true, text:'Здесь тёплого моря для купания нет'});
+    else if (ans.swim === 'lake' && h.water > 0) out.push(`Вода для купания есть (${h.water}°)`);
+    else if (ans.swim === 'lake' && h.water === 0) out.push({con:true, text:'Здесь нет водоёма — купаться негде'});
+    else if (ans.swim === 'none' && h.water > 0) out.push(`Бонусом — водоём рядом (${h.water}°)`);
     else if (ans.swim === 'none' && h.water === 0) out.push('Формат без моря — спа, природа, прогулки');
     // language
     if (ans.language === 'ru' && h.language === 'ru') out.push('Российский / русскоязычный персонал');
@@ -5190,10 +5208,27 @@ if (kzMapEl) {
   function showResult(){
     const ranked = HOTELS.map(h => ({h, s: score(h, state.answers), why: reasons(h, state.answers)}))
                          .sort((a,b) => b.s - a.s);
-    const top = ranked.slice(0, 3);
+    const top3 = ranked.slice(0, 3);
+    const top3Regions = new Set(top3.map(p => p.h.region));
+
+    // Pick 2 more from regions NOT already in top-3 (regional diversity guarantee)
+    const bonus = [];
+    for (const p of ranked.slice(3)) {
+      if (bonus.length === 2) break;
+      if (!top3Regions.has(p.h.region) && !bonus.some(b => b.h.region === p.h.region)) {
+        bonus.push(p);
+      }
+    }
+    // Fallback: if not enough fresh regions, fill with next-best regardless
+    if (bonus.length < 2) {
+      for (const p of ranked.slice(3)) {
+        if (bonus.length === 2) break;
+        if (!bonus.includes(p)) bonus.push(p);
+      }
+    }
 
     // Adaptive header
-    const regions = top.map(p => p.h.region);
+    const regions = top3.map(p => p.h.region);
     const allSame = regions.every(r => r === regions[0]);
     let eyebrow, title, desc;
     if (allSame) {
@@ -5205,13 +5240,14 @@ if (kzMapEl) {
       eyebrow = 'НЕСКОЛЬКО НАПРАВЛЕНИЙ ПОДХОДЯТ';
       const leadR = regions[0];
       title = `Лидер — ${REGION_FLAGS[leadR]} ${REGION_NAMES[leadR]}`;
-      const altRegs = [...new Set(regions.slice(1))].map(r => `<b>${REGION_FLAGS[r]} ${REGION_NAMES[r]}</b>`);
-      desc = `${REGION_DESCRIPTIONS[leadR] || ''}<br><br>Но обрати внимание также на ${altRegs.join(' и ')} — топ-3 включает оттуда отель.`;
+      // FIX: exclude leader from alt regions
+      const altRegs = [...new Set(regions)].filter(r => r !== leadR).map(r => `<b>${REGION_FLAGS[r]} ${REGION_NAMES[r]}</b>`);
+      desc = (REGION_DESCRIPTIONS[leadR] || '') + (altRegs.length ? `<br><br>Но в топ-3 попали также отели из ${altRegs.join(' и ')} — там тоже хорошее совпадение.` : '');
     }
 
     // Render
-    const t = top[0];
-    const tops = top.slice(1);
+    const t = top3[0];
+    const tops = top3.slice(1);
 
     const html = `
       <div class="quiz-step is-active">
@@ -5232,9 +5268,18 @@ if (kzMapEl) {
           </div>
         ` : ''}
 
+        ${bonus.length ? `
+          <div class="quiz-alt-section quiz-bonus">
+            <div class="quiz-alt-head">Варианты из других направлений</div>
+            <div class="quiz-alt-list">
+              ${bonus.map((p, i) => renderAlt(p, top3.length + i + 1)).join('')}
+            </div>
+          </div>
+        ` : ''}
+
         <div class="quiz-result-foot">
-          <button class="quiz-restart" id="quizRestart" type="button">↻ Пройти ещё раз</button>
-          <button class="quiz-all-link" id="quizViewAll" type="button">Посмотреть все 47 вариантов в каталоге →</button>
+          <button class="quiz-cta-all" id="quizViewAll" type="button">📋 Посмотреть все 47 вариантов в каталоге</button>
+          <button class="quiz-restart" id="quizRestart" type="button">↻ Пройти опрос ещё раз</button>
         </div>
       </div>
     `;
