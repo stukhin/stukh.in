@@ -841,6 +841,47 @@ body.lightbox-open{overflow:hidden;}
   .lightbox-nav.next{right:12px;}
 }
 
+/* ===== Unavailable-hotel marking (data-unavailable="1") ===== */
+.hotel[data-unavailable="1"]{opacity:.55;filter:saturate(.7);transition:opacity .2s ease;}
+.hotel[data-unavailable="1"]:hover{opacity:.78;}
+.hotel[data-unavailable="1"] .h-actions a,
+.hotel[data-unavailable="1"] .h-actions button{opacity:1;filter:saturate(1);}
+.unavail-banner{
+  position:absolute;top:14px;left:50%;transform:translateX(-50%);
+  z-index:6;padding:8px 16px;
+  background:rgba(220,38,38,.94);backdrop-filter:blur(8px);
+  color:#fff;font-size:13px;font-weight:700;
+  border-radius:99px;white-space:nowrap;
+  box-shadow:0 6px 18px rgba(220,38,38,.30);
+  display:none;
+  pointer-events:none;
+}
+.hotel[data-unavailable="1"] .carousel-wrap{position:relative;}
+.hotel[data-unavailable="1"] .unavail-banner,
+.quiz-pick.is-unavail .unavail-banner,
+.quiz-alt.is-unavail .unavail-banner{display:inline-flex;align-items:center;gap:6px;}
+.quiz-pick.is-unavail{opacity:.62;}
+.quiz-pick.is-unavail .quiz-pick-actions a,.quiz-pick.is-unavail .quiz-pick-actions button{opacity:1;}
+.quiz-alt.is-unavail{opacity:.62;}
+.quiz-alt.is-unavail:hover{opacity:.85;}
+.quiz-alt.is-unavail .unavail-banner{position:static;transform:none;font-size:11px;padding:3px 8px;margin-bottom:6px;}
+@media (max-width:400px){
+  .unavail-banner{font-size:12px;padding:6px 12px;top:10px;}
+}
+
+/* Availability disclaimer at top of catalog */
+.avail-note{
+  margin:0 auto 18px;max-width:920px;
+  background:rgba(255,251,235,.85);
+  border:1px solid rgba(217,119,6,.30);
+  border-radius:12px;
+  padding:12px 16px;
+  font-size:13px;color:#7c4a00;line-height:1.5;
+  display:flex;gap:10px;align-items:flex-start;
+}
+.avail-note .ic{flex-shrink:0;font-size:16px;line-height:1.2;}
+@media (max-width:520px){.avail-note{margin:0 12px 14px;font-size:12.5px;padding:10px 12px;}}
+
 /* ============ QUIZ OVERLAY ============ */
 body.quiz-open{overflow:hidden;}
 .quiz-overlay{
@@ -1263,6 +1304,11 @@ body.catalog-mode .catalog-back-to-quiz{display:inline-flex;align-items:center;g
 <header class="hero">
   <h1 class="hero-title">Подбор поездки для мамы</h1>
 </header>
+
+<div class="avail-note" role="note">
+  <span class="ic">🛈</span>
+  <span>Цены ориентировочные. Точную доступность на <b>17–18 июля 2026</b> и актуальную стоимость проверяй по кнопке <b>«Booking»</b> или <b>«Островок»</b> в карточке — ссылки уже открываются с твоими датами. Отели, помеченные ⛔, у нас уже подтверждены недоступными.</span>
+</div>
 
 <nav class="toc">
   <div class="toc-spacer"></div>
@@ -2031,18 +2077,19 @@ body.catalog-mode .catalog-back-to-quiz{display:inline-flex;align-items:center;g
         <p>Летом <b>+22–26 °C</b>, ночи прохладные. Купаться в Катуни холодно (10–15 °C даже в августе) — формат другой: спа, треки, рафтинг, конные прогулки, Манжерокское озеро, канатка на Малую Синюху.</p>
       </div>
       <div class="ri-flight">
-        <div class="ri-label"><span class="ic">✈</span> Москва → Горно-Алтайск (GRA)</div>
+        <div class="ri-label"><span class="ic">✈</span> Москва → Горно-Алтайск (RGK)</div>
         <div class="ri-airlines">
-          <span class="airline-chip"><span class="logo" style="background:#009edb">SU</span>Аэрофлот</span>
           <span class="airline-chip"><span class="logo" style="background:#009d3f">S7</span>S7 Airlines</span>
-          <span class="airline-chip dim"><span class="logo" style="background:#ff7a00">DP</span>Победа</span>
-          <span class="airline-chip dim"><span class="logo" style="background:#c8102e">FV</span>Россия</span>
+          <span class="airline-chip"><span class="logo" style="background:#009edb">SU</span>Аэрофлот</span>
+          <span class="airline-chip dim"><span class="logo" style="background:#ed1c24">N4</span>NordWind</span>
+          <span class="airline-chip dim"><span class="logo" style="background:#0a3a7c">A4</span>Азимут</span>
+          <span class="airline-chip dim"><span class="logo" style="background:#0099d9">UT</span>Utair</span>
         </div>
         <div class="ri-meta">
           <div class="ri-stat"><div class="label">Длительность</div><div class="value">4,5 ч</div></div>
           <div class="ri-stat"><div class="label">Туда-обратно</div><div class="value"><span class="rub">₽</span><span class="num">18–28</span><span class="suf">т.</span></div></div>
         </div>
-        <div class="ri-note">Прямые из Москвы каждый день. От аэропорта: Манжерок — 20 мин, Алтай Пэлас (Каим) — 25 мин, Cosmos (Урлу-Аспак) — 50 мин. Альтернатива — через Барнаул (BAX) или Новосибирск (OVB).</div>
+        <div class="ri-note">Прямые есть ежедневно — главный перевозчик S7, Аэрофлот тоже летает. От аэропорта: Манжерок — 20 мин, Алтай Пэлас (Каим) — 25 мин, Cosmos (Урлу-Аспак) — 50 мин. Альтернатива — через Барнаул (BAX) или Новосибирск (OVB).</div>
       </div>
     </div>
 
@@ -2326,18 +2373,19 @@ body.catalog-mode .catalog-back-to-quiz{display:inline-flex;align-items:center;g
         <p>Русский язык повсюду, безвиз, евростиль за умеренные деньги. Купаться можно, инфраструктура отельная развита.</p>
       </div>
       <div class="ri-flight">
-        <div class="ri-label"><span class="ic">✈</span> Прямой перелёт Москва → Батуми</div>
+        <div class="ri-label"><span class="ic">✈</span> Прямой перелёт Москва → Батуми (BUS)</div>
         <div class="ri-airlines">
-          <span class="airline-chip"><span class="logo" style="background:#e30613">TK</span>Turkish Airlines</span>
-          <span class="airline-chip"><span class="logo" style="background:#f37021">PC</span>Pegasus</span>
+          <span class="airline-chip"><span class="logo" style="background:#cc0000">WZ</span>Red Wings</span>
+          <span class="airline-chip"><span class="logo" style="background:#009edb">SU</span>Аэрофлот</span>
+          <span class="airline-chip"><span class="logo" style="background:#0a3a7c">A4</span>Азимут</span>
+          <span class="airline-chip dim"><span class="logo" style="background:#ff7a00">DP</span>Победа</span>
           <span class="airline-chip dim"><span class="logo" style="background:#ed1c24">N4</span>NordWind</span>
-          <span class="airline-chip dim"><span class="logo" style="background:#cc0000">WZ</span>Red Wings</span>
         </div>
         <div class="ri-meta">
           <div class="ri-stat"><div class="label">Длительность</div><div class="value">3 ч</div></div>
-          <div class="ri-stat"><div class="label">Туда-обратно</div><div class="value"><span class="rub">₽</span><span class="num">25–40</span><span class="suf">т.</span></div></div>
+          <div class="ri-stat"><div class="label">Туда-обратно</div><div class="value"><span class="rub">₽</span><span class="num">25–45</span><span class="suf">т.</span></div></div>
         </div>
-        <div class="ri-note">Прямые рейсы из Москвы есть, но не каждый день. Альтернатива — через Стамбул с Turkish (на 2–3 часа дольше, иногда дешевле).</div>
+        <div class="ri-note">Прямые рейсы есть несколько раз в неделю у каждой компании, Аэрофлот летает чаще остальных. Альтернатива — пересадка через Стамбул на Turkish или Pegasus (+2–3 ч, иногда дешевле). До Кобулети из аэропорта Батуми ~30 км / 30–40 мин.</div>
       </div>
     </div>
 
@@ -2978,19 +3026,22 @@ body.catalog-mode .catalog-back-to-quiz{display:inline-flex;align-items:center;g
         <p>Меньше туристов, чем в Аланье, выше уровень отелей, дороже билеты.</p>
       </div>
       <div class="ri-flight">
-        <div class="ri-label"><span class="ic">✈</span> Прямой перелёт</div>
+        <div class="ri-label"><span class="ic">✈</span> Прямой перелёт Москва → ADB / BJV / DLM</div>
         <div class="ri-airlines">
-          <span class="airline-chip"><span class="logo" style="background:#e30613">TK</span>Turkish Airlines</span>
+          <span class="airline-chip"><span class="logo" style="background:#009edb">SU</span>Аэрофлот</span>
+          <span class="airline-chip"><span class="logo" style="background:#e30613">TK</span>Turkish</span>
           <span class="airline-chip"><span class="logo" style="background:#f37021">PC</span>Pegasus</span>
-          <span class="airline-chip dim"><span class="logo" style="background:#003a8c">VF</span>AJet</span>
+          <span class="airline-chip"><span class="logo" style="background:#ff7a00">DP</span>Победа</span>
           <span class="airline-chip dim"><span class="logo" style="background:#ed1c24">N4</span>NordWind</span>
           <span class="airline-chip dim"><span class="logo" style="background:#cc0000">WZ</span>Red Wings</span>
+          <span class="airline-chip dim"><span class="logo" style="background:#003a96">SY</span>Southwind</span>
+          <span class="airline-chip dim"><span class="logo" style="background:#003a96">ZF</span>Azur Air</span>
         </div>
         <div class="ri-meta">
           <div class="ri-stat"><div class="label">Длительность</div><div class="value">3,5–4 ч</div></div>
-          <div class="ri-stat"><div class="label">Туда-обратно</div><div class="value"><span class="rub">₽</span><span class="num">50–65</span><span class="suf">т.</span></div></div>
+          <div class="ri-stat"><div class="label">Туда-обратно</div><div class="value"><span class="rub">₽</span><span class="num">45–65</span><span class="suf">т.</span></div></div>
         </div>
-        <div class="ri-note">DLM в основном чартерами (NordWind / Red Wings / Azur), BJV и ADB — регулярные рейсы TK и Pegasus.</div>
+        <div class="ri-note">ADB (Измир) — Pegasus, Turkish, Аэрофлот. BJV (Бодрум) — регулярные TK/PC и чартеры. DLM (Даламан, ближайший к Геджеку) — чартеры NordWind/Red Wings/Azur Air, у TK есть регуляр летом.</div>
       </div>
     </div>
 
@@ -3299,22 +3350,23 @@ body.catalog-mode .catalog-back-to-quiz{display:inline-flex;align-items:center;g
         <p>Много чартеров — самые дешёвые билеты по сравнению с другими направлениями.</p>
       </div>
       <div class="ri-flight">
-        <div class="ri-label"><span class="ic">✈</span> Прямой перелёт</div>
+        <div class="ri-label"><span class="ic">✈</span> Прямой перелёт Москва → Анталья (AYT)</div>
         <div class="ri-airlines">
-          <span class="airline-chip"><span class="logo" style="background:#e30613">TK</span>Turkish Airlines</span>
-          <span class="airline-chip"><span class="logo" style="background:#f37021">PC</span>Pegasus</span>
           <span class="airline-chip"><span class="logo" style="background:#009edb">SU</span>Аэрофлот</span>
-          <span class="airline-chip dim"><span class="logo" style="background:#003a8c">VF</span>AJet</span>
+          <span class="airline-chip"><span class="logo" style="background:#ff7a00">DP</span>Победа</span>
+          <span class="airline-chip"><span class="logo" style="background:#e30613">TK</span>Turkish</span>
+          <span class="airline-chip"><span class="logo" style="background:#f37021">PC</span>Pegasus</span>
           <span class="airline-chip"><span class="logo" style="background:#009d3f">S7</span>S7 Airlines</span>
+          <span class="airline-chip dim"><span class="logo" style="background:#003a8c">VF</span>AJet</span>
           <span class="airline-chip dim"><span class="logo" style="background:#ed1c24">N4</span>NordWind</span>
           <span class="airline-chip dim"><span class="logo" style="background:#003a96">ZF</span>Azur Air</span>
           <span class="airline-chip dim"><span class="logo" style="background:#cc0000">WZ</span>Red Wings</span>
         </div>
         <div class="ri-meta">
-          <div class="ri-stat"><div class="label">Длительность</div><div class="value">3,5 ч</div></div>
-          <div class="ri-stat"><div class="label">Туда-обратно</div><div class="value"><span class="rub">₽</span><span class="num">35–55</span><span class="suf">т.</span></div></div>
+          <div class="ri-stat"><div class="label">Длительность</div><div class="value">3,5–4 ч</div></div>
+          <div class="ri-stat"><div class="label">Туда-обратно</div><div class="value"><span class="rub">₽</span><span class="num">30–55</span><span class="suf">т.</span></div></div>
         </div>
-        <div class="ri-note">AYT — самое популярное направление, рейсы каждые 1–2 часа. Каш — через DLM (~2 ч на машине).</div>
+        <div class="ri-note">AYT — самое популярное направление, рейсы каждые 1–2 часа. Победа — самые дешёвые билеты. Каш — через DLM (~2 ч на машине) или через AYT (4 ч).</div>
       </div>
     </div>
 
@@ -3484,17 +3536,21 @@ body.catalog-mode .catalog-back-to-quiz{display:inline-flex;align-items:center;g
         <p>Не классический пляжный отдых — для тех, кто хочет тишину, природу и совсем без толп.</p>
       </div>
       <div class="ri-flight">
-        <div class="ri-label"><span class="ic">✈</span> Прямой перелёт</div>
+        <div class="ri-label"><span class="ic">✈</span> Прямой перелёт Москва → Стамбул (IST/SAW)</div>
         <div class="ri-airlines">
-          <span class="airline-chip"><span class="logo" style="background:#e30613">TK</span>Turkish Airlines</span>
-          <span class="airline-chip"><span class="logo" style="background:#f37021">PC</span>Pegasus</span>
           <span class="airline-chip"><span class="logo" style="background:#009edb">SU</span>Аэрофлот</span>
+          <span class="airline-chip"><span class="logo" style="background:#e30613">TK</span>Turkish</span>
+          <span class="airline-chip"><span class="logo" style="background:#f37021">PC</span>Pegasus</span>
+          <span class="airline-chip"><span class="logo" style="background:#009d3f">S7</span>S7 Airlines</span>
+          <span class="airline-chip dim"><span class="logo" style="background:#ff7a00">DP</span>Победа</span>
+          <span class="airline-chip dim"><span class="logo" style="background:#003a8c">VF</span>AJet</span>
+          <span class="airline-chip dim"><span class="logo" style="background:#003a96">SY</span>Southwind</span>
         </div>
         <div class="ri-meta">
           <div class="ri-stat"><div class="label">Длительность</div><div class="value">3,5 ч + 3 ч авто</div></div>
-          <div class="ri-stat"><div class="label">Туда-обратно</div><div class="value"><span class="rub">₽</span><span class="num">40–55</span><span class="suf">т.</span></div></div>
+          <div class="ri-stat"><div class="label">Туда-обратно</div><div class="value"><span class="rub">₽</span><span class="num">35–55</span><span class="suf">т.</span></div></div>
         </div>
-        <div class="ri-note">До Игнеады из Стамбула ~250 км — трансфер или машина в аренду (≈ ₽ 8–12 т. в день).</div>
+        <div class="ri-note">Рейсов из Москвы в Стамбул много — каждые 1–2 часа. До Игнеады из Стамбула ~250 км: трансфер или машина в аренду (≈ ₽ 8–12 т. в день).</div>
       </div>
     </div>
 
@@ -5057,6 +5113,37 @@ if (kzMapEl) {
     'seychelles':'Тропический рай Индийского океана: гранитные пляжи, бирюзовая вода 27°, прямой полёт 10 ч. Для большого выхода из зоны комфорта.'
   };
 
+  /* ===== Unavailable hotels for 17–18.07.2026 =====
+     To mark a hotel as unavailable: add its slug to this list.
+     Slug = filename prefix in /mom-vacation/pics_booking/ (e.g. 'tochka', 'cosmos').
+     Marked hotels get: opacity 0.55, red "⛔ нет в наличии" banner over photo,
+     0.20× score penalty in quiz, BUT Booking/Островок link stays clickable. */
+  const UNAVAILABLE = [
+    // EXAMPLE: 'tochka',     // ⛔ sold out / closed for renovation
+    // EXAMPLE: 'meridien',   // ⛔ min stay 3 nights
+  ];
+
+  function applyUnavailable(){
+    document.querySelectorAll('.hotel').forEach(card => {
+      const img = card.querySelector('img[src^="/mom-vacation/pics_booking/"]');
+      if (!img) return;
+      const m = img.getAttribute('src').match(/\/([a-z]+)_1\.jpg/);
+      if (!m) return;
+      const slug = m[1];
+      if (UNAVAILABLE.includes(slug)) {
+        card.dataset.unavailable = '1';
+        if (!card.querySelector('.unavail-banner')) {
+          const banner = document.createElement('div');
+          banner.className = 'unavail-banner';
+          banner.innerHTML = '⛔ Нет в наличии на 17–18 июля';
+          const wrap = card.querySelector('.carousel-wrap');
+          if (wrap) wrap.appendChild(banner);
+        }
+      }
+    });
+  }
+  applyUnavailable();
+
   /* ===== Collect hotels from DOM ===== */
   function collectHotels(){
     return Array.from(document.querySelectorAll('.hotel')).map(card => {
@@ -5077,6 +5164,7 @@ if (kzMapEl) {
         purpose:(card.dataset.purpose||'').split(/\s+/).filter(Boolean),
         amenities:(card.dataset.amenities||'').split(/\s+/).filter(Boolean),
         language:card.dataset.language,
+        unavailable: card.dataset.unavailable === '1',
         bookHref: bookLink ? bookLink.getAttribute('href') : '#',
         photo:`/mom-vacation/pics_booking/${slug}_1.jpg`
       };
@@ -5153,8 +5241,9 @@ if (kzMapEl) {
       else total += 0;
     }
 
-    if (max === 0) return 60;
-    const pct = (total / max) * 100 * cut;
+    if (max === 0) return h.unavailable ? 18 : 60;
+    let pct = (total / max) * 100 * cut;
+    if (h.unavailable) pct *= 0.20;  // hard penalty so unavailable hotels sink in ranking
     return Math.round(Math.max(3, Math.min(99, pct)));
   }
 
@@ -5444,11 +5533,12 @@ if (kzMapEl) {
     }).join('');
     const stars = h.stars === 'санат.' ? 'санаторий' : `${h.stars}★`;
     return `
-      <div class="quiz-pick">
+      <div class="quiz-pick${h.unavailable ? ' is-unavail' : ''}">
         <div class="quiz-pick-photo">
           <img src="${h.photo}" alt="">
           <div class="quiz-pick-badge"><span class="rank">№${rank}</span> ${REGION_FLAGS[h.region]} ${REGION_NAMES[h.region]}</div>
           ${ringHTML(score, 'quiz-pick-ring')}
+          ${h.unavailable ? '<div class="unavail-banner">⛔ Нет в наличии на 17–18 июля</div>' : ''}
         </div>
         <div class="quiz-pick-body">
           <h3 class="quiz-pick-name">${h.name}</h3>
@@ -5475,10 +5565,10 @@ if (kzMapEl) {
     const h = pick.h, score = pick.s;
     const stars = h.stars === 'санат.' ? 'санаторий' : `${h.stars}★`;
     return `
-      <button class="quiz-alt" data-jump-slug="${h.slug}" type="button">
+      <button class="quiz-alt${h.unavailable ? ' is-unavail' : ''}" data-jump-slug="${h.slug}" type="button">
         <div class="quiz-alt-photo"><img src="${h.photo}" alt=""></div>
         <div class="quiz-alt-body">
-          <div class="quiz-alt-rank">№${rank}</div>
+          ${h.unavailable ? '<span class="unavail-banner">⛔ нет на 17–18 июля</span>' : `<div class="quiz-alt-rank">№${rank}</div>`}
           <div class="quiz-alt-name">${h.name}</div>
           <div class="quiz-alt-region"><span class="qa-flag">${REGION_FLAGS[h.region]}</span> ${REGION_NAMES[h.region]}</div>
           <div class="quiz-alt-stats">
