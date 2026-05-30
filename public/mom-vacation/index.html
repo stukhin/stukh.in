@@ -840,9 +840,300 @@ body.lightbox-open{overflow:hidden;}
   .lightbox-nav.prev{left:12px;}
   .lightbox-nav.next{right:12px;}
 }
+
+/* ============ QUIZ OVERLAY ============ */
+body.quiz-open{overflow:hidden;}
+.quiz-overlay{
+  position:fixed;inset:0;z-index:10000;
+  background:
+    radial-gradient(70% 60% at 50% -10%, rgba(120,135,255,.18) 0%, transparent 60%),
+    radial-gradient(40% 35% at 95% 30%, rgba(255,120,180,.10) 0%, transparent 60%),
+    radial-gradient(35% 30% at 5% 75%, rgba(120,220,180,.10) 0%, transparent 60%),
+    linear-gradient(180deg,#f5f5f7 0%,#ececef 100%);
+  display:none;
+  overflow-y:auto;
+  -webkit-overflow-scrolling:touch;
+}
+.quiz-overlay.is-open{display:block;animation:quizFadeIn .35s ease both;}
+@keyframes quizFadeIn{from{opacity:0;}to{opacity:1;}}
+
+.quiz-shell{
+  max-width:760px;margin:0 auto;
+  min-height:100vh;
+  display:flex;flex-direction:column;
+  padding:24px 24px 32px;
+}
+@media (max-width:780px){.quiz-shell{padding:16px 16px 24px;}}
+
+/* Header — progress + brand */
+.quiz-head{display:flex;align-items:center;gap:14px;margin-bottom:28px;}
+.quiz-brand{font-weight:700;font-size:16px;letter-spacing:-.01em;color:var(--ink);}
+.quiz-brand .b-sub{display:block;font-weight:500;font-size:12px;color:var(--sub);margin-top:2px;}
+.quiz-progress-wrap{flex:1;display:flex;align-items:center;gap:10px;}
+.quiz-progress{flex:1;height:6px;background:rgba(0,0,0,.07);border-radius:99px;overflow:hidden;}
+.quiz-progress-bar{height:100%;background:linear-gradient(90deg,#7d8aff,#a855f7);border-radius:99px;width:11%;transition:width .35s cubic-bezier(.2,.7,.2,1);}
+.quiz-progress-count{font-size:13px;font-weight:600;color:var(--ink-soft);font-variant-numeric:tabular-nums;min-width:32px;text-align:right;}
+
+/* Question body */
+.quiz-body{flex:1;display:flex;flex-direction:column;}
+.quiz-step{display:none;animation:stepIn .3s ease both;}
+.quiz-step.is-active{display:block;}
+@keyframes stepIn{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+
+.quiz-q-title{font-size:30px;line-height:1.2;font-weight:700;letter-spacing:-.018em;color:var(--ink);margin:6px 0 8px;}
+.quiz-q-hint{font-size:14px;color:var(--sub);margin:0 0 24px;}
+@media (max-width:780px){
+  .quiz-q-title{font-size:24px;margin-top:4px;}
+  .quiz-q-hint{margin-bottom:18px;}
+}
+
+/* Big option buttons */
+.quiz-options{display:flex;flex-direction:column;gap:10px;}
+.quiz-opt{
+  display:flex;align-items:center;gap:14px;
+  width:100%;
+  min-height:64px;
+  padding:14px 20px;
+  background:var(--card);
+  border:2px solid var(--card-border);
+  border-radius:16px;
+  text-align:left;
+  font-family:inherit;
+  font-size:17px;font-weight:600;color:var(--ink);
+  cursor:pointer;
+  transition:transform .14s ease, background .18s ease, border-color .18s ease, box-shadow .18s ease;
+  -webkit-tap-highlight-color:transparent;
+}
+.quiz-opt:hover{background:#fafaff;border-color:var(--card-border-strong);}
+.quiz-opt:active{transform:scale(.985);}
+.quiz-opt .opt-icon{font-size:24px;line-height:1;flex-shrink:0;width:28px;text-align:center;}
+.quiz-opt .opt-text{flex:1;}
+.quiz-opt .opt-sub{display:block;font-size:13px;font-weight:500;color:var(--sub);margin-top:2px;}
+.quiz-opt .opt-check{
+  flex-shrink:0;width:24px;height:24px;border-radius:50%;
+  border:2px solid var(--card-border-strong);background:transparent;
+  display:flex;align-items:center;justify-content:center;
+  transition:all .18s ease;
+}
+.quiz-opt .opt-check svg{opacity:0;transform:scale(.6);transition:all .2s ease;width:14px;height:14px;color:#fff;}
+.quiz-opt[data-multi="1"] .opt-check{border-radius:6px;}
+.quiz-opt.is-selected{
+  background:linear-gradient(135deg,rgba(125,138,255,.10),rgba(168,85,247,.08));
+  border-color:#7d8aff;
+  box-shadow:0 0 0 4px rgba(125,138,255,.10);
+}
+.quiz-opt.is-selected .opt-check{background:#7d8aff;border-color:#7d8aff;}
+.quiz-opt.is-selected .opt-check svg{opacity:1;transform:scale(1);}
+@media (min-width:781px){
+  .quiz-opt{min-height:72px;padding:16px 24px;font-size:18px;border-radius:18px;}
+  .quiz-opt .opt-icon{font-size:26px;width:32px;}
+}
+
+/* Footer — back / skip / next */
+.quiz-foot{
+  margin-top:28px;
+  display:flex;align-items:center;gap:10px;
+  padding-top:18px;
+  border-top:1px solid var(--card-border);
+}
+.quiz-btn{
+  font-family:inherit;font-size:15px;font-weight:600;
+  border-radius:99px;padding:14px 22px;
+  border:1.5px solid transparent;cursor:pointer;
+  background:transparent;color:var(--ink-soft);
+  transition:all .18s ease;
+  -webkit-tap-highlight-color:transparent;
+}
+.quiz-btn:hover{background:rgba(0,0,0,.04);}
+.quiz-btn.is-back{border-color:var(--card-border-strong);background:var(--card);color:var(--ink);}
+.quiz-btn.is-back:hover{background:#fafaff;}
+.quiz-btn.is-skip{margin-left:auto;font-weight:500;font-size:14px;}
+.quiz-btn.is-next{
+  background:#0a0a0a;color:#fff;
+  padding:14px 28px;font-size:16px;font-weight:700;
+  box-shadow:0 6px 20px rgba(0,0,0,.18);
+}
+.quiz-btn.is-next:hover{background:#222;}
+.quiz-btn.is-next[disabled]{opacity:.35;cursor:not-allowed;box-shadow:none;}
+.quiz-btn.is-back[hidden]{display:none;}
+@media (max-width:780px){
+  .quiz-btn{padding:12px 16px;font-size:14px;}
+  .quiz-btn.is-next{padding:14px 22px;font-size:15px;}
+  .quiz-btn.is-skip{padding:10px 12px;font-size:13px;}
+}
+
+/* Bottom "view all" inline link */
+.quiz-all-link{
+  display:block;text-align:center;
+  margin-top:22px;padding:14px;
+  font-size:14px;font-weight:600;color:var(--ink-soft);
+  border:1px dashed var(--card-border-strong);
+  border-radius:12px;
+  cursor:pointer;background:transparent;
+  width:100%;font-family:inherit;
+  transition:all .18s ease;
+  -webkit-tap-highlight-color:transparent;
+}
+.quiz-all-link:hover{background:rgba(0,0,0,.03);color:var(--ink);}
+
+/* ============ QUIZ RESULT SCREEN ============ */
+.quiz-result-head{margin-bottom:24px;}
+.quiz-result-eyebrow{font-size:13px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#7d8aff;margin-bottom:8px;}
+.quiz-result-title{font-size:32px;line-height:1.15;font-weight:800;letter-spacing:-.02em;color:var(--ink);margin:0 0 14px;}
+.quiz-result-desc{font-size:16px;line-height:1.55;color:var(--ink-soft);margin:0;}
+.quiz-result-desc b{color:var(--ink);font-weight:700;}
+@media (max-width:780px){
+  .quiz-result-title{font-size:26px;}
+  .quiz-result-desc{font-size:15px;}
+}
+
+.quiz-pick{
+  margin-top:18px;background:var(--card);border:1.5px solid var(--card-border-strong);
+  border-radius:22px;overflow:hidden;
+  display:flex;flex-direction:column;
+  box-shadow:0 12px 32px rgba(0,0,0,.06);
+}
+.quiz-pick-photo{position:relative;aspect-ratio:16/9;background:#222;overflow:hidden;}
+.quiz-pick-photo img{width:100%;height:100%;object-fit:cover;}
+.quiz-pick-badge{
+  position:absolute;top:14px;left:14px;
+  display:inline-flex;align-items:center;gap:8px;
+  padding:8px 14px;background:rgba(255,255,255,.96);backdrop-filter:blur(10px);
+  border-radius:99px;font-size:13px;font-weight:700;color:var(--ink);
+}
+.quiz-pick-badge .rank{font-size:14px;color:#7d8aff;}
+.quiz-pick-match{
+  position:absolute;top:14px;right:14px;
+  display:inline-flex;align-items:center;gap:6px;
+  padding:8px 14px;background:rgba(10,10,10,.85);backdrop-filter:blur(10px);
+  border-radius:99px;font-size:13px;font-weight:700;color:#fff;
+  font-variant-numeric:tabular-nums;
+}
+.quiz-pick-body{padding:18px 20px 20px;}
+@media (max-width:780px){.quiz-pick-body{padding:16px;}}
+.quiz-pick-name{font-size:20px;line-height:1.2;font-weight:700;letter-spacing:-.012em;color:var(--ink);margin:0 0 6px;}
+.quiz-pick-area{font-size:14px;color:var(--sub);margin:0 0 14px;}
+.quiz-pick-why{list-style:none;margin:0 0 16px;padding:0;display:flex;flex-direction:column;gap:8px;}
+.quiz-pick-why li{font-size:14px;line-height:1.45;color:var(--ink-soft);padding-left:22px;position:relative;}
+.quiz-pick-why li::before{content:"✓";position:absolute;left:0;top:1px;color:var(--good);font-weight:800;font-size:14px;}
+.quiz-pick-why li.is-con{color:#a16207;}
+.quiz-pick-why li.is-con::before{content:"!";color:#d97706;}
+.quiz-pick-stats{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 16px;}
+.quiz-pick-stats span{
+  display:inline-flex;align-items:center;gap:4px;
+  font-size:12px;font-weight:600;color:var(--ink-soft);
+  padding:5px 10px;background:rgba(0,0,0,.04);border-radius:99px;
+}
+.quiz-pick-stats span b{color:var(--ink);}
+.quiz-pick-actions{display:flex;gap:10px;flex-wrap:wrap;}
+.quiz-pick-actions a, .quiz-pick-actions button{
+  flex:1;min-width:140px;
+  padding:13px 18px;font-size:15px;font-weight:700;font-family:inherit;
+  border-radius:12px;border:1.5px solid var(--card-border-strong);
+  text-align:center;color:var(--ink);background:var(--card);
+  cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:6px;
+  transition:all .18s ease;
+  -webkit-tap-highlight-color:transparent;
+}
+.quiz-pick-actions a:hover, .quiz-pick-actions button:hover{background:#fafaff;border-color:#7d8aff;}
+.quiz-pick-actions .is-book{background:#0a0a0a;color:#fff;border-color:#0a0a0a;}
+.quiz-pick-actions .is-book:hover{background:#222;color:#fff;}
+
+/* alt picks #2 #3 */
+.quiz-alt-section{margin-top:32px;}
+.quiz-alt-head{font-size:14px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--sub);margin-bottom:14px;}
+.quiz-alt-list{display:flex;flex-direction:column;gap:14px;}
+.quiz-alt{
+  display:flex;align-items:stretch;gap:14px;
+  background:var(--card);border:1.5px solid var(--card-border);
+  border-radius:18px;overflow:hidden;
+  text-align:left;width:100%;cursor:pointer;font-family:inherit;
+  padding:0;
+  transition:all .18s ease;
+  -webkit-tap-highlight-color:transparent;
+}
+.quiz-alt:hover{border-color:#7d8aff;box-shadow:0 6px 20px rgba(0,0,0,.07);}
+.quiz-alt-photo{flex-shrink:0;width:130px;background:#222;overflow:hidden;}
+.quiz-alt-photo img{width:100%;height:100%;object-fit:cover;}
+.quiz-alt-body{flex:1;padding:14px 16px 14px 0;}
+.quiz-alt-name{font-size:16px;font-weight:700;letter-spacing:-.012em;color:var(--ink);margin:0 0 4px;line-height:1.25;}
+.quiz-alt-area{font-size:13px;color:var(--sub);margin:0 0 8px;}
+.quiz-alt-match{
+  display:inline-flex;align-items:center;gap:5px;
+  font-size:12px;font-weight:700;color:#fff;
+  padding:4px 9px;background:#0a0a0a;border-radius:99px;
+  font-variant-numeric:tabular-nums;
+}
+.quiz-alt-rank{display:inline-block;font-size:12px;font-weight:700;color:#7d8aff;margin-right:6px;}
+@media (max-width:520px){
+  .quiz-alt-photo{width:100px;}
+  .quiz-alt-name{font-size:15px;}
+  .quiz-alt-body{padding:12px 14px 12px 0;}
+}
+
+.quiz-result-foot{margin-top:32px;display:flex;flex-direction:column;gap:10px;}
+.quiz-restart{
+  padding:14px 22px;font-size:15px;font-weight:600;font-family:inherit;
+  background:transparent;color:var(--ink-soft);
+  border:1.5px solid var(--card-border-strong);border-radius:99px;cursor:pointer;
+  transition:all .18s ease;
+  -webkit-tap-highlight-color:transparent;
+}
+.quiz-restart:hover{background:rgba(0,0,0,.04);color:var(--ink);}
+
+/* Hero CTA when catalog visible — leads back to quiz */
+.catalog-back-to-quiz{
+  position:fixed;left:50%;bottom:24px;transform:translateX(-50%);
+  z-index:90;
+  padding:13px 22px;
+  background:#0a0a0a;color:#fff;font-size:14px;font-weight:700;
+  border-radius:99px;border:none;cursor:pointer;font-family:inherit;
+  box-shadow:0 8px 28px rgba(0,0,0,.22);
+  display:none;
+  transition:transform .2s ease;
+  -webkit-tap-highlight-color:transparent;
+}
+.catalog-back-to-quiz:hover{transform:translateX(-50%) translateY(-2px);}
+body.catalog-mode .catalog-back-to-quiz{display:inline-flex;align-items:center;gap:8px;}
+@media (min-width:781px){
+  .catalog-back-to-quiz{left:auto;right:24px;bottom:24px;transform:none;}
+  .catalog-back-to-quiz:hover{transform:translateY(-2px);}
+}
+
 </style>
 </head>
 <body>
+
+<!-- ===== QUIZ OVERLAY (starts open on bare /mom-vacation/) ===== -->
+<div class="quiz-overlay" id="quizOverlay" role="dialog" aria-modal="true" aria-labelledby="quizTitle">
+  <div class="quiz-shell">
+    <div class="quiz-head">
+      <div class="quiz-brand">
+        Подбор поездки
+        <span class="b-sub">9 вопросов · ~2 минуты</span>
+      </div>
+      <div class="quiz-progress-wrap">
+        <div class="quiz-progress"><div class="quiz-progress-bar" id="quizBar"></div></div>
+        <div class="quiz-progress-count" id="quizCount">1/9</div>
+      </div>
+    </div>
+
+    <div class="quiz-body" id="quizBody">
+      <!-- steps injected by JS -->
+    </div>
+
+    <div class="quiz-foot" id="quizFoot">
+      <button class="quiz-btn is-back" id="quizBack" type="button" hidden>← Назад</button>
+      <button class="quiz-btn is-skip" id="quizSkip" type="button">Пропустить</button>
+      <button class="quiz-btn is-next" id="quizNext" type="button" disabled>Дальше →</button>
+    </div>
+
+    <button class="quiz-all-link" id="quizSkipAll" type="button">или посмотреть все 44 варианта в каталоге →</button>
+  </div>
+</div>
+
+<!-- Floating button to reopen quiz from catalog mode -->
+<button class="catalog-back-to-quiz" id="backToQuiz" type="button">🎯 Открыть подборку</button>
 
 <header class="hero">
   <h1 class="hero-title">Подбор поездки для мамы</h1>
@@ -1017,7 +1308,7 @@ body.lightbox-open{overflow:hidden;}
       <div class="hotel-table-scroll"></div>
     </div>
 
-    <div class="hotel" data-region="russia-ld" data-rating="9.6" data-price="20" data-stars="5" data-meal="HB" data-spa="1" data-adults="0" data-beach="lake" data-water="18">
+    <div class="hotel" data-region="russia-ld" data-rating="9.6" data-price="20" data-stars="5" data-meal="HB" data-spa="1" data-adults="0" data-beach="lake" data-water="18" data-flight-h="1.5" data-climate="cool" data-purpose="spa nature" data-amenities="pool food nature atmosphere" data-language="ru">
       <div class="carousel-wrap">
         <div class="carousel">
           <div class="carousel-item"><img loading="lazy" src="/mom-vacation/pics_booking/tochka_1.jpg" alt=""></div>
@@ -1064,7 +1355,7 @@ body.lightbox-open{overflow:hidden;}
       </div>
     </div>
 
-    <div class="hotel" data-region="russia-ld" data-rating="8.7" data-price="27" data-stars="5" data-meal="HB" data-spa="1" data-adults="0" data-beach="sand" data-water="18">
+    <div class="hotel" data-region="russia-ld" data-rating="8.7" data-price="27" data-stars="5" data-meal="HB" data-spa="1" data-adults="0" data-beach="sand" data-water="18" data-flight-h="1.5" data-climate="cool" data-purpose="sanat spa" data-amenities="pool treatment food" data-language="ru">
       <div class="carousel-wrap">
         <div class="carousel">
           <div class="carousel-item"><img loading="lazy" src="/mom-vacation/pics_booking/xclinic_1.jpg" alt=""></div>
@@ -1111,7 +1402,7 @@ body.lightbox-open{overflow:hidden;}
       </div>
     </div>
 
-    <div class="hotel" data-region="russia-ld" data-rating="9.1" data-price="64" data-stars="4" data-meal="HB" data-spa="1" data-adults="0" data-beach="lake" data-water="18">
+    <div class="hotel" data-region="russia-ld" data-rating="9.1" data-price="64" data-stars="4" data-meal="HB" data-spa="1" data-adults="0" data-beach="lake" data-water="18" data-flight-h="1.5" data-climate="cool" data-purpose="nature" data-amenities="nature atmosphere" data-language="ru">
       <div class="carousel-wrap">
         <div class="carousel">
           <div class="carousel-item"><img loading="lazy" src="/mom-vacation/pics_booking/sorola_1.jpg" alt=""></div>
@@ -1159,7 +1450,7 @@ body.lightbox-open{overflow:hidden;}
       </div>
     </div>
 
-    <div class="hotel" data-region="russia-ld" data-rating="8.9" data-price="20" data-stars="3" data-meal="HB" data-spa="1" data-adults="0" data-beach="lake" data-water="18">
+    <div class="hotel" data-region="russia-ld" data-rating="8.9" data-price="20" data-stars="3" data-meal="HB" data-spa="1" data-adults="0" data-beach="lake" data-water="18" data-flight-h="1.5" data-climate="cool" data-purpose="nature" data-amenities="nature activities" data-language="ru">
       <div class="carousel-wrap">
         <div class="carousel">
           <div class="carousel-item"><img loading="lazy" src="/mom-vacation/pics_booking/rantala_1.jpg" alt=""></div>
@@ -1207,7 +1498,7 @@ body.lightbox-open{overflow:hidden;}
       </div>
     </div>
 
-    <div class="hotel" data-region="russia-ld" data-rating="9.2" data-price="22" data-stars="4" data-meal="HB" data-spa="1" data-adults="0" data-beach="lake" data-water="18">
+    <div class="hotel" data-region="russia-ld" data-rating="9.2" data-price="22" data-stars="4" data-meal="HB" data-spa="1" data-adults="0" data-beach="lake" data-water="18" data-flight-h="1.5" data-climate="cool" data-purpose="nature spa" data-amenities="pool nature activities" data-language="ru">
       <div class="carousel-wrap">
         <div class="carousel">
           <div class="carousel-item"><img loading="lazy" src="/mom-vacation/pics_booking/igora_1.jpg" alt=""></div>
@@ -1296,7 +1587,7 @@ body.lightbox-open{overflow:hidden;}
       <div class="hotel-table-scroll"></div>
     </div>
 
-    <div class="hotel" data-region="russia-kld" data-rating="9.6" data-price="21" data-stars="5" data-meal="HB" data-spa="1" data-adults="0" data-beach="sand" data-water="19">
+    <div class="hotel" data-region="russia-kld" data-rating="9.6" data-price="21" data-stars="5" data-meal="HB" data-spa="1" data-adults="0" data-beach="sand" data-water="19" data-flight-h="2.0" data-climate="cool" data-purpose="spa culture" data-amenities="pool food atmosphere" data-language="ru">
       <div class="carousel-wrap">
         <div class="carousel">
           <div class="carousel-item"><img loading="lazy" src="/mom-vacation/pics_booking/amber_1.jpg" alt=""></div>
@@ -1343,7 +1634,7 @@ body.lightbox-open{overflow:hidden;}
       </div>
     </div>
 
-    <div class="hotel" data-region="russia-kld" data-rating="9.3" data-price="19" data-stars="4" data-meal="HB" data-spa="1" data-adults="0" data-beach="sand" data-water="19">
+    <div class="hotel" data-region="russia-kld" data-rating="9.3" data-price="19" data-stars="4" data-meal="HB" data-spa="1" data-adults="0" data-beach="sand" data-water="19" data-flight-h="2.0" data-climate="cool" data-purpose="spa sanat culture" data-amenities="pool treatment food" data-language="ru">
       <div class="carousel-wrap">
         <div class="carousel">
           <div class="carousel-item"><img loading="lazy" src="/mom-vacation/pics_booking/kristall_1.jpg" alt=""></div>
@@ -1390,7 +1681,7 @@ body.lightbox-open{overflow:hidden;}
       </div>
     </div>
 
-    <div class="hotel" data-region="russia-kld" data-rating="9.4" data-price="33" data-stars="5" data-meal="HB" data-spa="1" data-adults="0" data-beach="sand" data-water="19">
+    <div class="hotel" data-region="russia-kld" data-rating="9.4" data-price="33" data-stars="5" data-meal="HB" data-spa="1" data-adults="0" data-beach="sand" data-water="19" data-flight-h="2.0" data-climate="cool" data-purpose="culture spa" data-amenities="pool food atmosphere" data-language="ru">
       <div class="carousel-wrap">
         <div class="carousel">
           <div class="carousel-item"><img loading="lazy" src="/mom-vacation/pics_booking/yantarhall_1.jpg" alt=""></div>
@@ -1437,7 +1728,7 @@ body.lightbox-open{overflow:hidden;}
       </div>
     </div>
 
-    <div class="hotel" data-region="russia-kld" data-rating="9.4" data-price="20" data-stars="4" data-meal="HB" data-spa="1" data-adults="0" data-beach="sand" data-water="19">
+    <div class="hotel" data-region="russia-kld" data-rating="9.4" data-price="20" data-stars="4" data-meal="HB" data-spa="1" data-adults="0" data-beach="sand" data-water="19" data-flight-h="2.0" data-climate="cool" data-purpose="spa culture" data-amenities="pool food" data-language="ru">
       <div class="carousel-wrap">
         <div class="carousel">
           <div class="carousel-item"><img loading="lazy" src="/mom-vacation/pics_booking/berry_1.jpg" alt=""></div>
@@ -1484,7 +1775,7 @@ body.lightbox-open{overflow:hidden;}
       </div>
     </div>
 
-    <div class="hotel" data-region="russia-kld" data-rating="9.0" data-price="31" data-stars="5" data-meal="HB" data-spa="1" data-adults="0" data-beach="sand" data-water="19">
+    <div class="hotel" data-region="russia-kld" data-rating="9.0" data-price="31" data-stars="5" data-meal="HB" data-spa="1" data-adults="0" data-beach="sand" data-water="19" data-flight-h="2.0" data-climate="cool" data-purpose="culture nature" data-amenities="pool atmosphere nature" data-language="ru">
       <div class="carousel-wrap">
         <div class="carousel">
           <div class="carousel-item"><img loading="lazy" src="/mom-vacation/pics_booking/schloss_1.jpg" alt=""></div>
@@ -1532,7 +1823,7 @@ body.lightbox-open{overflow:hidden;}
       </div>
     </div>
 
-    <div class="hotel" data-region="russia-kld" data-rating="8.5" data-price="16" data-stars="4" data-meal="B&amp;B" data-spa="0" data-adults="0" data-beach="sand" data-water="19">
+    <div class="hotel" data-region="russia-kld" data-rating="8.5" data-price="16" data-stars="4" data-meal="B&amp;B" data-spa="0" data-adults="0" data-beach="sand" data-water="19" data-flight-h="2.0" data-climate="cool" data-purpose="nature" data-amenities="pool nature activities" data-language="ru">
       <div class="carousel-wrap">
         <div class="carousel">
           <div class="carousel-item"><img loading="lazy" src="/mom-vacation/pics_booking/altrimo_1.jpg" alt=""></div>
@@ -1641,7 +1932,7 @@ body.lightbox-open{overflow:hidden;}
       <div class="hotel-table-scroll"></div>
     </div>
 
-    <div class="hotel" data-region="russia-altay" data-rating="9.4" data-price="40" data-stars="5" data-meal="HB" data-spa="1" data-adults="0" data-beach="mountain" data-water="0">
+    <div class="hotel" data-region="russia-altay" data-rating="9.4" data-price="40" data-stars="5" data-meal="HB" data-spa="1" data-adults="0" data-beach="mountain" data-water="0" data-flight-h="4.5" data-climate="mild" data-purpose="spa mountains nature" data-amenities="pool food atmosphere" data-language="ru">
       <div class="carousel-wrap">
         <div class="carousel">
           <div class="carousel-item"><img loading="lazy" src="/mom-vacation/pics_booking/cosmos_1.jpg" alt=""></div>
@@ -1689,7 +1980,7 @@ body.lightbox-open{overflow:hidden;}
       </div>
     </div>
 
-    <div class="hotel" data-region="russia-altay" data-rating="9.2" data-price="23" data-stars="4" data-meal="HB" data-spa="1" data-adults="0" data-beach="mountain" data-water="0">
+    <div class="hotel" data-region="russia-altay" data-rating="9.2" data-price="23" data-stars="4" data-meal="HB" data-spa="1" data-adults="0" data-beach="mountain" data-water="0" data-flight-h="4.5" data-climate="mild" data-purpose="spa mountains nature" data-amenities="pool nature food" data-language="ru">
       <div class="carousel-wrap">
         <div class="carousel">
           <div class="carousel-item"><img loading="lazy" src="/mom-vacation/pics_booking/altajpalace_1.jpg" alt=""></div>
@@ -1736,7 +2027,7 @@ body.lightbox-open{overflow:hidden;}
       </div>
     </div>
 
-    <div class="hotel" data-region="russia-altay" data-rating="8.9" data-price="32" data-stars="5" data-meal="HB" data-spa="1" data-adults="0" data-beach="mountain" data-water="0">
+    <div class="hotel" data-region="russia-altay" data-rating="8.9" data-price="32" data-stars="5" data-meal="HB" data-spa="1" data-adults="0" data-beach="mountain" data-water="0" data-flight-h="4.5" data-climate="mild" data-purpose="spa mountains" data-amenities="pool activities food" data-language="ru">
       <div class="carousel-wrap">
         <div class="carousel">
           <div class="carousel-item"><img loading="lazy" src="/mom-vacation/pics_booking/manzherok_1.jpg" alt=""></div>
@@ -1826,7 +2117,7 @@ body.lightbox-open{overflow:hidden;}
       <div class="hotel-table-scroll"></div>
     </div>
 
-    <div class="hotel" data-region="russia-kmv" data-rating="8.8" data-price="11" data-stars="4" data-meal="HB" data-spa="1" data-adults="0" data-beach="mountain" data-water="0">
+    <div class="hotel" data-region="russia-kmv" data-rating="8.8" data-price="11" data-stars="4" data-meal="HB" data-spa="1" data-adults="0" data-beach="mountain" data-water="0" data-flight-h="2.5" data-climate="mild" data-purpose="sanat spa" data-amenities="pool treatment food" data-language="ru">
       <div class="carousel-wrap">
         <div class="carousel">
           <div class="carousel-item"><img loading="lazy" src="/mom-vacation/pics_booking/plaza_1.jpg" alt=""></div>
@@ -1935,7 +2226,7 @@ body.lightbox-open{overflow:hidden;}
       <div class="hotel-table-scroll"></div>
     </div>
 
-    <div class="hotel" data-region="batumi" data-rating="9.2" data-price="5" data-stars="3" data-meal="B&B" data-spa="0" data-adults="0" data-beach="sand" data-water="26">
+    <div class="hotel" data-region="batumi" data-rating="9.2" data-price="5" data-stars="3" data-meal="B&B" data-spa="0" data-adults="0" data-beach="sand" data-water="26" data-flight-h="3.0" data-climate="hot" data-purpose="beach culture" data-amenities="atmosphere" data-language="ru">
       <div class="carousel-wrap">
         <div class="carousel">
           <div class="carousel-item"><img loading="lazy" src="/mom-vacation/pics_booking/orbi_1.jpg" alt=""></div>
@@ -1982,7 +2273,7 @@ body.lightbox-open{overflow:hidden;}
       </div>
     </div>
 
-    <div class="hotel" data-region="batumi" data-rating="8.9" data-price="20" data-stars="5" data-meal="B&B" data-spa="1" data-adults="0" data-beach="sand" data-water="26">
+    <div class="hotel" data-region="batumi" data-rating="8.9" data-price="20" data-stars="5" data-meal="B&B" data-spa="1" data-adults="0" data-beach="sand" data-water="26" data-flight-h="3.0" data-climate="hot" data-purpose="beach culture spa" data-amenities="pool food atmosphere" data-language="ru">
       <div class="carousel-wrap">
         <div class="carousel">
           <div class="carousel-item"><img loading="lazy" src="/mom-vacation/pics_booking/meridien_1.jpg" alt=""></div>
@@ -2029,7 +2320,7 @@ body.lightbox-open{overflow:hidden;}
       </div>
     </div>
 
-    <div class="hotel" data-region="batumi" data-rating="8.7" data-price="22" data-stars="5" data-meal="B&B" data-spa="1" data-adults="0" data-beach="sand" data-water="26">
+    <div class="hotel" data-region="batumi" data-rating="8.7" data-price="22" data-stars="5" data-meal="B&B" data-spa="1" data-adults="0" data-beach="sand" data-water="26" data-flight-h="3.0" data-climate="hot" data-purpose="beach spa culture" data-amenities="pool food" data-language="ru">
       <div class="carousel-wrap">
         <div class="carousel">
           <div class="carousel-item"><img loading="lazy" src="/mom-vacation/pics_booking/sheraton_1.jpg" alt=""></div>
@@ -2138,7 +2429,7 @@ body.lightbox-open{overflow:hidden;}
       <div class="hotel-table-scroll"></div>
     </div>
 
-    <div class="hotel" data-region="kazakhstan" data-rating="9.0" data-price="10" data-stars="5" data-meal="B&B" data-spa="1" data-adults="0" data-beach="lake" data-water="18">
+    <div class="hotel" data-region="kazakhstan" data-rating="9.0" data-price="10" data-stars="5" data-meal="B&B" data-spa="1" data-adults="0" data-beach="lake" data-water="18" data-flight-h="4.0" data-climate="mild" data-purpose="nature spa" data-amenities="pool nature" data-language="ru">
       <div class="carousel-wrap">
         <div class="carousel">
           <div class="carousel-item"><img loading="lazy" src="/mom-vacation/pics_booking/sultan_1.jpg" alt=""></div>
@@ -2185,7 +2476,7 @@ body.lightbox-open{overflow:hidden;}
       </div>
     </div>
 
-    <div class="hotel" data-region="kazakhstan" data-rating="9.2" data-price="16" data-stars="4" data-meal="B&B" data-spa="1" data-adults="0" data-beach="lake" data-water="18">
+    <div class="hotel" data-region="kazakhstan" data-rating="9.2" data-price="16" data-stars="4" data-meal="B&B" data-spa="1" data-adults="0" data-beach="lake" data-water="18" data-flight-h="4.0" data-climate="mild" data-purpose="nature" data-amenities="nature atmosphere" data-language="ru">
       <div class="carousel-wrap">
         <div class="carousel">
           <div class="carousel-item"><img loading="lazy" src="/mom-vacation/pics_booking/dom_1.jpg" alt=""></div>
@@ -2233,7 +2524,7 @@ body.lightbox-open{overflow:hidden;}
       </div>
     </div>
 
-    <div class="hotel" data-region="kazakhstan" data-rating="9.1" data-price="23" data-stars="5" data-meal="B&B" data-spa="1" data-adults="0" data-beach="lake" data-water="18">
+    <div class="hotel" data-region="kazakhstan" data-rating="9.1" data-price="23" data-stars="5" data-meal="B&B" data-spa="1" data-adults="0" data-beach="lake" data-water="18" data-flight-h="4.0" data-climate="mild" data-purpose="spa nature" data-amenities="pool nature activities food" data-language="ru">
       <div class="carousel-wrap">
         <div class="carousel">
           <div class="carousel-item"><img loading="lazy" src="/mom-vacation/pics_booking/rixos_1.jpg" alt=""></div>
@@ -2282,7 +2573,7 @@ body.lightbox-open{overflow:hidden;}
       </div>
     </div>
 
-    <div class="hotel" data-region="kazakhstan" data-rating="9.2" data-price="12" data-stars="5" data-meal="B&B" data-spa="1" data-adults="0" data-beach="mountain" data-water="0">
+    <div class="hotel" data-region="kazakhstan" data-rating="9.2" data-price="12" data-stars="5" data-meal="B&B" data-spa="1" data-adults="0" data-beach="mountain" data-water="0" data-flight-h="4.0" data-climate="mild" data-purpose="spa mountains" data-amenities="pool nature food" data-language="ru">
       <div class="carousel-wrap">
         <div class="carousel">
           <div class="carousel-item"><img loading="lazy" src="/mom-vacation/pics_booking/samal_1.jpg" alt=""></div>
@@ -2330,7 +2621,7 @@ body.lightbox-open{overflow:hidden;}
       </div>
     </div>
 
-    <div class="hotel" data-region="kazakhstan" data-rating="9.2" data-price="19" data-stars="5" data-meal="B&B" data-spa="1" data-adults="0" data-beach="mountain" data-water="0">
+    <div class="hotel" data-region="kazakhstan" data-rating="9.2" data-price="19" data-stars="5" data-meal="B&B" data-spa="1" data-adults="0" data-beach="mountain" data-water="0" data-flight-h="4.0" data-climate="mild" data-purpose="spa culture mountains" data-amenities="pool food" data-language="ru">
       <div class="carousel-wrap">
         <div class="carousel">
           <div class="carousel-item"><img loading="lazy" src="/mom-vacation/pics_booking/swissotel_1.jpg" alt=""></div>
@@ -2445,7 +2736,7 @@ body.lightbox-open{overflow:hidden;}
       <div class="hotel-table-scroll"></div>
     </div>
 
-    <div class="hotel" data-region="aegean" data-rating="9.1" data-price="50" data-stars="5" data-meal="B&B" data-spa="0" data-adults="1" data-beach="sand" data-water="25">
+    <div class="hotel" data-region="aegean" data-rating="9.1" data-price="50" data-stars="5" data-meal="B&B" data-spa="0" data-adults="1" data-beach="sand" data-water="25" data-flight-h="4.0" data-climate="hot" data-purpose="beach spa" data-amenities="pool food atmosphere" data-language="en">
       <div class="carousel-wrap">
         <div class="carousel">
           <div class="carousel-item"><img loading="lazy" src="/mom-vacation/pics_booking/gaia_1.jpg" alt=""></div>
@@ -2491,7 +2782,7 @@ body.lightbox-open{overflow:hidden;}
       </div>
     </div>
 
-    <div class="hotel" data-region="aegean" data-rating="8.7" data-price="23" data-stars="4" data-meal="B&B" data-spa="0" data-adults="1" data-beach="sand" data-water="25">
+    <div class="hotel" data-region="aegean" data-rating="8.7" data-price="23" data-stars="4" data-meal="B&B" data-spa="0" data-adults="1" data-beach="sand" data-water="25" data-flight-h="4.0" data-climate="hot" data-purpose="beach" data-amenities="adults atmosphere" data-language="en">
       <div class="carousel-wrap">
         <div class="carousel">
           <div class="carousel-item"><img loading="lazy" src="/mom-vacation/pics_booking/layla_1.jpg" alt=""></div>
@@ -2538,7 +2829,7 @@ body.lightbox-open{overflow:hidden;}
       </div>
     </div>
 
-    <div class="hotel" data-region="aegean" data-rating="9.8" data-price="33" data-stars="4" data-meal="B&B" data-spa="0" data-adults="0" data-beach="sand" data-water="25">
+    <div class="hotel" data-region="aegean" data-rating="9.8" data-price="33" data-stars="4" data-meal="B&B" data-spa="0" data-adults="0" data-beach="sand" data-water="25" data-flight-h="4.0" data-climate="hot" data-purpose="beach" data-amenities="atmosphere" data-language="en">
       <div class="carousel-wrap">
         <div class="carousel">
           <div class="carousel-item"><img loading="lazy" src="/mom-vacation/pics_booking/zvillas_1.jpg" alt=""></div>
@@ -2584,7 +2875,7 @@ body.lightbox-open{overflow:hidden;}
       </div>
     </div>
 
-    <div class="hotel" data-region="aegean" data-rating="8.4" data-price="37" data-stars="3" data-meal="B&B" data-spa="0" data-adults="0" data-beach="sand" data-water="25">
+    <div class="hotel" data-region="aegean" data-rating="8.4" data-price="37" data-stars="3" data-meal="B&B" data-spa="0" data-adults="0" data-beach="sand" data-water="25" data-flight-h="4.0" data-climate="hot" data-purpose="beach" data-amenities="atmosphere" data-language="en">
       <div class="carousel-wrap">
         <div class="carousel">
           <div class="carousel-item"><img loading="lazy" src="/mom-vacation/pics_booking/perdue_1.jpg" alt=""></div>
@@ -2630,7 +2921,7 @@ body.lightbox-open{overflow:hidden;}
       </div>
     </div>
 
-    <div class="hotel" data-region="aegean" data-rating="8.9" data-price="33" data-stars="4" data-meal="B&B" data-spa="1" data-adults="1" data-beach="sand" data-water="25">
+    <div class="hotel" data-region="aegean" data-rating="8.9" data-price="33" data-stars="4" data-meal="B&B" data-spa="1" data-adults="1" data-beach="sand" data-water="25" data-flight-h="4.0" data-climate="hot" data-purpose="beach spa" data-amenities="adults atmosphere nature" data-language="en">
       <div class="carousel-wrap">
         <div class="carousel">
           <div class="carousel-item"><img loading="lazy" src="/mom-vacation/pics_booking/lov_1.jpg" alt=""></div>
@@ -2677,7 +2968,7 @@ body.lightbox-open{overflow:hidden;}
       </div>
     </div>
 
-    <div class="hotel" data-region="aegean" data-rating="8.9" data-price="24" data-stars="4" data-meal="B&B" data-spa="0" data-adults="0" data-beach="sand" data-water="25">
+    <div class="hotel" data-region="aegean" data-rating="8.9" data-price="24" data-stars="4" data-meal="B&B" data-spa="0" data-adults="0" data-beach="sand" data-water="25" data-flight-h="4.0" data-climate="hot" data-purpose="beach" data-amenities="atmosphere" data-language="en">
       <div class="carousel-wrap">
         <div class="carousel">
           <div class="carousel-item"><img loading="lazy" src="/mom-vacation/pics_booking/jade_1.jpg" alt=""></div>
@@ -2769,7 +3060,7 @@ body.lightbox-open{overflow:hidden;}
       <div class="hotel-table-scroll"></div>
     </div>
 
-    <div class="hotel" data-region="med" data-rating="9.0" data-price="12" data-stars="3" data-meal="B&B" data-spa="0" data-adults="1" data-beach="sand" data-water="27">
+    <div class="hotel" data-region="med" data-rating="9.0" data-price="12" data-stars="3" data-meal="B&B" data-spa="0" data-adults="1" data-beach="sand" data-water="27" data-flight-h="4.0" data-climate="hot" data-purpose="beach spa" data-amenities="pool adults food" data-language="en">
       <div class="carousel-wrap">
         <div class="carousel">
           <div class="carousel-item"><img loading="lazy" src="/mom-vacation/pics_booking/lagaia_1.jpg" alt=""></div>
@@ -2815,7 +3106,7 @@ body.lightbox-open{overflow:hidden;}
       </div>
     </div>
 
-    <div class="hotel" data-region="med" data-rating="9.1" data-price="34" data-stars="3" data-meal="B&B" data-spa="0" data-adults="1" data-beach="pebble" data-water="27">
+    <div class="hotel" data-region="med" data-rating="9.1" data-price="34" data-stars="3" data-meal="B&B" data-spa="0" data-adults="1" data-beach="pebble" data-water="27" data-flight-h="4.0" data-climate="hot" data-purpose="beach" data-amenities="adults atmosphere" data-language="en">
       <div class="carousel-wrap">
         <div class="carousel">
           <div class="carousel-item"><img loading="lazy" src="/mom-vacation/pics_booking/suna_1.jpg" alt=""></div>
@@ -2862,7 +3153,7 @@ body.lightbox-open{overflow:hidden;}
       </div>
     </div>
 
-    <div class="hotel" data-region="med" data-rating="8.6" data-price="28" data-stars="5" data-meal="B&B" data-spa="1" data-adults="1" data-beach="sand" data-water="27">
+    <div class="hotel" data-region="med" data-rating="8.6" data-price="28" data-stars="5" data-meal="B&B" data-spa="1" data-adults="1" data-beach="sand" data-water="27" data-flight-h="4.5" data-climate="hot" data-purpose="beach spa" data-amenities="pool adults food" data-language="en">
       <div class="carousel-wrap">
         <div class="carousel">
           <div class="carousel-item"><img loading="lazy" src="/mom-vacation/pics_booking/dayone_1.jpg" alt=""></div>
@@ -2949,7 +3240,7 @@ body.lightbox-open{overflow:hidden;}
       <div class="hotel-table-scroll"></div>
     </div>
 
-    <div class="hotel" data-region="black" data-rating="9.0" data-price="23" data-stars="5" data-meal="B&B" data-spa="1" data-adults="0" data-beach="sand" data-water="23">
+    <div class="hotel" data-region="black" data-rating="9.0" data-price="23" data-stars="5" data-meal="B&B" data-spa="1" data-adults="0" data-beach="sand" data-water="23" data-flight-h="3.0" data-climate="mild" data-purpose="spa nature" data-amenities="pool nature" data-language="en">
       <div class="carousel-wrap">
         <div class="carousel">
           <div class="carousel-item"><img loading="lazy" src="/mom-vacation/pics_booking/nayu_1.jpg" alt=""></div>
@@ -3060,7 +3351,7 @@ body.lightbox-open{overflow:hidden;}
       <div class="hotel-table-scroll"></div>
     </div>
 
-    <div class="hotel" data-region="seychelles" data-rating="9.5" data-price="13" data-stars="3" data-meal="B&B" data-spa="0" data-adults="0" data-beach="granite" data-water="27">
+    <div class="hotel" data-region="seychelles" data-rating="9.5" data-price="13" data-stars="3" data-meal="B&B" data-spa="0" data-adults="0" data-beach="granite" data-water="27" data-flight-h="10.0" data-climate="tropic" data-purpose="beach nature" data-amenities="atmosphere" data-language="en">
       <div class="carousel-wrap">
         <div class="carousel">
           <div class="carousel-item"><img loading="lazy" src="/mom-vacation/pics_booking/bluelagoon_1.jpg" alt=""></div>
@@ -3105,7 +3396,7 @@ body.lightbox-open{overflow:hidden;}
       </div>
     </div>
 
-    <div class="hotel" data-region="seychelles" data-rating="9.2" data-price="37" data-stars="5" data-meal="HB" data-spa="1" data-adults="0" data-beach="granite" data-water="27">
+    <div class="hotel" data-region="seychelles" data-rating="9.2" data-price="37" data-stars="5" data-meal="HB" data-spa="1" data-adults="0" data-beach="granite" data-water="27" data-flight-h="10.0" data-climate="tropic" data-purpose="beach spa" data-amenities="pool food atmosphere" data-language="en">
       <div class="carousel-wrap">
         <div class="carousel">
           <div class="carousel-item"><img loading="lazy" src="/mom-vacation/pics_booking/mango_1.jpg" alt=""></div>
@@ -3152,7 +3443,7 @@ body.lightbox-open{overflow:hidden;}
       </div>
     </div>
 
-    <div class="hotel" data-region="seychelles" data-rating="9.1" data-price="23" data-stars="5" data-meal="B&B" data-spa="1" data-adults="0" data-beach="sand" data-water="27">
+    <div class="hotel" data-region="seychelles" data-rating="9.1" data-price="23" data-stars="5" data-meal="B&B" data-spa="1" data-adults="0" data-beach="sand" data-water="27" data-flight-h="10.0" data-climate="tropic" data-purpose="beach spa" data-amenities="pool food" data-language="en">
       <div class="carousel-wrap">
         <div class="carousel">
           <div class="carousel-item"><img loading="lazy" src="/mom-vacation/pics_booking/avani_1.jpg" alt=""></div>
@@ -3199,7 +3490,7 @@ body.lightbox-open{overflow:hidden;}
       </div>
     </div>
 
-    <div class="hotel" data-region="seychelles" data-rating="9.1" data-price="31" data-stars="4" data-meal="B&B" data-spa="0" data-adults="0" data-beach="granite" data-water="27">
+    <div class="hotel" data-region="seychelles" data-rating="9.1" data-price="31" data-stars="4" data-meal="B&B" data-spa="0" data-adults="0" data-beach="granite" data-water="27" data-flight-h="10.0" data-climate="tropic" data-purpose="beach" data-amenities="atmosphere" data-language="en">
       <div class="carousel-wrap">
         <div class="carousel">
           <div class="carousel-item"><img loading="lazy" src="/mom-vacation/pics_booking/lerepaire_1.jpg" alt=""></div>
@@ -3246,7 +3537,7 @@ body.lightbox-open{overflow:hidden;}
       </div>
     </div>
 
-    <div class="hotel" data-region="seychelles" data-rating="9.1" data-price="73" data-stars="5" data-meal="B&B" data-spa="1" data-adults="0" data-beach="granite" data-water="27">
+    <div class="hotel" data-region="seychelles" data-rating="9.1" data-price="73" data-stars="5" data-meal="B&B" data-spa="1" data-adults="0" data-beach="granite" data-water="27" data-flight-h="10.0" data-climate="tropic" data-purpose="beach spa nature" data-amenities="pool food atmosphere" data-language="en">
       <div class="carousel-wrap">
         <div class="carousel">
           <div class="carousel-item"><img loading="lazy" src="/mom-vacation/pics_booking/ledomaine_1.jpg" alt=""></div>
@@ -3292,7 +3583,7 @@ body.lightbox-open{overflow:hidden;}
       </div>
     </div>
 
-    <div class="hotel" data-region="seychelles" data-rating="9.0" data-price="19" data-stars="4" data-meal="B&B" data-spa="0" data-adults="0" data-beach="granite" data-water="27">
+    <div class="hotel" data-region="seychelles" data-rating="9.0" data-price="19" data-stars="4" data-meal="B&B" data-spa="0" data-adults="0" data-beach="granite" data-water="27" data-flight-h="10.0" data-climate="tropic" data-purpose="beach nature" data-amenities="atmosphere nature" data-language="en">
       <div class="carousel-wrap">
         <div class="carousel">
           <div class="carousel-item"><img loading="lazy" src="/mom-vacation/pics_booking/colibri_1.jpg" alt=""></div>
@@ -3338,7 +3629,7 @@ body.lightbox-open{overflow:hidden;}
       </div>
     </div>
 
-    <div class="hotel" data-region="seychelles" data-rating="9.0" data-price="22" data-stars="4" data-meal="B&B" data-spa="0" data-adults="0" data-beach="sand" data-water="27">
+    <div class="hotel" data-region="seychelles" data-rating="9.0" data-price="22" data-stars="4" data-meal="B&B" data-spa="0" data-adults="0" data-beach="sand" data-water="27" data-flight-h="10.0" data-climate="tropic" data-purpose="beach nature" data-amenities="atmosphere" data-language="en">
       <div class="carousel-wrap">
         <div class="carousel">
           <div class="carousel-item"><img loading="lazy" src="/mom-vacation/pics_booking/villasdemer_1.jpg" alt=""></div>
@@ -3384,7 +3675,7 @@ body.lightbox-open{overflow:hidden;}
       </div>
     </div>
 
-    <div class="hotel" data-region="seychelles" data-rating="8.9" data-price="31" data-stars="3" data-meal="B&B" data-spa="0" data-adults="0" data-beach="sand" data-water="27">
+    <div class="hotel" data-region="seychelles" data-rating="8.9" data-price="31" data-stars="3" data-meal="B&B" data-spa="0" data-adults="0" data-beach="sand" data-water="27" data-flight-h="10.0" data-climate="tropic" data-purpose="beach nature" data-amenities="atmosphere" data-language="en">
       <div class="carousel-wrap">
         <div class="carousel">
           <div class="carousel-item"><img loading="lazy" src="/mom-vacation/pics_booking/clubcotedor_1.jpg" alt=""></div>
@@ -3430,7 +3721,7 @@ body.lightbox-open{overflow:hidden;}
       </div>
     </div>
 
-    <div class="hotel" data-region="seychelles" data-rating="8.8" data-price="22" data-stars="5" data-meal="B&B" data-spa="1" data-adults="0" data-beach="granite" data-water="27">
+    <div class="hotel" data-region="seychelles" data-rating="8.8" data-price="22" data-stars="5" data-meal="B&B" data-spa="1" data-adults="0" data-beach="granite" data-water="27" data-flight-h="10.0" data-climate="tropic" data-purpose="beach spa" data-amenities="pool food" data-language="en">
       <div class="carousel-wrap">
         <div class="carousel">
           <div class="carousel-item"><img loading="lazy" src="/mom-vacation/pics_booking/laila_1.jpg" alt=""></div>
@@ -3477,7 +3768,7 @@ body.lightbox-open{overflow:hidden;}
       </div>
     </div>
 
-    <div class="hotel" data-region="seychelles" data-rating="8.8" data-price="45" data-stars="5" data-meal="HB" data-spa="1" data-adults="0" data-beach="sand" data-water="27">
+    <div class="hotel" data-region="seychelles" data-rating="8.8" data-price="45" data-stars="5" data-meal="HB" data-spa="1" data-adults="0" data-beach="sand" data-water="27" data-flight-h="10.0" data-climate="tropic" data-purpose="beach spa" data-amenities="pool food atmosphere" data-language="en">
       <div class="carousel-wrap">
         <div class="carousel">
           <div class="carousel-item"><img loading="lazy" src="/mom-vacation/pics_booking/story_1.jpg" alt=""></div>
@@ -3523,7 +3814,7 @@ body.lightbox-open{overflow:hidden;}
       </div>
     </div>
 
-    <div class="hotel" data-region="seychelles" data-rating="8.7" data-price="19" data-stars="4" data-meal="B&B" data-spa="0" data-adults="0" data-beach="sand" data-water="27">
+    <div class="hotel" data-region="seychelles" data-rating="8.7" data-price="19" data-stars="4" data-meal="B&B" data-spa="0" data-adults="0" data-beach="sand" data-water="27" data-flight-h="10.0" data-climate="tropic" data-purpose="beach nature" data-amenities="atmosphere" data-language="en">
       <div class="carousel-wrap">
         <div class="carousel">
           <div class="carousel-item"><img loading="lazy" src="/mom-vacation/pics_booking/indianlodge_1.jpg" alt=""></div>
@@ -4342,6 +4633,598 @@ if (kzMapEl) {
     document.querySelectorAll('.fchip').forEach(c => c.classList.remove('selected'));
     apply();
   });
+})();
+</script>
+
+<script>
+/* ============================================================
+   QUIZ — 9 questions, weighted scoring, top-3 result
+   ============================================================ */
+(function(){
+  'use strict';
+
+  const QUESTIONS = [
+    {
+      id:'flight', type:'single', weight:15,
+      title:'Сколько часов готова провести в самолёте?',
+      hint:'Выбери один вариант',
+      options:[
+        { v:2,  icon:'🛬', label:'До 2 часов',  sub:'СПб, Калининград' },
+        { v:4,  icon:'✈️', label:'До 4 часов',  sub:'+ Батуми, Кисловодск' },
+        { v:6,  icon:'🌍', label:'До 6 часов',  sub:'+ Алтай, Казахстан, Турция' },
+        { v:10, icon:'🗺️', label:'10+ часов',   sub:'готова на длинный перелёт' }
+      ]
+    },
+    {
+      id:'climate', type:'multi', weight:10,
+      title:'Какая погода в июле больше нравится?',
+      hint:'Можно выбрать несколько',
+      options:[
+        { v:'cool',   icon:'❄️', label:'Прохладная',     sub:'18–22°, северный климат' },
+        { v:'mild',   icon:'🌤️', label:'Мягкая тёплая',   sub:'22–26°, комфортно' },
+        { v:'hot',    icon:'☀️', label:'Жаркое лето',     sub:'26–30°, курортная жара' },
+        { v:'tropic', icon:'🌴', label:'Тропики',         sub:'30°+, влажно' }
+      ]
+    },
+    {
+      id:'swim', type:'single', weight:10,
+      title:'Хочется купаться?',
+      hint:'Выбери один вариант',
+      options:[
+        { v:'sea',  icon:'🏖️', label:'Да, в тёплом море',          sub:'обязательно (25°+)' },
+        { v:'lake', icon:'🌊', label:'Можно и в прохладном озере', sub:'18–20°, лес и тишина' },
+        { v:'none', icon:'🏔️', label:'Купаться не обязательно',    sub:'спа, бассейн, прогулки' }
+      ]
+    },
+    {
+      id:'purpose', type:'multi', weight:25,
+      title:'Что хочется от отпуска?',
+      hint:'Можно выбрать несколько — это главный вопрос',
+      options:[
+        { v:'spa',       icon:'💆', label:'Расслабиться, ничего не делать', sub:'спа и тишина' },
+        { v:'sanat',     icon:'🏥', label:'Подлечиться',                     sub:'санаторий, нарзан, массажи' },
+        { v:'nature',    icon:'🌲', label:'Природа, лес, тишина',            sub:'отдых от города' },
+        { v:'beach',     icon:'🏖️', label:'Море, пляж, загар',                sub:'классический курорт' },
+        { v:'culture',   icon:'🏛️', label:'Гулять, кафе, экскурсии',          sub:'городской ритм' },
+        { v:'mountains', icon:'⛰️', label:'Горы, виды, активности',           sub:'каньоны, канатки, треки' }
+      ]
+    },
+    {
+      id:'amenities', type:'multi', weight:10,
+      title:'Что хочется на территории отеля?',
+      hint:'Можно выбрать до 3',
+      maxPick:3,
+      options:[
+        { v:'pool',       icon:'🛁', label:'Большой спа с бассейном' },
+        { v:'food',       icon:'🍽️', label:'Хороший ресторан / шведский стол' },
+        { v:'nature',     icon:'🌳', label:'Природа сразу у отеля' },
+        { v:'adults',     icon:'🚫', label:'Только взрослые гости' },
+        { v:'atmosphere', icon:'✨', label:'Атмосферно, необычно' },
+        { v:'activities', icon:'🐎', label:'Активности (лошади, лодки, вело)' },
+        { v:'treatment',  icon:'💆', label:'Лечебные процедуры (нарзан, грязи)' }
+      ]
+    },
+    {
+      id:'budget', type:'single', weight:15,
+      title:'Бюджет за ночь',
+      hint:'В рублях',
+      options:[
+        { v:15,  icon:'💰', label:'До ₽ 15 т.',     sub:'эконом' },
+        { v:25,  icon:'💵', label:'До ₽ 25 т.',     sub:'средне' },
+        { v:45,  icon:'💎', label:'До ₽ 45 т.',     sub:'комфортно' },
+        { v:999, icon:'⭐', label:'Без ограничений', sub:'если оно того стоит' }
+      ]
+    },
+    {
+      id:'meal', type:'single', weight:5,
+      title:'Питание',
+      hint:'Что хотелось бы',
+      options:[
+        { v:'B&B',  icon:'🥐', label:'Только завтрак' },
+        { v:'HB',   icon:'🍽️', label:'Завтрак + ужин',     sub:'полупансион' },
+        { v:'AI',   icon:'🥂', label:'Всё включено',       sub:'мало вариантов в выборке' },
+        { v:'any',  icon:'·',  label:'Не важно' }
+      ]
+    },
+    {
+      id:'stars', type:'single', weight:5,
+      title:'Уровень отеля',
+      hint:'Какой формат комфортен',
+      options:[
+        { v:5,       icon:'⭐', label:'Только 5★' },
+        { v:4,       icon:'🏨', label:'4★ — норм' },
+        { v:'sanat', icon:'🏥', label:'Можно санаторий или бутик' },
+        { v:'any',   icon:'✨', label:'Не критично',                sub:'главное хорошее место' }
+      ]
+    },
+    {
+      id:'language', type:'single', weight:5,
+      title:'Важно, чтобы говорили по-русски?',
+      hint:'Какой персонал',
+      options:[
+        { v:'ru',  icon:'🇷🇺', label:'Да, важно',                 sub:'Россия, Грузия, Казахстан' },
+        { v:'en',  icon:'🌐', label:'Английского достаточно' },
+        { v:'any', icon:'·',  label:'Не важно' }
+      ]
+    }
+  ];
+
+  /* ===== Region / climate / purpose / amenity dictionaries ===== */
+  const REGION_NAMES = {
+    'russia-ld':'Ленобласть и Карелия','russia-kld':'Калининград','russia-altay':'Алтай','russia-kmv':'Кисловодск',
+    'batumi':'Батуми','kazakhstan':'Казахстан',
+    'aegean':'Эгейское побережье Турции','med':'Средиземное побережье Турции','black':'Чёрное море Турции',
+    'seychelles':'Сейшелы'
+  };
+  const REGION_FLAGS = {
+    'russia-ld':'🇷🇺','russia-kld':'🇷🇺','russia-altay':'🇷🇺','russia-kmv':'🇷🇺',
+    'batumi':'🇬🇪','kazakhstan':'🇰🇿',
+    'aegean':'🇹🇷','med':'🇹🇷','black':'🇹🇷',
+    'seychelles':'🇸🇨'
+  };
+  const CLIMATE_LABEL = { cool:'прохладная', mild:'мягкая тёплая', hot:'жаркое лето', tropic:'тропики' };
+  const PURPOSE_LABEL = {
+    spa:'расслабиться и спа', sanat:'лечебный отдых', nature:'природа и тишина',
+    beach:'пляж и море', culture:'прогулки и культура', mountains:'горы и виды'
+  };
+  const AMENITY_LABEL = {
+    pool:'спа с бассейном', food:'хороший ресторан', nature:'природа у отеля',
+    adults:'только взрослые', atmosphere:'атмосферное место',
+    activities:'активности', treatment:'лечебные процедуры'
+  };
+  const REGION_DESCRIPTIONS = {
+    'russia-ld':'Северо-запад: Ладога, Финский залив, карельские шхеры. Прохладное лето 20–24°, белые ночи, сосновый воздух. Сюда — если хочется тишины, природы и не выезжать далеко.',
+    'russia-kld':'Самая европейская точка России на Балтике: Светлогорск, Зеленоградск, Куршская коса. Мягкое лето +22°, янтарные пляжи, променады, староевропейская архитектура.',
+    'russia-altay':'Сибирские «Альпы»: бирюзовая Катунь, кедровая тайга, термальные источники. Здесь топовые спа-комплексы в горном формате. Прямой перелёт 4,5 ч из Москвы.',
+    'russia-kmv':'Старейший лечебный курорт России. Нарзан, грязи, Курортный парк, чистый горный воздух. Идеально для санаторно-курортного режима.',
+    'batumi':'Чёрноморская Грузия: купание в тёплом море (26°), грузинская кухня, винные погреба. Прямой перелёт 3 ч, говорят по-русски, виза не нужна.',
+    'kazakhstan':'Два формата: гранитные скалы и сосны Борового («казахская Швейцария») или Алматы с Заилийским Алатау. Без визы, всё по-русски, оплата картами работает.',
+    'aegean':'Турецкий «Прованс»: оливковые рощи, бухты Эгейского моря, винодельни Чешме и Алачаты. 4 ч прямой, вода 25°, премиум-сегмент.',
+    'med':'Турецкое Средиземноморье: бирюзовые лагуны, скалистые пляжи, тёплая вода 27°. 4 ч прямой, отличные adult-only отели.',
+    'black':'Тихий неизбитый угол северной Турции у границы с Болгарией. Прохладнее, чем средиземноморская Турция, природный нетуристический формат.',
+    'seychelles':'Тропический рай Индийского океана: гранитные пляжи, бирюзовая вода 27°, прямой полёт 10 ч. Для большого выхода из зоны комфорта.'
+  };
+
+  /* ===== Collect hotels from DOM ===== */
+  function collectHotels(){
+    return Array.from(document.querySelectorAll('.hotel')).map(card => {
+      const slugMatch = card.querySelector('img[src^="/mom-vacation/pics_booking/"]');
+      const slug = slugMatch ? slugMatch.getAttribute('src').match(/\/([a-z]+)_1\.jpg/)[1] : '';
+      const nameEl = card.querySelector('.h-name');
+      const fullName = nameEl ? nameEl.textContent.trim() : '';
+      const cleanName = fullName.split(/\s+[—–-]\s+/)[0].replace(/\s*\([^)]*\)\s*$/,'').trim();
+      const area = (fullName.match(/\(([^)]+)\)\s*$/) || [])[1] || (fullName.split(/\s+[—–-]\s+/)[1] || '');
+      const bookLink = card.querySelector('.btn-book');
+      return {
+        el: card, slug, fullName, name:cleanName, area,
+        region: card.dataset.region,
+        rating:+card.dataset.rating, price:+card.dataset.price, stars:card.dataset.stars,
+        meal:card.dataset.meal, spa:card.dataset.spa==='1', adults:card.dataset.adults==='1',
+        beach:card.dataset.beach, water:+card.dataset.water,
+        flightH:+card.dataset.flightH, climate:card.dataset.climate,
+        purpose:(card.dataset.purpose||'').split(/\s+/).filter(Boolean),
+        amenities:(card.dataset.amenities||'').split(/\s+/).filter(Boolean),
+        language:card.dataset.language,
+        bookHref: bookLink ? bookLink.getAttribute('href') : '#',
+        photo:`/mom-vacation/pics_booking/${slug}_1.jpg`
+      };
+    });
+  }
+
+  /* ===== Scoring ===== */
+  function score(h, ans){
+    let total = 0, max = 0, cut = 1.0;
+
+    // flight
+    if (ans.flight != null) {
+      max += 15;
+      const limit = +ans.flight;
+      if (h.flightH <= limit) total += 15;
+      else if (h.flightH <= limit + 1.5) { total += 5; cut *= 0.7; }
+      else cut *= 0.2;
+    }
+    // climate
+    if (ans.climate && ans.climate.length) {
+      max += 10;
+      if (ans.climate.includes(h.climate)) total += 10;
+    }
+    // swim
+    if (ans.swim) {
+      max += 10;
+      if (ans.swim === 'sea')        total += h.water >= 22 ? 10 : (h.water >= 18 ? 3 : 0);
+      else if (ans.swim === 'lake')  total += h.water > 0 ? 10 : 7;
+      else if (ans.swim === 'none')  total += 10;
+    }
+    // purpose
+    if (ans.purpose && ans.purpose.length) {
+      max += 25;
+      const overlap = h.purpose.filter(p => ans.purpose.includes(p));
+      if (overlap.length) total += 25 * Math.min(1, overlap.length / Math.max(1, ans.purpose.length));
+    }
+    // amenities
+    if (ans.amenities && ans.amenities.length) {
+      max += 10;
+      const overlap = h.amenities.filter(a => ans.amenities.includes(a));
+      if (overlap.length) total += 10 * Math.min(1, overlap.length / Math.max(1, ans.amenities.length));
+    }
+    // budget
+    if (ans.budget != null) {
+      max += 15;
+      const limit = +ans.budget;
+      if (h.price <= limit) total += 15;
+      else if (h.price <= limit * 1.25) { total += 5; cut *= 0.6; }
+      else cut *= 0.15;
+    }
+    // meal
+    if (ans.meal && ans.meal !== 'any') {
+      max += 5;
+      if (h.meal === ans.meal) total += 5;
+      else if (ans.meal === 'AI' && h.meal === 'HB') total += 3;
+      else if (ans.meal === 'HB' && h.meal === 'AI') total += 4;
+      else total += 1;
+    }
+    // stars
+    if (ans.stars && ans.stars !== 'any') {
+      max += 5;
+      if (ans.stars === 'sanat') total += 5;
+      else {
+        const s = (h.stars === 'санат.' ? 4 : +h.stars) || 4;
+        if (s >= +ans.stars) total += 5;
+        else if (s >= +ans.stars - 1) total += 2;
+      }
+    }
+    // language
+    if (ans.language && ans.language !== 'any') {
+      max += 5;
+      if (h.language === ans.language) total += 5;
+      else if (ans.language === 'en') total += 5;
+      else total += 0;
+    }
+
+    if (max === 0) return 60;
+    const pct = (total / max) * 100 * cut;
+    return Math.round(Math.max(3, Math.min(99, pct)));
+  }
+
+  /* ===== Reasons per hotel ===== */
+  function reasons(h, ans){
+    const out = [];
+    // purpose first (it's the weightiest)
+    if (ans.purpose && ans.purpose.length) {
+      const overlap = h.purpose.filter(p => ans.purpose.includes(p));
+      if (overlap.length) {
+        const labels = overlap.map(p => PURPOSE_LABEL[p]);
+        out.push(`Подходит под «${labels.join(' + ')}»`);
+      }
+    }
+    // flight
+    if (ans.flight != null) {
+      const limit = +ans.flight;
+      if (h.flightH <= limit) {
+        const txt = h.flightH < 2 ? `Лёт всего ${h.flightH} ч из Москвы` : `Лёт ${h.flightH} ч из Москвы — укладывается в твой лимит`;
+        out.push(txt);
+      } else if (h.flightH <= limit + 1.5) {
+        out.push({con:true, text:`Лёт ${h.flightH} ч — чуть дольше выбранного лимита (${limit} ч)`});
+      } else {
+        out.push({con:true, text:`Лёт ${h.flightH} ч — заметно дольше твоего лимита (${limit} ч)`});
+      }
+    }
+    // budget
+    if (ans.budget != null) {
+      const limit = +ans.budget;
+      if (h.price <= limit) {
+        out.push(limit === 999 ? `Цена ₽ ${h.price} т./ночь` : `Бюджет ₽ ${h.price} т./ночь — в твоих рамках`);
+      } else {
+        out.push({con:true, text:`₽ ${h.price} т./ночь — выше выбранного лимита (₽ ${limit} т.)`});
+      }
+    }
+    // amenities
+    if (ans.amenities && ans.amenities.length) {
+      const overlap = h.amenities.filter(a => ans.amenities.includes(a));
+      if (overlap.length) {
+        const labels = overlap.slice(0,3).map(a => AMENITY_LABEL[a]);
+        out.push(overlap.length === ans.amenities.length
+          ? `Есть всё из желаемого: ${labels.join(', ')}`
+          : `Из желаемого есть: ${labels.join(', ')}`);
+      }
+    }
+    // swim
+    if (ans.swim === 'sea' && h.water >= 22) out.push(`Купаться можно в тёплой воде (${h.water}°)`);
+    else if (ans.swim === 'sea' && h.water < 18) out.push({con:true, text:'Здесь моря с тёплой водой нет'});
+    else if (ans.swim === 'none' && h.water === 0) out.push('Формат без моря — спа, природа, прогулки');
+    // language
+    if (ans.language === 'ru' && h.language === 'ru') out.push('Российский / русскоязычный персонал');
+    // climate
+    if (ans.climate && ans.climate.length && ans.climate.includes(h.climate)) {
+      out.push(`Климат: ${CLIMATE_LABEL[h.climate]}`);
+    }
+    return out.slice(0, 4);
+  }
+
+  /* ===== State ===== */
+  const state = {
+    step: 0,
+    answers: {}, // { questionId: value | array }
+  };
+  let HOTELS = [];
+
+  /* ===== Rendering ===== */
+  const overlay = document.getElementById('quizOverlay');
+  const body    = document.getElementById('quizBody');
+  const bar     = document.getElementById('quizBar');
+  const count   = document.getElementById('quizCount');
+  const backBtn = document.getElementById('quizBack');
+  const skipBtn = document.getElementById('quizSkip');
+  const nextBtn = document.getElementById('quizNext');
+  const skipAllBtn = document.getElementById('quizSkipAll');
+  const backToQuizBtn = document.getElementById('backToQuiz');
+
+  function renderQuestion(i){
+    const q = QUESTIONS[i];
+    const isMulti = q.type === 'multi';
+    const current = state.answers[q.id] || (isMulti ? [] : null);
+    const stepHTML = `
+      <div class="quiz-step is-active" data-q="${q.id}">
+        <h2 class="quiz-q-title">${q.title}</h2>
+        <p class="quiz-q-hint">${q.hint || ''}</p>
+        <div class="quiz-options" data-multi="${isMulti?1:0}">
+          ${q.options.map(o => {
+            const sel = isMulti ? (current||[]).includes(o.v) : current === o.v;
+            return `
+              <button class="quiz-opt${sel?' is-selected':''}" data-value="${String(o.v).replace(/"/g,'&quot;')}" data-multi="${isMulti?1:0}" type="button">
+                ${o.icon ? `<span class="opt-icon">${o.icon}</span>` : ''}
+                <span class="opt-text">${o.label}${o.sub?`<span class="opt-sub">${o.sub}</span>`:''}</span>
+                <span class="opt-check"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 8 7 12 13 4"/></svg></span>
+              </button>
+            `;
+          }).join('')}
+        </div>
+      </div>
+    `;
+    body.innerHTML = stepHTML;
+    backBtn.hidden = i === 0;
+    bar.style.width = ((i+1)/QUESTIONS.length*100) + '%';
+    count.textContent = `${i+1}/${QUESTIONS.length}`;
+    nextBtn.textContent = i === QUESTIONS.length - 1 ? 'Показать результат →' : 'Дальше →';
+    updateNextEnabled();
+    body.scrollTop = 0;
+    overlay.scrollTo({top:0, behavior:'auto'});
+
+    body.querySelectorAll('.quiz-opt').forEach(optBtn => {
+      optBtn.addEventListener('click', () => {
+        const v = optBtn.dataset.value;
+        const isMultiOpt = optBtn.dataset.multi === '1';
+        const qid = q.id;
+        if (isMultiOpt) {
+          const arr = state.answers[qid] || [];
+          const realV = parseValue(v, q);
+          const idx = arr.findIndex(x => x === realV);
+          if (idx >= 0) arr.splice(idx, 1);
+          else {
+            if (q.maxPick && arr.length >= q.maxPick) {
+              // remove the first and shift in spec
+              arr.shift();
+            }
+            arr.push(realV);
+          }
+          state.answers[qid] = arr;
+          optBtn.classList.toggle('is-selected');
+        } else {
+          state.answers[qid] = parseValue(v, q);
+          body.querySelectorAll('.quiz-opt').forEach(b => b.classList.remove('is-selected'));
+          optBtn.classList.add('is-selected');
+        }
+        updateNextEnabled();
+      });
+    });
+  }
+
+  function parseValue(v, q) {
+    // Single-select: numeric values come as strings, convert back
+    const opt = q.options.find(o => String(o.v) === v);
+    return opt ? opt.v : v;
+  }
+
+  function updateNextEnabled(){
+    const q = QUESTIONS[state.step];
+    const a = state.answers[q.id];
+    const ok = q.type === 'multi' ? (Array.isArray(a) && a.length > 0) : (a !== null && a !== undefined);
+    nextBtn.disabled = !ok;
+  }
+
+  function goTo(i){
+    if (i < 0) return;
+    if (i >= QUESTIONS.length) { showResult(); return; }
+    state.step = i;
+    renderQuestion(i);
+  }
+
+  /* ===== Result rendering ===== */
+  function showResult(){
+    const ranked = HOTELS.map(h => ({h, s: score(h, state.answers), why: reasons(h, state.answers)}))
+                         .sort((a,b) => b.s - a.s);
+    const top = ranked.slice(0, 3);
+
+    // Adaptive header
+    const regions = top.map(p => p.h.region);
+    const allSame = regions.every(r => r === regions[0]);
+    let eyebrow, title, desc;
+    if (allSame) {
+      const r = regions[0];
+      eyebrow = 'ЛУЧШЕЕ НАПРАВЛЕНИЕ ДЛЯ ТЕБЯ';
+      title = `${REGION_FLAGS[r]} ${REGION_NAMES[r]}`;
+      desc = REGION_DESCRIPTIONS[r] || '';
+    } else {
+      eyebrow = 'НЕСКОЛЬКО НАПРАВЛЕНИЙ ПОДХОДЯТ';
+      const leadR = regions[0];
+      title = `Лидер — ${REGION_FLAGS[leadR]} ${REGION_NAMES[leadR]}`;
+      const altRegs = [...new Set(regions.slice(1))].map(r => `<b>${REGION_FLAGS[r]} ${REGION_NAMES[r]}</b>`);
+      desc = `${REGION_DESCRIPTIONS[leadR] || ''}<br><br>Но обрати внимание также на ${altRegs.join(' и ')} — топ-3 включает оттуда отель.`;
+    }
+
+    // Render
+    const t = top[0];
+    const tops = top.slice(1);
+
+    const html = `
+      <div class="quiz-step is-active">
+        <div class="quiz-result-head">
+          <div class="quiz-result-eyebrow">${eyebrow}</div>
+          <h2 class="quiz-result-title">${title}</h2>
+          <p class="quiz-result-desc">${desc}</p>
+        </div>
+
+        ${renderTopPick(t, 1)}
+
+        ${tops.length ? `
+          <div class="quiz-alt-section">
+            <div class="quiz-alt-head">Стоит также рассмотреть</div>
+            <div class="quiz-alt-list">
+              ${tops.map((p, i) => renderAlt(p, i+2)).join('')}
+            </div>
+          </div>
+        ` : ''}
+
+        <div class="quiz-result-foot">
+          <button class="quiz-restart" id="quizRestart" type="button">↻ Пройти ещё раз</button>
+          <button class="quiz-all-link" id="quizViewAll" type="button">Посмотреть все 44 варианта в каталоге →</button>
+        </div>
+      </div>
+    `;
+    body.innerHTML = html;
+    bar.style.width = '100%';
+    count.textContent = `✓ ${QUESTIONS.length}/${QUESTIONS.length}`;
+    document.getElementById('quizFoot').style.display = 'none';
+    skipAllBtn.style.display = 'none';
+
+    document.getElementById('quizRestart').addEventListener('click', () => {
+      state.step = 0;
+      state.answers = {};
+      document.getElementById('quizFoot').style.display = '';
+      skipAllBtn.style.display = '';
+      renderQuestion(0);
+    });
+    document.getElementById('quizViewAll').addEventListener('click', closeOverlayToCatalog);
+    body.querySelectorAll('[data-jump-slug]').forEach(b => {
+      b.addEventListener('click', () => {
+        const slug = b.getAttribute('data-jump-slug');
+        const hotel = HOTELS.find(x => x.slug === slug);
+        if (hotel) jumpToHotel(hotel);
+      });
+    });
+    overlay.scrollTo({top:0, behavior:'smooth'});
+  }
+
+  function renderTopPick(pick, rank){
+    const h = pick.h, why = pick.why, score = pick.s;
+    const reasonsHTML = why.map(r => {
+      if (typeof r === 'string') return `<li>${r}</li>`;
+      return `<li class="is-con">${r.text}</li>`;
+    }).join('');
+    const stars = h.stars === 'санат.' ? 'санаторий' : `${h.stars}★`;
+    return `
+      <div class="quiz-pick">
+        <div class="quiz-pick-photo">
+          <img src="${h.photo}" alt="">
+          <div class="quiz-pick-badge"><span class="rank">№${rank}</span> ${REGION_FLAGS[h.region]} ${REGION_NAMES[h.region]}</div>
+          <div class="quiz-pick-match">${score}% совпадение</div>
+        </div>
+        <div class="quiz-pick-body">
+          <h3 class="quiz-pick-name">${h.name}</h3>
+          <p class="quiz-pick-area">${h.area || ''}</p>
+          <div class="quiz-pick-stats">
+            <span>Рейтинг <b>${h.rating}</b></span>
+            <span><b>${stars}</b></span>
+            <span><b>${h.meal}</b></span>
+            ${h.spa ? '<span>спа <b>✓</b></span>' : ''}
+            ${h.adults ? '<span>adults <b>✓</b></span>' : ''}
+            <span><b>₽ ${h.price} т.</b> / ночь</span>
+          </div>
+          <ul class="quiz-pick-why">${reasonsHTML}</ul>
+          <div class="quiz-pick-actions">
+            <a class="is-book" href="${h.bookHref}" target="_blank" rel="noopener">Открыть бронирование ↗</a>
+            <button data-jump-slug="${h.slug}" type="button">Открыть в каталоге</button>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  function renderAlt(pick, rank){
+    const h = pick.h, score = pick.s;
+    return `
+      <button class="quiz-alt" data-jump-slug="${h.slug}" type="button">
+        <div class="quiz-alt-photo"><img src="${h.photo}" alt=""></div>
+        <div class="quiz-alt-body">
+          <div class="quiz-alt-match"><span class="quiz-alt-rank">№${rank}</span> ${score}% совпадение</div>
+          <div class="quiz-alt-name">${h.name}</div>
+          <div class="quiz-alt-area">${REGION_FLAGS[h.region]} ${REGION_NAMES[h.region]} · ₽ ${h.price} т./ночь · ${h.rating}</div>
+        </div>
+      </button>
+    `;
+  }
+
+  function jumpToHotel(hotel){
+    const id = hotel.region;
+    window.location.hash = id;
+    closeOverlayToCatalog();
+    setTimeout(() => {
+      const card = hotel.el;
+      const navH = window.matchMedia('(max-width: 780px)').matches ? 70 : 80;
+      const y = card.getBoundingClientRect().top + window.scrollY - navH;
+      window.scrollTo({top:y, behavior:'smooth'});
+      card.classList.remove('flash'); void card.offsetWidth; card.classList.add('flash');
+      setTimeout(() => card.classList.remove('flash'), 1800);
+    }, 100);
+  }
+
+  /* ===== Open / close overlay ===== */
+  function openOverlay(){
+    overlay.classList.add('is-open');
+    document.body.classList.add('quiz-open');
+    document.body.classList.remove('catalog-mode');
+    if (!HOTELS.length) HOTELS = collectHotels();
+    if (!body.querySelector('.quiz-step')) renderQuestion(0);
+  }
+  function closeOverlayToCatalog(){
+    overlay.classList.remove('is-open');
+    document.body.classList.remove('quiz-open');
+    document.body.classList.add('catalog-mode');
+    if (!location.hash) {
+      history.replaceState(null, '', '#catalog');
+    }
+    setTimeout(() => {
+      if (location.hash === '#catalog') {
+        const el = document.querySelector('header.hero') || document.querySelector('nav.toc');
+        if (el) el.scrollIntoView({behavior:'smooth', block:'start'});
+      }
+    }, 100);
+  }
+
+  /* ===== Wire events ===== */
+  nextBtn.addEventListener('click', () => goTo(state.step + 1));
+  backBtn.addEventListener('click', () => goTo(state.step - 1));
+  skipBtn.addEventListener('click', () => {
+    const q = QUESTIONS[state.step];
+    delete state.answers[q.id];
+    goTo(state.step + 1);
+  });
+  skipAllBtn.addEventListener('click', closeOverlayToCatalog);
+  backToQuizBtn.addEventListener('click', () => {
+    history.replaceState(null, '', location.pathname);
+    state.step = 0;
+    state.answers = {};
+    document.getElementById('quizFoot').style.display = '';
+    skipAllBtn.style.display = '';
+    openOverlay();
+  });
+
+  /* ===== Boot: open if no hash ===== */
+  if (!location.hash) {
+    openOverlay();
+  } else {
+    document.body.classList.add('catalog-mode');
+  }
 })();
 </script>
 
