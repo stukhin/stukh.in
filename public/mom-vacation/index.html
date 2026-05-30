@@ -5315,6 +5315,33 @@ if (kzMapEl) {
   };
   let HOTELS = [];
 
+  /* ===== Persistence (localStorage) =====
+     Once mom finishes the quiz, save answers. Next visit shows the
+     result screen directly (no questions). "Пройти ещё раз" clears it.
+     Bump STORAGE_KEY version when questions schema changes. */
+  const STORAGE_KEY = 'mom-vacation:quiz-v1';
+  function loadSaved(){
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) return null;
+      const data = JSON.parse(raw);
+      if (!data || data.version !== 1 || !data.answers) return null;
+      return data;
+    } catch (e) { return null; }
+  }
+  function saveProgress(){
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({
+        version: 1,
+        completedAt: Date.now(),
+        answers: state.answers
+      }));
+    } catch (e) {}
+  }
+  function clearSaved(){
+    try { localStorage.removeItem(STORAGE_KEY); } catch (e) {}
+  }
+
   /* ===== Rendering ===== */
   const overlay = document.getElementById('quizOverlay');
   const body    = document.getElementById('quizBody');
@@ -5408,6 +5435,8 @@ if (kzMapEl) {
 
   /* ===== Result rendering ===== */
   function showResult(){
+    // Persist for next visit (skipped on Restart since answers will be empty)
+    if (Object.keys(state.answers).length > 0) saveProgress();
     const ranked = HOTELS.map(h => ({h, s: score(h, state.answers), why: reasons(h, state.answers)}))
                          .sort((a,b) => b.s - a.s);
     const top3 = ranked.slice(0, 3);
@@ -5492,6 +5521,7 @@ if (kzMapEl) {
     skipAllBtn.style.display = 'none';
 
     document.getElementById('quizRestart').addEventListener('click', () => {
+      clearSaved();  // wipe persisted state
       state.step = 0;
       state.answers = {};
       document.getElementById('quizFoot').style.display = '';
@@ -5601,12 +5631,27 @@ if (kzMapEl) {
   }
 
   /* ===== Open / close overlay ===== */
-  function openOverlay(){
+  function openOverlay(opts){
     overlay.classList.add('is-open');
     document.body.classList.add('quiz-open');
     document.body.classList.remove('catalog-mode');
     if (!HOTELS.length) HOTELS = collectHotels();
-    if (!body.querySelector('.quiz-step')) renderQuestion(0);
+    // Force-fresh skips localStorage (used by "Пройти ещё раз")
+    if (opts && opts.fresh) {
+      renderQuestion(0);
+      return;
+    }
+    // Already rendered (returning user navigating around) — leave it
+    if (body.querySelector('.quiz-step')) return;
+    // Returning user with saved completed quiz → straight to results
+    const saved = loadSaved();
+    if (saved) {
+      state.answers = saved.answers;
+      state.step = QUESTIONS.length;
+      showResult();
+    } else {
+      renderQuestion(0);
+    }
   }
   function closeOverlayToCatalog(){
     overlay.classList.remove('is-open');
@@ -5633,7 +5678,11 @@ if (kzMapEl) {
   });
   skipAllBtn.addEventListener('click', closeOverlayToCatalog);
   backToQuizBtn.addEventListener('click', () => {
+    // Re-opening from catalog: if mom previously completed, show her stored results.
+    // Don't reset state — openOverlay() will load saved or fall back to Q1.
     history.replaceState(null, '', location.pathname);
+    // Clear any in-DOM step so openOverlay re-evaluates from storage
+    body.innerHTML = '';
     state.step = 0;
     state.answers = {};
     document.getElementById('quizFoot').style.display = '';
