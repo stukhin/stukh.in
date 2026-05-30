@@ -1002,12 +1002,50 @@ body.quiz-open{overflow:hidden;}
   border-radius:99px;font-size:13px;font-weight:700;color:var(--ink);
 }
 .quiz-pick-badge .rank{font-size:14px;color:#7d8aff;}
-.quiz-pick-match{
-  position:absolute;top:14px;right:14px;
-  display:inline-flex;align-items:center;gap:6px;
-  padding:8px 14px;background:rgba(10,10,10,.85);backdrop-filter:blur(10px);
-  border-radius:99px;font-size:13px;font-weight:700;color:#fff;
-  font-variant-numeric:tabular-nums;
+.quiz-pick-match{display:none;}/* legacy pill replaced by ring */
+/* ===== Match ring (pick + alt variants) ===== */
+.quiz-ring{position:relative;flex-shrink:0;}
+.quiz-ring svg{width:100%;height:100%;transform:rotate(-90deg);}
+.quiz-ring .ring-track{fill:none;stroke-width:7;}
+.quiz-ring .ring-progress{fill:none;stroke-width:7;stroke-linecap:round;transition:stroke-dashoffset .9s cubic-bezier(.2,.7,.2,1);}
+.quiz-ring .ring-label{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;}
+.quiz-ring .ring-pct{font-weight:800;line-height:1;font-variant-numeric:tabular-nums;letter-spacing:-.02em;}
+.quiz-ring .ring-sub{font-weight:700;text-transform:uppercase;letter-spacing:.05em;margin-top:3px;}
+
+/* pick ring — on photo, white */
+.quiz-pick-ring{
+  position:absolute;top:14px;right:14px;width:100px;height:100px;
+  background:rgba(10,10,10,.42);backdrop-filter:blur(14px);
+  border-radius:50%;padding:6px;
+}
+.quiz-pick-ring .ring-track{stroke:rgba(255,255,255,.28);}
+.quiz-pick-ring .ring-progress{stroke:#fff;}
+.quiz-pick-ring .ring-label{color:#fff;}
+.quiz-pick-ring .ring-pct{font-size:26px;text-shadow:0 2px 10px rgba(0,0,0,.4);}
+.quiz-pick-ring .ring-sub{font-size:9.5px;text-shadow:0 1px 4px rgba(0,0,0,.45);}
+@media (max-width:520px){
+  .quiz-pick-ring{width:82px;height:82px;top:12px;right:12px;padding:5px;}
+  .quiz-pick-ring .ring-pct{font-size:22px;}
+  .quiz-pick-ring .ring-sub{font-size:8.5px;}
+}
+
+/* alt ring — on card edge, gradient */
+.quiz-alt-ring{width:88px;height:88px;margin:18px 20px 18px 0;align-self:center;}
+.quiz-alt-ring .ring-track{stroke:rgba(125,138,255,.18);}
+.quiz-alt-ring .ring-progress{stroke:url(#momRingGrad);}
+.quiz-alt-ring .ring-label{color:var(--ink);}
+.quiz-alt-ring .ring-pct{font-size:18px;}
+.quiz-alt-ring .ring-sub{font-size:8.5px;color:var(--sub);}
+@media (min-width:781px){
+  .quiz-alt-ring{width:104px;height:104px;margin:22px 26px 22px 0;}
+  .quiz-alt-ring .ring-pct{font-size:21px;}
+  .quiz-alt-ring .ring-sub{font-size:9.5px;}
+}
+@media (max-width:520px){
+  .quiz-alt-ring{width:68px;height:68px;margin:14px 14px 14px 0;}
+  .quiz-alt-ring .ring-pct{font-size:15px;}
+  .quiz-alt-ring .ring-sub{font-size:7.5px;}
+  .quiz-alt-ring .ring-track,.quiz-alt-ring .ring-progress{stroke-width:8;}
 }
 .quiz-pick-body{padding:18px 20px 20px;}
 @media (max-width:780px){.quiz-pick-body{padding:16px;}}
@@ -1063,7 +1101,13 @@ body.quiz-open{overflow:hidden;}
   font-variant-numeric:tabular-nums;
   margin-bottom:10px;
 }
-.quiz-alt-rank{display:inline-block;font-size:12px;font-weight:700;color:#7d8aff;margin-right:4px;}
+.quiz-alt-rank{
+  display:inline-block;font-size:11px;font-weight:800;color:#7d8aff;
+  letter-spacing:.05em;
+  background:rgba(125,138,255,.10);
+  padding:4px 10px;border-radius:99px;
+  margin-bottom:10px;
+}
 .quiz-alt-name{font-size:19px;font-weight:700;letter-spacing:-.014em;color:var(--ink);margin:0 0 6px;line-height:1.18;}
 .quiz-alt-region{
   font-size:15px;font-weight:600;color:var(--ink);
@@ -1144,6 +1188,14 @@ body.catalog-mode .catalog-back-to-quiz{display:inline-flex;align-items:center;g
 <body>
 
 <!-- ===== QUIZ OVERLAY (starts open on bare /mom-vacation/) ===== -->
+<svg width="0" height="0" style="position:absolute;pointer-events:none" aria-hidden="true">
+  <defs>
+    <linearGradient id="momRingGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#7d8aff"/>
+      <stop offset="100%" stop-color="#a855f7"/>
+    </linearGradient>
+  </defs>
+</svg>
 <div class="quiz-overlay" id="quizOverlay" role="dialog" aria-modal="true" aria-labelledby="quizTitle">
   <div class="quiz-shell">
     <div class="quiz-head">
@@ -4831,7 +4883,7 @@ if (kzMapEl) {
 
   const QUESTIONS = [
     {
-      id:'flight', type:'single', weight:15,
+      id:'flight', type:'single', weight:11,
       title:'Сколько часов готова провести в самолёте?',
       hint:'Выбери один вариант',
       options:[
@@ -4842,7 +4894,7 @@ if (kzMapEl) {
       ]
     },
     {
-      id:'climate', type:'multi', weight:10,
+      id:'climate', type:'multi', weight:9,
       title:'Какая погода в июле больше нравится?',
       hint:'Можно выбрать несколько',
       options:[
@@ -4853,7 +4905,7 @@ if (kzMapEl) {
       ]
     },
     {
-      id:'swim', type:'single', weight:10,
+      id:'swim', type:'single', weight:15,
       title:'Хочется купаться?',
       hint:'Выбери один вариант',
       options:[
@@ -4863,7 +4915,7 @@ if (kzMapEl) {
       ]
     },
     {
-      id:'purpose', type:'multi', weight:25,
+      id:'purpose', type:'multi', weight:12,
       title:'Что хочется от отпуска?',
       hint:'Можно выбрать несколько — это главный вопрос',
       options:[
@@ -4876,7 +4928,7 @@ if (kzMapEl) {
       ]
     },
     {
-      id:'amenities', type:'multi', weight:10,
+      id:'amenities', type:'multi', weight:6,
       title:'Что хочется на территории отеля?',
       hint:'Можно выбрать до 3',
       maxPick:3,
@@ -4891,7 +4943,7 @@ if (kzMapEl) {
       ]
     },
     {
-      id:'budget', type:'single', weight:15,
+      id:'budget', type:'single', weight:20,
       title:'Бюджет за ночь',
       hint:'В рублях',
       options:[
@@ -4902,7 +4954,7 @@ if (kzMapEl) {
       ]
     },
     {
-      id:'meal', type:'single', weight:5,
+      id:'meal', type:'single', weight:3,
       title:'Питание',
       hint:'Что хотелось бы',
       options:[
@@ -4913,7 +4965,7 @@ if (kzMapEl) {
       ]
     },
     {
-      id:'stars', type:'single', weight:5,
+      id:'stars', type:'single', weight:3,
       title:'Уровень отеля',
       hint:'Какой формат комфортен',
       options:[
@@ -4924,7 +4976,7 @@ if (kzMapEl) {
       ]
     },
     {
-      id:'language', type:'single', weight:5,
+      id:'language', type:'single', weight:21,
       title:'Важно, чтобы говорили по-русски?',
       hint:'Какой персонал',
       options:[
@@ -5001,69 +5053,69 @@ if (kzMapEl) {
   function score(h, ans){
     let total = 0, max = 0, cut = 1.0;
 
-    // flight
+    // flight (w=11)
     if (ans.flight != null) {
-      max += 15;
+      max += 11;
       const limit = +ans.flight;
-      if (h.flightH <= limit) total += 15;
-      else if (h.flightH <= limit + 1.5) { total += 5; cut *= 0.7; }
+      if (h.flightH <= limit) total += 11;
+      else if (h.flightH <= limit + 1.5) { total += 4; cut *= 0.7; }
       else cut *= 0.2;
     }
-    // climate
+    // climate (w=9)
     if (ans.climate && ans.climate.length) {
-      max += 10;
-      if (ans.climate.includes(h.climate)) total += 10;
+      max += 9;
+      if (ans.climate.includes(h.climate)) total += 9;
     }
-    // swim
+    // swim (w=15)
     if (ans.swim) {
-      max += 10;
-      if (ans.swim === 'sea')        total += h.water >= 22 ? 10 : (h.water >= 18 ? 3 : 0);
-      else if (ans.swim === 'lake')  total += h.water > 0 ? 10 : 4;   // user wants water — punish no-water
-      else if (ans.swim === 'none')  total += h.water > 0 ? 10 : 8;   // any ok, but water = small bonus
-    }
-    // purpose
-    if (ans.purpose && ans.purpose.length) {
-      max += 25;
-      const overlap = h.purpose.filter(p => ans.purpose.includes(p));
-      if (overlap.length) total += 25 * Math.min(1, overlap.length / Math.max(1, ans.purpose.length));
-    }
-    // amenities
-    if (ans.amenities && ans.amenities.length) {
-      max += 10;
-      const overlap = h.amenities.filter(a => ans.amenities.includes(a));
-      if (overlap.length) total += 10 * Math.min(1, overlap.length / Math.max(1, ans.amenities.length));
-    }
-    // budget
-    if (ans.budget != null) {
       max += 15;
+      if (ans.swim === 'sea')        total += h.water >= 22 ? 15 : (h.water >= 18 ? 5 : 0);
+      else if (ans.swim === 'lake')  total += h.water > 0 ? 15 : 6;   // user wants water — punish no-water
+      else if (ans.swim === 'none')  total += h.water > 0 ? 15 : 12;  // any ok, but water = small bonus
+    }
+    // purpose (w=12)
+    if (ans.purpose && ans.purpose.length) {
+      max += 12;
+      const overlap = h.purpose.filter(p => ans.purpose.includes(p));
+      if (overlap.length) total += 12 * Math.min(1, overlap.length / Math.max(1, ans.purpose.length));
+    }
+    // amenities (w=6)
+    if (ans.amenities && ans.amenities.length) {
+      max += 6;
+      const overlap = h.amenities.filter(a => ans.amenities.includes(a));
+      if (overlap.length) total += 6 * Math.min(1, overlap.length / Math.max(1, ans.amenities.length));
+    }
+    // budget (w=20)
+    if (ans.budget != null) {
+      max += 20;
       const limit = +ans.budget;
-      if (h.price <= limit) total += 15;
-      else if (h.price <= limit * 1.25) { total += 5; cut *= 0.6; }
-      else cut *= 0.15;
+      if (h.price <= limit) total += 20;
+      else if (h.price <= limit * 1.25) { total += 7; cut *= 0.55; }
+      else cut *= 0.12;
     }
-    // meal
+    // meal (w=3)
     if (ans.meal && ans.meal !== 'any') {
-      max += 5;
-      if (h.meal === ans.meal) total += 5;
-      else if (ans.meal === 'AI' && h.meal === 'HB') total += 3;
-      else if (ans.meal === 'HB' && h.meal === 'AI') total += 4;
-      else total += 1;
+      max += 3;
+      if (h.meal === ans.meal) total += 3;
+      else if (ans.meal === 'AI' && h.meal === 'HB') total += 1.8;
+      else if (ans.meal === 'HB' && h.meal === 'AI') total += 2.4;
+      else total += 0.5;
     }
-    // stars
+    // stars (w=3)
     if (ans.stars && ans.stars !== 'any') {
-      max += 5;
-      if (ans.stars === 'sanat') total += 5;
+      max += 3;
+      if (ans.stars === 'sanat') total += 3;
       else {
         const s = (h.stars === 'санат.' ? 4 : +h.stars) || 4;
-        if (s >= +ans.stars) total += 5;
-        else if (s >= +ans.stars - 1) total += 2;
+        if (s >= +ans.stars) total += 3;
+        else if (s >= +ans.stars - 1) total += 1;
       }
     }
-    // language
+    // language (w=21) — TOP priority per user
     if (ans.language && ans.language !== 'any') {
-      max += 5;
-      if (h.language === ans.language) total += 5;
-      else if (ans.language === 'en') total += 5;
+      max += 21;
+      if (h.language === ans.language) total += 21;
+      else if (ans.language === 'en') total += 21;
       else total += 0;
     }
 
@@ -5331,6 +5383,25 @@ if (kzMapEl) {
     overlay.scrollTo({top:0, behavior:'smooth'});
   }
 
+  function ringSVG(score){
+    const R = 44;
+    const C = 2 * Math.PI * R;
+    const off = (C * (1 - Math.max(0, Math.min(100, score)) / 100)).toFixed(1);
+    return `<svg viewBox="0 0 100 100" aria-hidden="true">
+      <circle class="ring-track" cx="50" cy="50" r="${R}"/>
+      <circle class="ring-progress" cx="50" cy="50" r="${R}" stroke-dasharray="${C.toFixed(1)}" stroke-dashoffset="${off}"/>
+    </svg>`;
+  }
+  function ringHTML(score, klass){
+    return `<div class="quiz-ring ${klass}">
+      ${ringSVG(score)}
+      <div class="ring-label">
+        <div class="ring-pct">${score}%</div>
+        <div class="ring-sub">совпадение</div>
+      </div>
+    </div>`;
+  }
+
   function renderTopPick(pick, rank){
     const h = pick.h, why = pick.why, score = pick.s;
     const reasonsHTML = why.map(r => {
@@ -5343,7 +5414,7 @@ if (kzMapEl) {
         <div class="quiz-pick-photo">
           <img src="${h.photo}" alt="">
           <div class="quiz-pick-badge"><span class="rank">№${rank}</span> ${REGION_FLAGS[h.region]} ${REGION_NAMES[h.region]}</div>
-          <div class="quiz-pick-match">${score}% совпадение</div>
+          ${ringHTML(score, 'quiz-pick-ring')}
         </div>
         <div class="quiz-pick-body">
           <h3 class="quiz-pick-name">${h.name}</h3>
@@ -5373,7 +5444,7 @@ if (kzMapEl) {
       <button class="quiz-alt" data-jump-slug="${h.slug}" type="button">
         <div class="quiz-alt-photo"><img src="${h.photo}" alt=""></div>
         <div class="quiz-alt-body">
-          <div class="quiz-alt-match"><span class="quiz-alt-rank">№${rank}</span> ${score}% совпадение</div>
+          <div class="quiz-alt-rank">№${rank}</div>
           <div class="quiz-alt-name">${h.name}</div>
           <div class="quiz-alt-region"><span class="qa-flag">${REGION_FLAGS[h.region]}</span> ${REGION_NAMES[h.region]}</div>
           <div class="quiz-alt-stats">
@@ -5383,6 +5454,7 @@ if (kzMapEl) {
             ${h.spa ? '<span>спа ✓</span>' : ''}
           </div>
         </div>
+        ${ringHTML(score, 'quiz-alt-ring')}
       </button>
     `;
   }
