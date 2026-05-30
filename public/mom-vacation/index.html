@@ -5119,8 +5119,14 @@ if (kzMapEl) {
      Marked hotels get: opacity 0.55, red "⛔ нет в наличии" banner over photo,
      0.20× score penalty in quiz, BUT Booking/Островок link stays clickable. */
   const UNAVAILABLE = [
-    // EXAMPLE: 'tochka',     // ⛔ sold out / closed for renovation
-    // EXAMPLE: 'meridien',   // ⛔ min stay 3 nights
+    // Verified unavailable for 17–20.07.2026 via Chrome MCP sweep over Booking
+    'orbi',         // ⛔ Orbi City — "К сожалению, нельзя забронировать" (Booking)
+    'dom',          // ⛔ Дом у Озера, Боровое — same signal
+    'indianlodge',  // ⛔ Indian Ocean Lodge, Praslin — "Проверить свободные даты"
+    // 15 Russia hotels (Островок) — couldn't auto-verify (Островок rate API gated).
+    // Add slug here as you find unavailable ones: tochka, xclinic, sorola, rantala,
+    //   igora, amber, kristall, yantarhall, berry, schloss, altrimo,
+    //   cosmos, altajpalace, manzherok, plaza.
   ];
 
   function applyUnavailable(){
