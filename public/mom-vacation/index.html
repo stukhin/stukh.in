@@ -5361,11 +5361,12 @@ if (kzMapEl) {
      Marked hotels get: opacity 0.55, red "⛔ нет в наличии" banner over photo,
      0.20× score penalty in quiz, BUT Booking/Островок link stays clickable. */
   const UNAVAILABLE = [
-    // Verified unavailable for 17–20.07.2026 via Chrome MCP — full 47-hotel sweep
+    // Verified unavailable for 17–20.07.2026 via Chrome MCP + user reports
     'orbi',         // ⛔ Orbi City Black Sea View — Батуми
     'dom',          // ⛔ Дом у Озера — Боровое, Казахстан
     'indianlodge',  // ⛔ Indian Ocean Lodge — Praslin, Сейшелы
     'igora',        // ⛔ Игора. Времена года — Сосново, Ленобласть
+    'radisson',     // ⛔ Radisson Blu Batumi — пользователь подтвердил
   ];
 
   function applyUnavailable(){
