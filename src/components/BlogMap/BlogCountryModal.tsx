@@ -28,9 +28,10 @@ type Spread = {
  * empty states instead of suppressing the spread.
  *
  * While the panel is open we set `html.blog-panel-open` to hide
- * the desktop TopNav (which lives in the same bottom-right area as
- * the panel's pager dots). Escape or × closes the panel and
- * restores the nav.
+ * the shell chrome it would collide with: the desktop TopNav (same
+ * bottom-right area as the pager dots), the burger (same corner as
+ * the ×) and, on phones where the panel is full-screen, the logo.
+ * Escape or × closes the panel and restores them.
  *
  * Paging via plain CSS scroll-snap on a horizontal flex row: native
  * swipe on touch + smooth wheel on desktop. Arrow keys + the page-
@@ -58,9 +59,10 @@ export default function BlogCountryModal({ visit, onClose }: Props) {
     return idx >= 0 ? idx + 1 : 0;
   }, [visit]);
 
-  // Hide TopNav while the panel is open. Toggles only when the
-  // open/closed state flips (not on every country switch), so the
-  // nav doesn't flicker when navigating between visits.
+  // Hide the shell chrome (TopNav, burger, phone logo) while the
+  // panel is open. Toggles only when the open/closed state flips
+  // (not on every country switch), so nothing flickers when
+  // navigating between visits.
   const isOpen = !!visit;
   useEffect(() => {
     if (!isOpen) return;
@@ -291,11 +293,13 @@ function CoverSpread({ visit, issue }: { visit: Visit; issue: number }) {
 /* TASTE                                                              */
 /* ------------------------------------------------------------------ */
 
+type Quadrant = "tl" | "tr" | "bl" | "br";
+
 const CATEGORIES: Array<{
   key: Recommendation["category"];
   icon: string;
   label: string;
-  quadrant: "tl" | "tr" | "bl" | "br";
+  quadrant: Quadrant;
 }> = [
   { key: "coffee", icon: "☕", label: "coffee", quadrant: "tl" },
   { key: "nature", icon: "⛰", label: "nature", quadrant: "tr" },
@@ -307,37 +311,39 @@ const CATEGORY_META = Object.fromEntries(
   CATEGORIES.map((c) => [c.key, c])
 ) as Record<Recommendation["category"], (typeof CATEGORIES)[number]>;
 
-// Per-quadrant anchor offsets — `x` measured from the quadrant's
-// outer corner along the horizontal axis, `y` along the vertical.
-// React applies these as `left|right + top|bottom` matching the
-// quadrant, so chips grow inward and never overflow.
-const QUADRANT_OFFSETS: Record<
-  "tl" | "tr" | "bl" | "br",
-  Array<{ x: number; y: number; rot: number }>
+// Per-quadrant scatter. Chips flow in a column inside their own
+// quadrant, growing inward from the outer corner — so they can
+// never cross the axes or land on top of each other (the old
+// absolute %-offsets did both on narrow panels). `nudge` pushes
+// each chip a few px in from the outer edge and `rot` tilts it, so
+// the column still reads hand-placed.
+const QUADRANT_SCATTER: Record<
+  Quadrant,
+  Array<{ nudge: number; rot: number }>
 > = {
   tl: [
-    { x: 8, y: 22, rot: -1.5 },
-    { x: 22, y: 50, rot: 1.0 },
-    { x: 4, y: 78, rot: -0.6 },
-    { x: 32, y: 32, rot: 0.4 },
+    { nudge: 0, rot: -1.5 },
+    { nudge: 16, rot: 1.0 },
+    { nudge: 4, rot: -0.6 },
+    { nudge: 24, rot: 0.4 },
   ],
   tr: [
-    { x: 6, y: 24, rot: 1.2 },
-    { x: 18, y: 52, rot: -0.8 },
-    { x: 4, y: 78, rot: 0.6 },
-    { x: 26, y: 36, rot: -1.6 },
+    { nudge: 0, rot: 1.2 },
+    { nudge: 12, rot: -0.8 },
+    { nudge: 4, rot: 0.6 },
+    { nudge: 20, rot: -1.6 },
   ],
   bl: [
-    { x: 6, y: 26, rot: 0.8 },
-    { x: 22, y: 52, rot: -1.4 },
-    { x: 4, y: 78, rot: 1.6 },
-    { x: 30, y: 36, rot: -0.4 },
+    { nudge: 4, rot: 0.8 },
+    { nudge: 20, rot: -1.4 },
+    { nudge: 0, rot: 1.6 },
+    { nudge: 12, rot: -0.4 },
   ],
   br: [
-    { x: 6, y: 24, rot: -0.6 },
-    { x: 20, y: 50, rot: 1.2 },
-    { x: 4, y: 76, rot: -1.0 },
-    { x: 28, y: 34, rot: 0.4 },
+    { nudge: 4, rot: -0.6 },
+    { nudge: 16, rot: 1.2 },
+    { nudge: 0, rot: -1.0 },
+    { nudge: 24, rot: 0.4 },
   ],
 };
 
@@ -352,7 +358,7 @@ function TasteSpread({
 }) {
   const grouped = useMemo(() => {
     const groups: Record<
-      "tl" | "tr" | "bl" | "br",
+      Quadrant,
       Array<{ rec: Recommendation; i: number }>
     > = { tl: [], tr: [], bl: [], br: [] };
     recommendations.forEach((rec, i) => {
@@ -369,42 +375,41 @@ function TasteSpread({
       </header>
 
       <div className={styles.tasteCanvas}>
-        <div className={styles.tasteAxisH} aria-hidden="true" />
-        <div className={styles.tasteAxisV} aria-hidden="true" />
-
-        {CATEGORIES.map((cat) => (
-          <div
-            key={cat.key}
-            className={`${styles.tasteCornerLabel} ${styles[`corner_${cat.quadrant}`]}`}
-            data-category={cat.key}
-            aria-hidden="true"
-          >
-            <span className={styles.tasteCornerIcon}>{cat.icon}</span>
-            <span className={styles.tasteCornerText}>{cat.label}</span>
-          </div>
-        ))}
-
-        {(
-          Object.entries(grouped) as Array<
-            ["tl" | "tr" | "bl" | "br", Array<{ rec: Recommendation; i: number }>]
-          >
-        ).map(([quadrant, items]) =>
-          items.map(({ rec, i }, indexInQuadrant) => {
-            const pool = QUADRANT_OFFSETS[quadrant];
-            const offset = pool[indexInQuadrant % pool.length];
-            return (
-              <ChipInQuadrant
-                key={i}
-                rec={rec}
-                index={i}
-                quadrant={quadrant}
-                offset={offset}
-                isHidden={lockedRec === i}
-                onLock={() => setLockedRec(i)}
-              />
-            );
-          })
-        )}
+        {CATEGORIES.map((cat) => {
+          // Label sits in the quadrant's outer corner: first in the
+          // column on top, last (under the chips) on the bottom row.
+          const isTop = cat.quadrant.includes("t");
+          const label = (
+            <div className={styles.tasteCornerLabel} aria-hidden="true">
+              <span className={styles.tasteCornerIcon}>{cat.icon}</span>
+              <span className={styles.tasteCornerText}>{cat.label}</span>
+            </div>
+          );
+          const pool = QUADRANT_SCATTER[cat.quadrant];
+          return (
+            <div
+              key={cat.key}
+              className={`${styles.tasteQuadrant} ${styles[`quadrant_${cat.quadrant}`]}`}
+              data-category={cat.key}
+            >
+              {isTop && label}
+              <div className={styles.tasteChips}>
+                {grouped[cat.quadrant].map(({ rec, i }, k) => (
+                  <ChipInQuadrant
+                    key={i}
+                    rec={rec}
+                    index={i}
+                    quadrant={cat.quadrant}
+                    scatter={pool[k % pool.length]}
+                    isHidden={lockedRec === i}
+                    onLock={() => setLockedRec(i)}
+                  />
+                ))}
+              </div>
+              {!isTop && label}
+            </div>
+          );
+        })}
       </div>
     </div>
   );
@@ -414,24 +419,18 @@ function ChipInQuadrant({
   rec,
   index,
   quadrant,
-  offset,
+  scatter,
   isHidden,
   onLock,
 }: {
   rec: Recommendation;
   index: number;
-  quadrant: "tl" | "tr" | "bl" | "br";
-  offset: { x: number; y: number; rot: number };
+  quadrant: Quadrant;
+  scatter: { nudge: number; rot: number };
   isHidden: boolean;
   onLock: () => void;
 }) {
-  const positionStyle: React.CSSProperties = {
-    [quadrant.includes("l") ? "left" : "right"]: `${offset.x}%`,
-    [quadrant.includes("t") ? "top" : "bottom"]: `${offset.y}%`,
-    transformOrigin: `${quadrant.includes("l") ? "left" : "right"} ${
-      quadrant.includes("t") ? "top" : "bottom"
-    }`,
-  };
+  const left = quadrant.includes("l");
 
   return (
     <motion.button
@@ -439,7 +438,16 @@ function ChipInQuadrant({
       layoutId={`chip-${index}`}
       className={`${styles.tasteChip} ${isHidden ? styles.tasteChipHidden : ""}`}
       data-category={rec.category}
-      style={{ ...positionStyle, ["--rot" as string]: `${offset.rot}deg` }}
+      // Tilt goes through motion (not a CSS transform) so hover and
+      // the lock/unlock layout animation return to it instead of
+      // wiping it to `transform: none`.
+      style={{
+        [left ? "marginLeft" : "marginRight"]: scatter.nudge,
+        transformOrigin: `${left ? "left" : "right"} ${
+          quadrant.includes("t") ? "top" : "bottom"
+        }`,
+        rotate: scatter.rot,
+      }}
       onClick={onLock}
       data-cursor="hover"
       whileHover={{ scale: 1.06, rotate: 0 }}
@@ -524,6 +532,45 @@ function LockedChipOverlay({
 /* ------------------------------------------------------------------ */
 
 function GallerySpread({ photos }: { photos: Photo[] }) {
+  // Memoised: Stack resets its card order whenever it receives a new
+  // `cards` array, so an inline .map() would shuffle the pile back on
+  // every panel re-render.
+  const cards = useMemo(
+    () =>
+      photos.map((p, i) => {
+        const aspectClass =
+          p.aspect === "landscape"
+            ? styles.galleryStackCardLandscape
+            : p.aspect === "square"
+            ? styles.galleryStackCardSquare
+            : styles.galleryStackCardPortrait;
+        return (
+          <figure
+            key={i}
+            className={`${styles.galleryStackCard} ${aspectClass}`}
+          >
+            <div
+              className={styles.galleryStackImage}
+              style={{ backgroundImage: `url(${p.src})` }}
+              role="img"
+              aria-label={p.caption ?? p.place ?? "photograph"}
+            />
+            {(p.place || p.caption) && (
+              <figcaption className={styles.galleryStackCaption}>
+                {p.place && (
+                  <span className={styles.printPlace}>{p.place}</span>
+                )}
+                {p.caption && (
+                  <span className={styles.printNote}>{p.caption}</span>
+                )}
+              </figcaption>
+            )}
+          </figure>
+        );
+      }),
+    [photos]
+  );
+
   return (
     <div className={styles.gallery}>
       <header className={styles.spreadHeader}>
@@ -543,37 +590,7 @@ function GallerySpread({ photos }: { photos: Photo[] }) {
             sensitivity={150}
             sendToBackOnClick
             mobileClickOnly
-            cards={photos.map((p, i) => {
-              const aspectClass =
-                p.aspect === "landscape"
-                  ? styles.galleryStackCardLandscape
-                  : p.aspect === "square"
-                  ? styles.galleryStackCardSquare
-                  : styles.galleryStackCardPortrait;
-              return (
-                <figure
-                  key={i}
-                  className={`${styles.galleryStackCard} ${aspectClass}`}
-                >
-                  <div
-                    className={styles.galleryStackImage}
-                    style={{ backgroundImage: `url(${p.src})` }}
-                    role="img"
-                    aria-label={p.caption ?? p.place ?? "photograph"}
-                  />
-                  {(p.place || p.caption) && (
-                    <figcaption className={styles.galleryStackCaption}>
-                      {p.place && (
-                        <span className={styles.printPlace}>{p.place}</span>
-                      )}
-                      {p.caption && (
-                        <span className={styles.printNote}>{p.caption}</span>
-                      )}
-                    </figcaption>
-                  )}
-                </figure>
-              );
-            })}
+            cards={cards}
           />
         </div>
       )}

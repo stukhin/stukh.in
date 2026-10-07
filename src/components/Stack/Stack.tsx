@@ -7,6 +7,7 @@ import {
   type PanInfo,
 } from "motion/react";
 import { useState, useEffect, type ReactNode } from "react";
+import { MQ, useMediaQuery } from "@/lib/useMediaQuery";
 import styles from "./Stack.module.css";
 
 /**
@@ -98,13 +99,17 @@ type Props = {
   pauseOnHover?: boolean;
   /** Touch users: disable drag, allow click only. */
   mobileClickOnly?: boolean;
-  mobileBreakpoint?: number;
 };
 
 type StackItem = {
   id: number;
   content: ReactNode;
 };
+
+// Stable per-card tilt in [-5°, 5°], derived from the card id rather
+// than Math.random() in render — the original re-rolled every card's
+// angle on each re-render, so the whole pile twitched on every click.
+const tiltFor = (id: number) => ((id * 37) % 11) - 5;
 
 export default function Stack({
   randomRotation = false,
@@ -116,22 +121,19 @@ export default function Stack({
   autoplayDelay = 3000,
   pauseOnHover = false,
   mobileClickOnly = false,
-  mobileBreakpoint = 768,
 }: Props) {
-  const [isMobile, setIsMobile] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
 
-  useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth < mobileBreakpoint);
-    };
+  // "Mobile" = a touch device, not a narrow window: draggable cards
+  // get touch-action: none from motion, so on iPads / landscape
+  // phones (≥ 768px) they swallowed the swipes meant to page the
+  // notebook, while mouse users in narrow windows lost drag. Both
+  // hooks run unconditionally (no short-circuit → stable hook order).
+  const hoverNone = useMediaQuery(MQ.TOUCH);
+  const pointerCoarse = useMediaQuery("(pointer: coarse)");
+  const isTouch = hoverNone && pointerCoarse;
 
-    checkMobile();
-    window.addEventListener("resize", checkMobile);
-    return () => window.removeEventListener("resize", checkMobile);
-  }, [mobileBreakpoint]);
-
-  const shouldDisableDrag = mobileClickOnly && isMobile;
+  const shouldDisableDrag = mobileClickOnly && isTouch;
   const shouldEnableClick = sendToBackOnClick || shouldDisableDrag;
 
   const [stack, setStack] = useState<StackItem[]>(() =>
@@ -170,7 +172,7 @@ export default function Stack({
       onMouseLeave={() => pauseOnHover && setIsPaused(false)}
     >
       {stack.map((card, index) => {
-        const randomRotate = randomRotation ? Math.random() * 10 - 5 : 0;
+        const randomRotate = randomRotation ? tiltFor(card.id) : 0;
         return (
           <CardRotate
             key={card.id}

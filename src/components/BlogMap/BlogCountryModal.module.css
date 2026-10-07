@@ -6,12 +6,13 @@
      2. taste    recommendations on a 4-quadrant flavour grid;
                  chips grow on hover, lock to a centred card on
                  click, collapse back via shared layout
-     3. gallery  contact-print grid (or "frames coming soon"
-                 placeholder when photos are sparse)
+     3. gallery  Stack of photo prints (or "frames coming soon"
+                 placeholder when there are no photos)
 
    While the panel is open we set html.blog-panel-open from the
-   modal effect; TopNav opt-in CSS hides itself so it doesn't
-   crash into the panel's pager + footer title at the bottom.
+   modal effect; TopNav, Burger and (on phones) Logo opt-in CSS
+   hides them so they don't crash into the panel's ×, pager and
+   footer title.
    ============================================================ */
 
 /* ---- panel container ---- */
@@ -24,7 +25,6 @@
   width: clamp(360px, 60vw, 880px);
   background: rgba(245, 244, 241, 0.94);
   backdrop-filter: blur(28px) saturate(160%);
-  -webkit-backdrop-filter: blur(28px) saturate(160%);
   border-left: 1px solid rgba(0, 0, 0, 0.08);
   box-shadow: -24px 0 60px rgba(0, 0, 0, 0.12);
   display: flex;
@@ -221,16 +221,34 @@
   opacity: 0.7;
 }
 
+/* Touch: grow the hit areas of the ×s and page dots towards 44px
+   without moving or resizing anything that's drawn. */
+@media (hover: none) and (pointer: coarse) {
+  .close::after,
+  .lockedClose::after,
+  .dot::after {
+    content: "";
+    position: absolute;
+    inset: -6px;
+  }
+  .dot::after {
+    inset: -8px;
+  }
+}
+
 /* ============================================================
    COVER spread — slim hierarchy, hero pinned to top, single
    meta line, no jump cards.
    ============================================================ */
 
 .cover {
+  /* Fill the spread so .coverCounts' margin-top: auto can pin the
+     counts to the bottom; grows past it (spread scrolls) if the
+     description runs long. */
+  flex: 1 0 auto;
   display: flex;
   flex-direction: column;
   gap: 14px;
-  min-height: 0;
 }
 
 .coverMeta {
@@ -286,11 +304,10 @@
   color: rgba(193, 74, 58, 0.85);
   background: rgba(245, 244, 241, 0.85);
   backdrop-filter: blur(4px);
-  -webkit-backdrop-filter: blur(4px);
   pointer-events: none;
 }
 .stampDates {
-  font-size: 10px;
+  font-size: 11px;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   white-space: nowrap;
@@ -390,44 +407,78 @@
    ============================================================ */
 
 .taste {
-  flex: 1;
+  flex: 1 0 auto;
   display: flex;
   flex-direction: column;
-  min-height: 0;
 }
 
+/* 2×2 grid — one cell per category. The canvas fills the spread
+   under its header (no dead band below it on tall phones), never
+   gets shorter than the old fixed canvas, and grows with its
+   content if a quadrant gets crowded (the spread scrolls) rather
+   than letting chips spill across the axes. */
 .tasteCanvas {
   position: relative;
-  /* Shrink the canvas so countries with 3 recs don't read as
-     a desert with chips floating in white space. */
-  height: clamp(380px, 52vh, 540px);
+  flex: 1 0 auto;
+  min-height: clamp(380px, 52vh, 540px);
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 1fr 1fr;
   border: 1px solid rgba(0, 0, 0, 0.08);
   background: rgba(255, 255, 255, 0.4);
-  overflow: visible;
-  flex-shrink: 0;
 }
 
-.tasteAxisH,
-.tasteAxisV {
-  position: absolute;
-  background: rgba(0, 0, 0, 0.08);
-  pointer-events: none;
+/* Each quadrant is a column: label in the outer corner (first on
+   the top row, last on the bottom row), chips grouped in the middle
+   of what's left; right-hand quadrants align to the right edge. The
+   axis cross is drawn as cell borders so it always sits on the real
+   row/column split, even when a crowded quadrant makes its row
+   taller. */
+.tasteQuadrant {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 14px;
+  min-width: 0;
 }
-.tasteAxisH {
-  left: 0;
-  right: 0;
-  top: 50%;
-  height: 1px;
+.quadrant_tl {
+  grid-area: 1 / 1;
+  align-items: flex-start;
+  border-right: 1px solid rgba(0, 0, 0, 0.08);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
 }
-.tasteAxisV {
-  top: 0;
-  bottom: 0;
-  left: 50%;
-  width: 1px;
+.quadrant_tr {
+  grid-area: 1 / 2;
+  align-items: flex-end;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+}
+.quadrant_bl {
+  grid-area: 2 / 1;
+  align-items: flex-start;
+  border-right: 1px solid rgba(0, 0, 0, 0.08);
+}
+.quadrant_br {
+  grid-area: 2 / 2;
+  align-items: flex-end;
+}
+
+.tasteChips {
+  flex: 1;
+  align-self: stretch;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: inherit;
+  gap: 12px;
+}
+
+@media (max-width: 597px) {
+  .tasteQuadrant {
+    padding: 12px;
+  }
 }
 
 .tasteCornerLabel {
-  position: absolute;
   display: flex;
   align-items: center;
   gap: 8px;
@@ -443,13 +494,14 @@
   opacity: 0.85;
 }
 
-.corner_tl { top: 14px; left: 14px; }
-.corner_tr { top: 14px; right: 14px; flex-direction: row-reverse; }
-.corner_bl { bottom: 14px; left: 14px; }
-.corner_br { bottom: 14px; right: 14px; flex-direction: row-reverse; }
+.quadrant_tr .tasteCornerLabel,
+.quadrant_br .tasteCornerLabel {
+  flex-direction: row-reverse;
+}
 
+/* Tilt (rotate) is applied by motion from the chip's scatter slot. */
 .tasteChip {
-  position: absolute;
+  position: relative;
   max-width: 200px;
   padding: 10px 14px 11px;
   background: #fff;
@@ -463,8 +515,6 @@
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
   cursor: none;
   font-family: inherit;
-  --rot: 0deg;
-  transform: rotate(var(--rot));
   z-index: 1;
 }
 .tasteChip:hover {
@@ -489,7 +539,7 @@
   color: #1a1a1a;
 }
 .tasteChipCity {
-  font-size: 10px;
+  font-size: 11px;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   opacity: 0.5;
@@ -511,11 +561,15 @@
   inset: 0;
   background: rgba(245, 244, 241, 0.7);
   backdrop-filter: blur(8px) saturate(140%);
-  -webkit-backdrop-filter: blur(8px) saturate(140%);
   z-index: 20;
   display: flex;
   align-items: center;
+  /* `safe` + scroll: on short screens (landscape phones) a centred
+     card taller than the panel would have its top — and its × —
+     cut off out of reach. */
+  align-items: safe center;
   justify-content: center;
+  overflow-y: auto;
   padding: 28px;
   cursor: none;
 }
@@ -534,13 +588,12 @@
   box-shadow: 0 24px 60px rgba(0, 0, 0, 0.22);
   overflow: hidden;
   z-index: 21;
-  --rot: 0deg;
-  transform: none;
 }
 
 .lockedPhoto {
   width: 100%;
   aspect-ratio: 4 / 3;
+  max-height: 40dvh;
   background-size: cover;
   background-position: center;
   background-color: rgba(0, 0, 0, 0.06);
@@ -557,7 +610,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 10px;
+  font-size: 11px;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   opacity: 0.6;
@@ -614,28 +667,31 @@
    ============================================================ */
 
 .gallery {
-  flex: 1;
+  flex: 1 0 auto;
   display: flex;
   flex-direction: column;
 }
 
 /* Stack of photo cards — replaces the prior 2-col contact-print
    grid. The Stack component itself handles drag / click / rotate /
-   spring motion; we size its container generously and let each
-   card take its own aspect-driven dimensions inside.
+   spring motion; this wrap is a fixed 4:5 stage, centred in the
+   spread, and each card sizes itself by width + image aspect.
 
-   Stack's .card wrapper is now a transparent positioning frame
+   Stack's .card wrapper is a transparent positioning frame
    (flex-centred), so cards of different aspects all stack at the
-   same centre point without affecting the spring animation. */
+   same centre point without affecting the spring animation.
+
+   The stage is capped at 90% of the column so the fan of rotated
+   back cards (up to ~24°) has room to swing out without being cut
+   off by the spread's edge, and at 52vh wide (65vh tall) so it
+   fits short windows. It used to stretch to the spread's full
+   height (flex: 1), which turned portrait prints into thin strips
+   on phones. */
 .galleryStackWrap {
   position: relative;
-  /* Generous box — needs to fit a portrait, landscape, or square
-     card without clipping. Aspect-specific cards take a % of these
-     bounds so they all share the same stacking centre. */
-  width: clamp(300px, 82%, 420px);
-  height: clamp(340px, 64vh, 460px);
-  margin: 12px auto 0;
-  flex: 1;
+  width: min(90%, 400px, 52vh);
+  aspect-ratio: 4 / 5;
+  margin: auto;
 }
 
 /* Base card style — visible polaroid-ish surface. The size
@@ -654,23 +710,27 @@
     0 14px 30px rgba(0, 0, 0, 0.18);
 }
 
+/* Cards size by width (a % of the stage); the print's shape comes
+   from the image's aspect-ratio and the caption adds its own
+   height underneath, so a photo is never squashed by caption
+   length. */
 .galleryStackCardPortrait {
-  width: 68%;
-  height: 98%;
+  width: 58%;
+  --print-aspect: 5 / 8;
 }
 
 .galleryStackCardLandscape {
-  width: 98%;
-  height: 70%;
+  width: 92%;
+  --print-aspect: 7 / 5;
 }
 
 .galleryStackCardSquare {
-  width: 80%;
-  height: 88%;
+  width: 74%;
+  --print-aspect: 1 / 1;
 }
 
 .galleryStackImage {
-  flex: 1;
+  aspect-ratio: var(--print-aspect);
   background-size: cover;
   background-position: center;
   background-color: rgba(0, 0, 0, 0.06);
