@@ -1,10 +1,9 @@
 # stukh.in — backlog / tech-debt
 
-Refreshed 2026-05-24 at HEAD = `d8ea775`. Site is in healthy shape:
-`npm run build` is clean, all 10 routes prerender, no
-`eslint-disable` left in `src/`, no `TODO` / `FIXME` markers, no
-inline `matchMedia` reads outside the one deliberate gesture-time
-read in ChainBridge.
+Refreshed 2026-10-07 after a whole-site review focused on mobile
+(see "Mobile review — Oct 7" under What shipped, and the new items
+under What's actually open). `npm run build` is clean, all 10 routes
+prerender.
 
 Use this alongside [PROJECT.md](./PROJECT.md) at session start.
 
@@ -65,25 +64,46 @@ inventing.
 
 ## Starting a new Claude Code session
 
-1. **Worktree:** the project lives in a Claude worktree branch
-   `claude/dazzling-swartz-cbfece` at
-   `/Users/alexnderstyukhin/Projects/stukh.in/.claude/worktrees/dazzling-swartz-cbfece`.
-   `npm install` already done; `node_modules/` is present.
+1. **Checkout:** work directly in the main checkout
+   `/Users/alexnderstyukhin/Projects/stukh.in` on `main` (the old
+   `claude/dazzling-swartz-cbfece` worktree is history). Other
+   sessions also push to `main` (e.g. `public/mom-vacation/`) —
+   `git fetch` / `pull --rebase` before pushing.
 2. **Read order:** `PROJECT.md` (architecture, page-by-page notes,
    conventions, known footguns) → this file (open backlog + lessons
    from past attempts) → only then start coding.
 3. **Pick from "What's actually open" below.** The single 🔴 left is
    the LiquidEther → ogl port — sized for a dedicated session.
    Otherwise grab a 🟡 / 🟢.
-4. **Deploy:** `git push origin claude/dazzling-swartz-cbfece:main`
-   fast-forwards `main`; Vercel auto-deploys from `main`. The user
-   prefers terse Russian, brief English in code comments. Memory:
-   no preview-server screenshots — verify with `npm run build`.
-   Once build is clean, commit + push without asking.
-5. **Visual / WebGL changes need DevTools verification.** `npm run
-   build` doesn't catch runtime WebGL failures. After deploy, ask
-   the user to open Chrome → F12 → Console → reload, and report
-   anything red. We have lived through that loop several times.
+4. **Deploy:** `git push origin main`; Vercel auto-deploys from
+   `main`. The user prefers terse Russian, brief English in code
+   comments. Once build is clean, commit + push without asking.
+5. **Visual / WebGL changes need runtime verification.** `npm run
+   build` doesn't catch runtime WebGL failures or browser-specific
+   rendering. `npm run build` + the `stukhin-prod` launch config
+   (`next start`) gives a faithful local prod; keep screenshots
+   scaled down. **Check Safari separately** — the iOS Simulator
+   (`xcrun simctl boot …`, then open `http://localhost:3000`) is on
+   this Mac and caught two bugs Chromium never shows (see lessons).
+
+### Lessons from the Oct 7 review (read before touching blur / SVG)
+- **Never hand-write `-webkit-backdrop-filter`.** Next's CSS
+  pipeline (LightningCSS) collapses `backdrop-filter: X;
+  -webkit-backdrop-filter: X;` into the prefixed form only, so
+  Chrome / Android / Firefox got no blur on 14 surfaces for months.
+  Write the unprefixed property alone; the build adds the prefix.
+  Check the built CSS: every `backdrop-filter:` should be paired.
+- **Backdrop root.** An ANCESTOR with `clip-path`, `opacity < 1`,
+  `filter`, `mask` or `mix-blend-mode` isolates a child's
+  `backdrop-filter` (Chromium blurs an empty backdrop = no blur).
+  Put clip / fade on the blurred element itself.
+- **No composited HTML inside `<foreignObject>`.** WebKit draws it
+  without the SVG's viewBox scaling (bug 23113): the /blog frosted
+  layer smeared blur over the whole map on iPhones. Lay HTML over
+  the SVG as a sibling and clip it with an `objectBoundingBox`
+  clipPath instead. The LiquidEther hover layer still uses a
+  foreignObject — fine on touch (skipped there), unverified in
+  desktop Safari.
 
 ---
 
@@ -132,10 +152,6 @@ failed ogl port saga earlier; lessons documented under
   `wrap.style.setProperty("--pan-x", …)` and `--pan-y` twice per
   mousemove frame. Combine into one batched write to save a
   style-invalidation pass per frame.
-- **Preloader save-data gate**: `Preloader.tsx` preloads 21 nature
-  + 5 city JPGs unconditionally. Mobile users on cellular pay
-  ~6–12 MB before any interaction. Gate on
-  `navigator.connection.saveData`.
 - **`tsconfig.noUncheckedIndexedAccess: true`** would catch
   `arr[0]` patterns scattered in WebGL components. Currently
   unchecked.
@@ -144,6 +160,45 @@ failed ogl port saga earlier; lessons documented under
   bit of bundle and unify the WebGL stack with `LightRays` —
   cosmetic. Defer until LiquidEther is also ported (drops `three`
   in one go).
+
+### 🟡 From the Oct 7 review — not done yet
+Needs a decision from the user first:
+- **Tracking outside the panel** isn't on the 3-value scale:
+  TopNav / menu / 404 `-0.03em`, walls `0.02 / 0.06 / 0.12em`,
+  home `0.04 / 0.12 / 0.18em`, `/blog` stamp `0.32 / 0.24em`.
+- **/city** location subtitle (`#050505` at opacity 0.25 on a light
+  page, ~1.7:1 contrast). **/order**: menu links in `#06f` (off
+  palette); white logo reads poorly at the top and sits over the
+  "book a shoot" text once scrolled.
+- **Home on phones** uses the 2000×1500 landscape heroes; portrait
+  crops in `public/images/gallery/main/mobile/` exist but are unused
+  (which crops?).
+- **Touch tablets** skip the focus-mode glide, so on iPads the
+  selected country can sit under the 60vw panel.
+- **iPhone landscape** shows white side bars (html/body bg `#fff`);
+  set the root bg per route from `PAGE_VISUALS`?
+- **Viewport disables zoom** (`maximumScale: 1, userScalable:
+  false`) — Android honours it (a11y).
+- `public/mom-vacation/` (another session's hotel quiz, dates
+  17–20.07 now past): keep or remove?
+
+Perf / polish, no decision needed:
+- **LiquidEther** sizes its canvas to the whole map (~9 MP at
+  1440×900) for a ~60px country; size the foreignObject to the
+  hovered country's bounds, pixel ratio 1, lazy-load three.js.
+- **GridDistortion** (home) renders every frame even when idle and
+  its warp never relaxes under a resting cursor.
+- **ClickSpark** clears a full-viewport canvas every frame forever.
+- **Fonts** come in through render-blocking CSS `@import`s.
+- **Preloader** flashes its white "0%" sheet on every reload until
+  hydration (SSR always renders the loading phase); TopNav's typing
+  intro plays hidden under it on first visit.
+- **ChainBridge** slides use `100vh` / centred crops while the pages
+  use `100dvh` / top-left crops — small jump at the end of a slide.
+- **Country panel a11y**: no focus move/trap/restore; countries
+  aren't keyboard-reachable.
+- **BlogMap touch listeners** stay non-passive on `window` while
+  the panel is open (scroll latency inside it).
 
 ### 🟢 Nice-to-have, no urgency
 - Pin explicit `JSX.Element` return type on exported components.
@@ -160,6 +215,38 @@ failed ogl port saga earlier; lessons documented under
 
 Grouped by area, newest-first within each group. Commits are at
 `https://github.com/stukhin/stukh.in/commit/<sha>`.
+
+**Mobile review (Oct 7)** — every route at 375×812, plus Chromium
+desktop and the iOS Simulator (Safari).
+- ✅ Blur everywhere: dropped the hand-written `-webkit-backdrop-
+  filter` lines (14 surfaces had no blur outside Safari).
+- ✅ /blog frosted countries: HTML layer over the SVG (was a
+  foreignObject — blurred the whole map on iPhones, no blur in
+  Chrome); one merged clip path (no seam lines).
+- ✅ /blog Grainient: pan applied in the shader on a viewport-sized
+  canvas (was 2.2×2.2 the screen, and phones panned past its edge);
+  pauses while the full-screen panel covers it; WebGL failures fall
+  back instead of crashing.
+- ✅ /blog map: wheel zooms anywhere (was visited countries only,
+  elsewhere it paged to /walls); +/− on touch no longer recentres;
+  focus frames the mainland (France / Spain / Portugal / Chile
+  dragged in overseas territories), caps tiny countries, Seychelles
+  focuses at 4× (was ~340×); re-focus during the close glide works;
+  hover plate flips at screen edges; no LiquidEther on touch.
+- ✅ Country panel: burger + phone logo hidden while open; taste
+  map as a real 2×2 grid; Stack prints sized by aspect with room
+  for the fan; cover counts pinned to the bottom; bigger touch
+  targets; stable card tilt and order.
+- ✅ Navigation: swipe / wheel can't page under the photo zoom, the
+  menu, the panel, the preloader or mid-transition; no
+  pull-to-refresh on swipe pages; home slide dots clickable on
+  desktop (EdgeNav sat on top).
+- ✅ Shell: menu popup no longer flashes on page mounts; preloader
+  logo visible, 6s cap, storage errors survivable; native cursor
+  in narrow windows and on /system; landscape menu fits; 404 theme.
+- ✅ Walls: zoom box follows 9:16 on narrow phones (no letterbox
+  bands, buttons on the photo); zoom modals focus the dialog, not
+  the first button (iOS drew a focus ring on every open).
 
 **Click-spark + cursor dissolve (May 23–24)**
 - ✅ ClickSpark React-Bits port (`9d92a5f`) — viewport-wide canvas
