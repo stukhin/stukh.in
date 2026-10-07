@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import Logo from "../Logo/Logo";
 import wallsData from "@/data/walls.json";
+import { HOME_SLIDES, shownBg } from "@/lib/pageVisuals";
 import styles from "./Preloader.module.css";
 
 const FADE_MS = 400;
@@ -50,10 +51,8 @@ function markIntroSeen() {
 function buildCriticalUrls(): string[] {
   const list: string[] = [];
 
-  // Home slider hero photos.
-  for (let i = 1; i <= 4; i++) {
-    list.push(`/images/gallery/main/desktop/${i}.webp`);
-  }
+  // Home slider hero photos — the crop this screen will show.
+  HOME_SLIDES.forEach((s) => list.push(shownBg(s.landscape)));
 
   // Page backgrounds + frame chrome shared between /nature and /city.
   list.push("/images/misc/bg_nature.webp");

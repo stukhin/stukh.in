@@ -1,18 +1,13 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState, type CSSProperties } from "react";
 import GridDistortion from "../GridDistortion/GridDistortion";
 import { useVerticalPageSwipe } from "@/lib/useVerticalPageSwipe";
 import { MQ, useMediaQuery } from "@/lib/useMediaQuery";
-import { setRouteBg } from "@/lib/pageVisuals";
+import { HOME_SLIDES, setRouteBg } from "@/lib/pageVisuals";
 import styles from "./HomeSlider.module.css";
 
-const slides = [
-  "/images/gallery/main/desktop/1.webp",
-  "/images/gallery/main/desktop/2.webp",
-  "/images/gallery/main/desktop/3.webp",
-  "/images/gallery/main/desktop/4.webp",
-];
+const slides = HOME_SLIDES.map((s) => s.landscape);
 
 const AUTOPLAY_MS = 7000;
 // sessionStorage key for the active slide so navigating away from /
@@ -192,9 +187,17 @@ export default function HomeSlider() {
               relaxation={0.92}
             />
           ) : (
+            /* Both crops handed to CSS, which picks one by
+               orientation — no hydration mismatch, and the browser
+               only downloads the one it paints. */
             <div
               className={styles.fallback}
-              style={{ backgroundImage: `url(${slides[active]})` }}
+              style={
+                {
+                  "--slide-landscape": `url(${HOME_SLIDES[active].landscape})`,
+                  "--slide-portrait": `url(${HOME_SLIDES[active].portrait})`,
+                } as CSSProperties
+              }
             />
           )}
         </div>

@@ -4,7 +4,14 @@ import { CSSProperties, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { MQ } from "@/lib/useMediaQuery";
 import { PAGE_ORDER } from "@/lib/pageOrder";
-import { PAGE_VISUALS, getRouteBg } from "@/lib/pageVisuals";
+import {
+  HOME_SLIDES,
+  PAGE_VISUALS,
+  PORTRAIT_MQ,
+  getRouteBg,
+  portraitBg,
+  shownBg,
+} from "@/lib/pageVisuals";
 import styles from "./ChainBridge.module.css";
 
 const BASE_DURATION = 800;
@@ -46,13 +53,13 @@ export default function ChainBridge() {
   // browsers were lazy-decoding them. With link-preload the
   // browser eagerly fetches + decodes regardless of viewport.
   useEffect(() => {
+    // shownBg: portrait screens preload the portrait home crops —
+    // the variant the bridge <picture> below will actually paint.
     const sources = new Set<string>();
     Object.values(PAGE_VISUALS).forEach((v) => {
-      if (v.bg) sources.add(v.bg);
+      if (v.bg) sources.add(shownBg(v.bg));
     });
-    for (let i = 1; i <= 4; i++) {
-      sources.add(`/images/gallery/main/desktop/${i}.webp`);
-    }
+    HOME_SLIDES.forEach((s) => sources.add(shownBg(s.landscape)));
     const links: HTMLLinkElement[] = [];
     sources.forEach((src) => {
       const link = document.createElement("link");
@@ -193,7 +200,7 @@ export default function ChainBridge() {
       const fromBg = getRouteBg(e.detail.from);
       if (fromBg && typeof Image !== "undefined") {
         const img = new Image();
-        img.src = fromBg;
+        img.src = shownBg(fromBg);
         img.decode().then(startFade, startFade);
       } else {
         startFade();
@@ -283,15 +290,22 @@ export default function ChainBridge() {
             >
               {showBgImage && (
                 /* Real <img> rather than CSS background-image:url()
-                   so the image element handles decode + paint. */
-                <img
-                  src={liveBg!}
-                  alt=""
-                  loading="eager"
-                  decoding="sync"
-                  fetchPriority="high"
-                  className={styles.slideImg}
-                />
+                   so the image element handles decode + paint. The
+                   <picture> source swaps in the portrait home crop on
+                   portrait screens, matching what the page shows. */
+                <picture>
+                  {portraitBg(liveBg!) && (
+                    <source media={PORTRAIT_MQ} srcSet={portraitBg(liveBg!)} />
+                  )}
+                  <img
+                    src={liveBg!}
+                    alt=""
+                    loading="eager"
+                    decoding="sync"
+                    fetchPriority="high"
+                    className={styles.slideImg}
+                  />
+                </picture>
               )}
 
               {skeleton === "gallery" && (

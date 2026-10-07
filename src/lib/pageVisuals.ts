@@ -12,9 +12,48 @@ export type PageVisual = {
   color: string;
 };
 
+/**
+ * Home hero photos. The landscape crops feed GridDistortion and any
+ * landscape screen; portrait screens get the portrait crops of the
+ * same frames (1250×2000) — phones used to download the 2000×1500
+ * landscape files and show only their middle third.
+ */
+export const HOME_SLIDES = [
+  {
+    landscape: "/images/gallery/main/desktop/1.webp",
+    portrait: "/images/gallery/main/mobile/1.jpg",
+  },
+  {
+    landscape: "/images/gallery/main/desktop/2.webp",
+    portrait: "/images/gallery/main/mobile/2.jpg",
+  },
+  {
+    landscape: "/images/gallery/main/desktop/3.webp",
+    portrait: "/images/gallery/main/mobile/3.jpg",
+  },
+  {
+    landscape: "/images/gallery/main/desktop/4.webp",
+    portrait: "/images/gallery/main/mobile/4.webp",
+  },
+] as const;
+
+/** Screens that get the portrait crops. */
+export const PORTRAIT_MQ = "(orientation: portrait)";
+
+/** The portrait crop of a bg URL, when it has one (home slides). */
+export function portraitBg(url: string): string | undefined {
+  return HOME_SLIDES.find((s) => s.landscape === url)?.portrait;
+}
+
+/** The variant of a bg URL this screen actually shows (client only). */
+export function shownBg(url: string): string {
+  if (!window.matchMedia(PORTRAIT_MQ).matches) return url;
+  return portraitBg(url) ?? url;
+}
+
 export const PAGE_VISUALS: Readonly<Record<string, PageVisual>> = {
   "/": {
-    bg: "/images/gallery/main/desktop/1.webp",
+    bg: HOME_SLIDES[0].landscape,
     color: "#0d1117",
   },
   "/nature": {
