@@ -1339,15 +1339,23 @@ export default function LiquidEther({
     container.style.position = container.style.position || "relative";
     container.style.overflow = container.style.overflow || "hidden";
 
-    const webgl = new WebGLManager({
-      $wrapper: container,
-      autoDemo,
-      autoSpeed,
-      autoIntensity,
-      takeoverDuration,
-      autoResumeDelay,
-      autoRampDuration,
-    });
+    let webgl: WebGLManager;
+    try {
+      webgl = new WebGLManager({
+        $wrapper: container,
+        autoDemo,
+        autoSpeed,
+        autoIntensity,
+        takeoverDuration,
+        autoResumeDelay,
+        autoRampDuration,
+      });
+    } catch {
+      // three.js throws when no WebGL context can be created (WebGL
+      // disabled / blocklisted GPU). Skip the fluid — the country's
+      // hover fill still shows — instead of crashing the page.
+      return;
+    }
     webglRef.current = webgl;
 
     const applyOptionsFromProps = () => {

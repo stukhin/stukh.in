@@ -9,8 +9,8 @@
   height: 100dvh;
   overflow: hidden;
   color: #1a1a1a;
-  /* Mid-gray matches the Grainient palette midpoint — only visible
-     if .bg's pan offset reveals an edge at extreme zoom levels. */
+  /* Mid-gray matches the Grainient palette midpoint — shows only
+     for the moment before the WebGL surface paints its first frame. */
   background-color: #8a8a8a;
   /* Disable native scroll / pinch-zoom on the whole /blog page —
      BlogMap's JS owns all gestures (drag-pan + pinch-zoom). Without
@@ -22,38 +22,21 @@
 }
 
 /* Grainient WebGL bg fills the viewport behind the map + shell.
-   Same pattern as /walls, with two differences:
-     · Larger than the viewport (15% overflow each side) so the
-       layer can pan in sync with the map without revealing the
-       fallback page bg at the edges.
-     · `transform: translate(--blog-map-pan-x, --blog-map-pan-y)`
-       binds the layer's position to the map's pan vars (which
-       BlogMap mirrors onto documentElement). Result: when the
-       map pans, the bg pans with it, 1:1 — feels attached.
+   Same pattern as /walls, except the surface pans 1:1 with the
+   map: Grainient reads the pan vars BlogMap mirrors onto <html>
+   (`panVars`) and shifts the image inside the shader, so the
+   canvas stays exactly viewport-sized. The old approach — an
+   oversized layer (inset −60vw/−60vh) moved with a CSS transform —
+   rendered ~4.8× the screen's pixels every frame and still ran out
+   of edge: phones pan the map up to ~170vw sideways, which bared
+   the flat page bg. `overscan` keeps the old composition (the
+   shader still sees a canvas 2.2× the viewport, centred).
    Grainient itself paints its own film grain (uGrainAmount) so
    the previous paper-texture tile overlay is dropped — stacking
    two grain layers would just read as noise on noise. */
 .bg {
   position: fixed;
-  /* Generous overflow so the layer can pan with the map at default
-     + moderate zoom levels without revealing an edge. Earlier 15%
-     overflow proved insufficient — cursor-far-right pan at default
-     zoom can exceed 19% of viewport width, revealing the page bg
-     beyond .bg's right edge. 30% covers default-zoom comfortably;
-     at max zoom 3.2× edges may still appear, in which case the
-     page's #8a8a8a fallback shows through (close to the Grainient
-     mid-tone so the boundary is much softer). */
-  /* 60% overflow on each axis. 30% turned out to be insufficient on
-     narrower / taller viewports where the map's aspect ratio
-     pushes max pan past 30% of viewport width. 60% covers the
-     pan range at default zoom across every reasonable viewport
-     shape; at extreme zooms (>2x) the #8a8a8a page-bg fallback
-     bridges any remaining edge reveal. */
-  inset: -60vh -60vw;
+  inset: 0;
   z-index: 0;
   pointer-events: none;
-  transform: translate(
-    var(--blog-map-pan-x, 0px),
-    var(--blog-map-pan-y, 0px)
-  );
 }

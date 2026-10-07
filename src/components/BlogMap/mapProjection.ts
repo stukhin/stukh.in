@@ -27,11 +27,12 @@ export type CountryPath = {
   id: string;
   name: string;
   d: string;
-  cx: number;
-  cy: number;
 };
 
 export type Projection = ReturnType<typeof geoEqualEarth>;
+
+/** [[x0, y0], [x1, y1]] in projected SVG (viewBox) units. */
+export type Bounds = [[number, number], [number, number]];
 
 export type MapProjection = {
   paths: CountryPath[];
@@ -39,9 +40,48 @@ export type MapProjection = {
   mapAspect: number;
   vb: { x: number; y: number; w: number; h: number };
   projection: Projection;
+  /** Bounds to frame when a country is focused — see focusBoundsOf. */
+  getFocusBounds: (id: string) => Bounds | null;
 };
 
 type CountryFeature = Feature<Geometry, { name?: string }>;
+
+/**
+ * Bounds worth framing for a country: its largest polygon plus every
+ * part within half that polygon's size of it. A plain bbox of the
+ * MultiPolygon drags overseas territories into the frame — France's
+ * spans French Guiana and Réunion (focus centred on the Sahara),
+ * Spain's the Canaries, Portugal's the Azores, Chile's Easter Island
+ * — while Corsica, the Balearics or Japan's main islands still make
+ * it in.
+ */
+function focusBoundsOf(
+  f: CountryFeature,
+  pathGen: ReturnType<typeof geoPath>
+): Bounds {
+  if (f.geometry.type !== "MultiPolygon") return pathGen.bounds(f);
+  const parts = f.geometry.coordinates.map((coordinates) => {
+    const polygon = { type: "Polygon" as const, coordinates };
+    return { area: pathGen.area(polygon), b: pathGen.bounds(polygon) };
+  });
+  parts.sort((a, b) => b.area - a.area);
+  const [[mx0, my0], [mx1, my1]] = parts[0].b;
+  const pad = Math.max(mx1 - mx0, my1 - my0) / 2;
+  const near = parts.filter(
+    ({ b: [[x0, y0], [x1, y1]] }) =>
+      x1 >= mx0 - pad && x0 <= mx1 + pad && y1 >= my0 - pad && y0 <= my1 + pad
+  );
+  return [
+    [
+      Math.min(...near.map((p) => p.b[0][0])),
+      Math.min(...near.map((p) => p.b[0][1])),
+    ],
+    [
+      Math.max(...near.map((p) => p.b[1][0])),
+      Math.max(...near.map((p) => p.b[1][1])),
+    ],
+  ];
+}
 
 /**
  * Project all country paths once. The viewBox is then tightened to
@@ -81,23 +121,25 @@ export function buildMapProjection(): MapProjection {
   const vbH = wb[1][1] - wb[0][1];
 
   const paths: CountryPath[] = featureCollection.features.map(
-    (f: CountryFeature) => {
-      const d = pathGen(f) ?? "";
-      // Bbox centre per country (in projected SVG coords). Used as
-      // the transform origin when the visited <clipPath> pre-scales
-      // to match the visual's hover scale.
-      const bounds = pathGen.bounds(f);
-      const cx = (bounds[0][0] + bounds[1][0]) / 2;
-      const cy = (bounds[0][1] + bounds[1][1]) / 2;
-      return {
-        id: String(f.id ?? ""),
-        name: f.properties?.name ?? "",
-        d,
-        cx,
-        cy,
-      };
-    }
+    (f: CountryFeature) => ({
+      id: String(f.id ?? ""),
+      name: f.properties?.name ?? "",
+      d: pathGen(f) ?? "",
+    })
   );
+
+  // Focus bounds are only ever needed for the clicked country, so
+  // compute them on demand instead of for all ~240 features up front.
+  const focusCache = new Map<string, Bounds | null>();
+  const getFocusBounds = (id: string) => {
+    if (!focusCache.has(id)) {
+      const f = featureCollection.features.find(
+        (feat) => String(feat.id ?? "") === id
+      );
+      focusCache.set(id, f ? focusBoundsOf(f, pathGen) : null);
+    }
+    return focusCache.get(id) ?? null;
+  };
 
   return {
     paths,
@@ -105,6 +147,7 @@ export function buildMapProjection(): MapProjection {
     mapAspect: vbW / vbH,
     vb: { x: vbX, y: vbY, w: vbW, h: vbH },
     projection,
+    getFocusBounds,
   };
 }
 

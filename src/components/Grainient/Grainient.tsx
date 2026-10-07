@@ -27,6 +27,28 @@ type Props = {
   color1?: string;
   color2?: string;
   color3?: string;
+  /**
+   * Virtual margin around the element, as a fraction of its size on
+   * each side. The shader is evaluated as if the canvas were
+   * (1 + 2·overscan)× larger and centred on the element — the same
+   * image an oversized, offset wrapper would show, without paying
+   * for the off-screen pixels.
+   */
+  overscan?: number;
+  /**
+   * Names of CSS custom properties on <html> holding a px offset
+   * (e.g. the /blog map pan). Read every frame and applied inside
+   * the shader, so the surface tracks whoever writes them while the
+   * canvas itself stays put — it can never run out of edge.
+   */
+  panVars?: [string, string];
+  /**
+   * [html class, media query]: hold the current frame while <html>
+   * carries the class and the query matches — e.g. while a
+   * full-screen panel hides the surface, so neither the shader nor
+   * the panel's backdrop blur has to be recomputed every frame.
+   */
+  pauseWhenCovered?: [string, string];
   className?: string;
 };
 
@@ -72,6 +94,7 @@ uniform float uZoom;
 uniform vec3 uColor1;
 uniform vec3 uColor2;
 uniform vec3 uColor3;
+uniform vec2 uOffset;
 out vec4 fragColor;
 #define S(a,b,t) smoothstep(a,b,t)
 mat2 Rot(float a){float s=sin(a),c=cos(a);return mat2(c,-s,s,c);}
@@ -126,7 +149,7 @@ void mainImage(out vec4 o, vec2 C){
 }
 void main(){
   vec4 o=vec4(0.0);
-  mainImage(o,gl_FragCoord.xy);
+  mainImage(o,gl_FragCoord.xy+uOffset);
   fragColor=o;
 }
 `;
@@ -154,20 +177,33 @@ export default function Grainient({
   color1 = "#FF9FFC",
   color2 = "#5227FF",
   color3 = "#B497CF",
+  overscan = 0,
+  panVars,
+  pauseWhenCovered,
   className = "",
 }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
+  const [panVarX, panVarY] = panVars ?? ["", ""];
+  const [pauseClass, pauseMedia] = pauseWhenCovered ?? ["", ""];
 
   useEffect(() => {
     if (!containerRef.current) return;
     const container = containerRef.current;
 
-    const renderer = new Renderer({
-      webgl: 2,
-      alpha: true,
-      antialias: false,
-      dpr: Math.min(window.devicePixelRatio || 1, 2),
-    });
+    let renderer: Renderer;
+    try {
+      renderer = new Renderer({
+        webgl: 2,
+        alpha: true,
+        antialias: false,
+        dpr: Math.min(window.devicePixelRatio || 1, 2),
+      });
+    } catch {
+      // No WebGL (disabled / blocklisted GPU): ogl throws on the null
+      // context. Leave the page's flat fallback colour showing rather
+      // than taking the whole route down.
+      return;
+    }
 
     const gl = renderer.gl;
     const canvas = gl.canvas as HTMLCanvasElement;
@@ -204,10 +240,34 @@ export default function Grainient({
         uColor1: { value: new Float32Array(hexToRgb(color1)) },
         uColor2: { value: new Float32Array(hexToRgb(color2)) },
         uColor3: { value: new Float32Array(hexToRgb(color3)) },
+        uOffset: { value: new Float32Array([0, 0]) },
       },
     });
 
     const mesh = new Mesh(gl, { geometry, program });
+    const offset = program.uniforms.uOffset.value as Float32Array;
+    const docStyle = document.documentElement.style;
+    const readPan = (name: string) =>
+      name ? parseFloat(docStyle.getPropertyValue(name)) || 0 : 0;
+
+    // Overscan margin in drawing-buffer px, refreshed on resize.
+    let marginX = 0;
+    let marginY = 0;
+
+    // Shift the virtual canvas by the overscan margin minus the pan.
+    // Whole device px only: the grain is a per-pixel hash, so a
+    // fractional shift would re-roll it and make the noise shimmer
+    // while panning. gl_FragCoord runs bottom-up, CSS px top-down —
+    // hence the opposite sign on y. Returns whether anything moved.
+    const updateOffset = () => {
+      const dpr = renderer.dpr;
+      const x = marginX - Math.round(readPan(panVarX) * dpr);
+      const y = marginY + Math.round(readPan(panVarY) * dpr);
+      if (x === offset[0] && y === offset[1]) return false;
+      offset[0] = x;
+      offset[1] = y;
+      return true;
+    };
 
     const setSize = () => {
       const rect = container.getBoundingClientRect();
@@ -215,8 +275,11 @@ export default function Grainient({
       const h = Math.max(1, Math.floor(rect.height));
       renderer.setSize(w, h);
       const res = program.uniforms.iResolution.value as Float32Array;
-      res[0] = gl.drawingBufferWidth;
-      res[1] = gl.drawingBufferHeight;
+      res[0] = gl.drawingBufferWidth * (1 + 2 * overscan);
+      res[1] = gl.drawingBufferHeight * (1 + 2 * overscan);
+      marginX = Math.round(gl.drawingBufferWidth * overscan);
+      marginY = Math.round(gl.drawingBufferHeight * overscan);
+      updateOffset();
       renderer.render({ scene: mesh });
     };
 
@@ -224,12 +287,29 @@ export default function Grainient({
     ro.observe(container);
     setSize();
 
+    // Reduced motion: hold the first frame and only re-render when
+    // the pan moves the surface.
+    const still = window.matchMedia(
+      "(prefers-reduced-motion: reduce)"
+    ).matches;
+
+    const html = document.documentElement;
+    const pauseMq = pauseMedia ? window.matchMedia(pauseMedia) : null;
+    const covered = () =>
+      !!pauseClass &&
+      html.classList.contains(pauseClass) &&
+      (!pauseMq || pauseMq.matches);
+
     let raf = 0;
     const t0 = performance.now();
     const loop = (t: number) => {
-      program.uniforms.iTime.value = (t - t0) * 0.001;
-      renderer.render({ scene: mesh });
       raf = requestAnimationFrame(loop);
+      if (covered()) return;
+      const moved = updateOffset();
+      if (!still || moved) {
+        program.uniforms.iTime.value = still ? 0 : (t - t0) * 0.001;
+        renderer.render({ scene: mesh });
+      }
     };
     raf = requestAnimationFrame(loop);
 
@@ -241,6 +321,10 @@ export default function Grainient({
       } catch {
         // Already detached.
       }
+      // Free the GPU context now instead of whenever GC gets to it —
+      // hopping between /walls and /blog otherwise piles up contexts
+      // until the browser starts killing the oldest.
+      gl.getExtension("WEBGL_lose_context")?.loseContext();
     };
   }, [
     timeSpeed,
@@ -265,6 +349,11 @@ export default function Grainient({
     color1,
     color2,
     color3,
+    overscan,
+    panVarX,
+    panVarY,
+    pauseClass,
+    pauseMedia,
   ]);
 
   return (

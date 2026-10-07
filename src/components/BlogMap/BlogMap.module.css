@@ -78,6 +78,9 @@
    horizontally; flex-shrink: 0 keeps it that size even if the wrap
    is narrower (excess overflows and gets clipped by .root). */
 .map {
+  /* Positioned so it paints above the absolutely-positioned
+     .frostedGlass sibling that precedes it. */
+  position: relative;
   height: 100%;
   /* `dvh` is the right unit (tracks the live viewport without the
      iOS Safari URL-bar dance), but Safari < 15.4 doesn't understand
@@ -98,8 +101,10 @@
   pointer-events: none;
 }
 
-/* Frosted-glass tile inside the foreignObject that's clipped to
-   the union of all unvisited country silhouettes.
+/* Frosted-glass layer clipped to the union of all unvisited
+   country silhouettes. Laid exactly over the SVG: same box as .map
+   (full height, width from the map aspect, centred), so the
+   objectBoundingBox clipPath lands on the drawn countries.
 
    The vibe: countries read as a slightly matte tinted plate
    FLOATING ABOVE the Grainient noise (not as a window through
@@ -112,26 +117,31 @@
    merely overlaid.
 
    No shadow, no stroke; silhouette comes entirely from the
-   parent <g>'s clip-path. */
-.frostedGlass {
-  width: 100%;
-  height: 100%;
-  backdrop-filter: blur(10px) brightness(1.08) saturate(1.1);
-  -webkit-backdrop-filter: blur(10px) brightness(1.08) saturate(1.1);
-  background-color: rgba(255, 255, 255, 0.22);
-  pointer-events: none;
-}
+   clip-path (the SVG union of unvisited countries). The clip and
+   the focus fade sit on this element rather than an ancestor so
+   neither becomes the blur's backdrop root — see the note in
+   BlogMap.tsx.
 
-/* Wrapper around all ~250 unvisited paths. Focus mode fades the
-   whole group to 0.2 via this single transition; browser
-   composites the group as one layer so no per-path re-paint
+   Focus mode fades the whole layer to 0.2 via this single
+   transition; one composited element, so no per-path re-paint
    happens during the fade. */
-.unvisitedGroup {
+.frostedGlass {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  height: 100%;
+  width: calc(100vh * var(--map-aspect, 2));
+  width: calc(100dvh * var(--map-aspect, 2));
+  transform: translateX(-50%);
+  backdrop-filter: blur(10px) brightness(1.08) saturate(1.1);
+  background-color: rgba(255, 255, 255, 0.22);
+  clip-path: url(#unvisited-union-clip);
+  pointer-events: none;
   opacity: 1;
   transition: opacity 1.5s cubic-bezier(0.7, 0, 0.84, 0);
 }
 
-.focusing .unvisitedGroup {
+.focusing .frostedGlass {
   opacity: 0.2;
 }
 
@@ -162,8 +172,8 @@
 }
 
 /* Selected country / dot: stays in place, keeps its red-active
-   fill and stroke trace. The .visitedVisualActive class above
-   already paints the red fill via React state. */
+   fill. The .visitedVisualActive class above already paints the
+   red fill via React state. */
 .visitedVisual.selected,
 .visitedDot.selected {
   /* Keep the selected country fully opaque against the focusing
@@ -185,9 +195,8 @@
 /* Visited country: visual layer. Renders underneath the LiquidEther
    foreignObject and the hit-area path. The "active" class is
    applied from React state, not :hover. Used to scale up on hover;
-   we now only swap fill — the scale-up read as gimmicky next to a
-   precise stroke-trace outline (.visitedStroke) which carries the
-   hover state visually instead. */
+   we now only swap fill (plus the LiquidEther fluid inside) — the
+   scale-up read as gimmicky. */
 .visitedVisual {
   fill: #1a1a1a;
   pointer-events: none;
@@ -266,9 +275,13 @@
   pointer-events: auto;
 }
 
-.zoomBtn:hover {
-  background: #1a1a1a;
-  color: #f5f4f1;
+/* Hover devices only — on touch the inverted state stuck to the
+   last tapped button. */
+@media (hover: hover) {
+  .zoomBtn:hover {
+    background: #1a1a1a;
+    color: #f5f4f1;
+  }
 }
 
 @media (max-width: 597px) {
@@ -277,8 +290,16 @@
     left: 20px;
   }
   .zoomBtn {
+    position: relative;
     width: 32px;
     height: 32px;
+  }
+  /* Wider tap target; vertical growth stays inside the 4px gap so
+     + and − never steal each other's taps. */
+  .zoomBtn::after {
+    content: "";
+    position: absolute;
+    inset: -2px -6px;
   }
 }
 
@@ -394,12 +415,6 @@
   }
   .visitedVisual {
     transition: fill 0.22s ease;
-  }
-  .visitedStroke {
-    transition: opacity 0.25s ease;
-  }
-  .visitedStrokeActive {
-    transition: opacity 0.08s ease;
   }
   .liquidWrap {
     animation: none;

@@ -46,6 +46,9 @@ export default function BlogPage() {
           centerX={0.0}
           centerY={0.0}
           zoom={0.9}
+          overscan={0.6}
+          panVars={["--blog-map-pan-x", "--blog-map-pan-y"]}
+          pauseWhenCovered={["blog-panel-open", "(max-width: 597px)"]}
         />
       </div>
       <BlogMapClient />

@@ -9,6 +9,7 @@ import {
   type CSSProperties,
 } from "react";
 import { MQ, useMediaQuery } from "@/lib/useMediaQuery";
+import { pageNavBlocked } from "@/lib/pageOrder";
 import LiquidEther from "../LiquidEther/LiquidEther";
 import BlogCountryPlate, {
   type CountryHoverState,
@@ -35,6 +36,15 @@ const ZOOM_STEP = 0.005;
 // scale the per-event zoom up so the gesture feels responsive.
 const PINCH_STEP = 0.04;
 const ZOOM_BUTTON_STEP = 0.22;
+
+// Focus mode scales the map so the country fills ~60 % vh. Cap it
+// for the tiniest silhouettes (Portugal/Korea land around 17–20),
+// and frame dot visits (island nations with `coords`) at a fixed
+// scale around their marker — measured from their sub-pixel
+// polygon, the Seychelles used to zoom the map ~340× into a
+// screen-filling terracotta disc.
+const MAX_FOCUS_SCALE = 20;
+const DOT_FOCUS_SCALE = 4;
 
 // How long after a mouseleave we wait before clearing the hover
 // state. Smooths cursor-near-edge wobble that would otherwise rapid-
@@ -139,15 +149,6 @@ export default function BlogMap() {
       coordsRef.current.style.opacity = "0";
     }
   }, [selectedIso]);
-  /**
-   * Refs to each visited country's hit path. Used to measure the
-   * path's screen position right before entering focus mode so we
-   * can translate the map to centre the country on the left third
-   * of the viewport. Hit paths are 1:1 with the visible silhouette
-   * now (we removed the pre-scale), so getBoundingClientRect on
-   * them gives the exact rect we want.
-   */
-  const visitedPathRefs = useRef<Record<string, SVGPathElement | null>>({});
 
   // Project all country paths once on mount. The viewBox is
   // tightened to the projected feature bounds (no internal padding)
@@ -156,10 +157,8 @@ export default function BlogMap() {
   // lets Antarctica's coastline sit flush with the viewport bottom.
   // Logic lives in mapProjection.ts — pure cartographic glue, no
   // React state, kept out of this file to make the component read.
-  const { paths, viewBoxStr, mapAspect, vb, projection } = useMemo(
-    () => buildMapProjection(),
-    []
-  );
+  const { paths, viewBoxStr, mapAspect, vb, projection, getFocusBounds } =
+    useMemo(() => buildMapProjection(), []);
 
   // Keep the ref in sync for the imperative lat/long flush below
   // (which can't capture `projection` from the render scope without
@@ -239,7 +238,6 @@ export default function BlogMap() {
       const panY = (1 - 2 * cursorRef.current.my) * m.y;
       setPanVars(`${panX}px`, `${panY}px`);
     };
-    recomputePanRef.current = recomputePan;
 
     /**
      * Touch pan: explicit drag delta. Refs hold the current pan
@@ -270,6 +268,12 @@ export default function BlogMap() {
       setPanVars(`${panXAbs}px`, `${panYAbs}px`);
     };
 
+    // The +/− buttons reapply pan after a zoom step. On touch that
+    // must be the drag-pan re-clamp: the cursor model would read the
+    // never-updated centre cursor, snap the map to 0,0 and make the
+    // next drag jump back to where it was.
+    recomputePanRef.current = isTouch ? applyPan : recomputePan;
+
     const touchDist = (a: Touch, b: Touch) =>
       Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY);
 
@@ -292,7 +296,14 @@ export default function BlogMap() {
     };
 
     const onWheel = (e: WheelEvent) => {
-      if (!wrap.contains(e.target as Node)) return;
+      // Listens on window, not the wrap: the map layers are all
+      // pointer-events: none, so a wheel over the ocean or an
+      // unvisited country targets the page underneath — with a wrap
+      // listener only visited countries zoomed, and everywhere else
+      // the wheel fell through to the page-strip handler (wheel-up
+      // = off to /walls). While an overlay owns the screen (country
+      // panel, menu, …) the wheel is left alone.
+      if (pageNavBlocked()) return;
       // Trackpad pinch gestures arrive as wheel events with ctrlKey
       // = true on every browser; the deltaY ticks are much smaller
       // than a regular scroll wheel, so we use a wider per-event
@@ -305,9 +316,13 @@ export default function BlogMap() {
         Math.min(ZOOM_MAX, zoomRef.current - e.deltaY * step)
       );
       // At a zoom limit and wheeling further in the same direction
-      // — no zoom change to make. Let the event through so the
-      // global page-wheel handler can decide what to do with it.
-      if (next === zoomRef.current) return;
+      // — no zoom change to make. Let a plain wheel through so the
+      // global page-wheel handler can decide what to do with it,
+      // but never hand a pinch to the browser's page zoom.
+      if (next === zoomRef.current) {
+        if (isPinch) e.preventDefault();
+        return;
+      }
       e.preventDefault();
       zoomRef.current = next;
       wrap.style.setProperty("--zoom", String(zoomRef.current));
@@ -425,7 +440,7 @@ export default function BlogMap() {
       window.addEventListener("touchcancel", onTouchEnd, { passive: true });
     } else {
       window.addEventListener("mousemove", onMove);
-      wrap.addEventListener("wheel", onWheel, { passive: false });
+      window.addEventListener("wheel", onWheel, { passive: false });
     }
     window.addEventListener("resize", onResize);
 
@@ -438,7 +453,7 @@ export default function BlogMap() {
         window.removeEventListener("touchcancel", onTouchEnd);
       } else {
         window.removeEventListener("mousemove", onMove);
-        wrap.removeEventListener("wheel", onWheel);
+        window.removeEventListener("wheel", onWheel);
         if (raf !== null) cancelAnimationFrame(raf);
       }
       // Global pan vars only live while /blog is mounted — wipe so
@@ -534,6 +549,10 @@ export default function BlogMap() {
   };
 
   const onCountryEnter = (iso: string) => {
+    // Touch has no hover: the mouseenter a tap synthesises would only
+    // spin up a full-map LiquidEther WebGL context a moment before
+    // the click opens the panel and tears it down again.
+    if (isTouch) return;
     if (leaveTimerRef.current !== null) {
       window.clearTimeout(leaveTimerRef.current);
       leaveTimerRef.current = null;
@@ -562,9 +581,19 @@ export default function BlogMap() {
    * gray (see .focusing rules below).
    */
   const onCountryClick = (iso: string) => {
-    if (!VISIT_BY_ISO.has(iso)) return;
+    const visit = VISIT_BY_ISO.get(iso);
+    if (!visit) return;
     setHover(null);
     setSelectedIso(iso);
+
+    // Re-focusing while the previous close-glide is still running:
+    // its timer would fire mid-focus, wipe the --focus-* vars and
+    // slide the map back to identity under the panel.
+    if (closingTimerRef.current !== null) {
+      window.clearTimeout(closingTimerRef.current);
+      closingTimerRef.current = null;
+    }
+    setClosing(false);
 
     // Mobile: skip the map-glide-and-scale animation entirely. The
     // detail panel covers the whole viewport on touch so centring
@@ -576,15 +605,30 @@ export default function BlogMap() {
     }
 
     const wrap = wrapRef.current;
-    const pathEl = visitedPathRefs.current[iso];
-    if (!wrap || !pathEl) return;
+    const svg = svgRef.current;
+    if (!wrap || !svg) return;
 
-    const rect = pathEl.getBoundingClientRect();
-    if (!rect.width || !rect.height) return;
-    const cx = rect.left + rect.width / 2;
-    const cy = rect.top + rect.height / 2;
-    const vw = window.innerWidth;
-    const vh = window.innerHeight;
+    // Where the country sits AT REST under the current pan + zoom,
+    // from its projected bounds. Not getBoundingClientRect: measured
+    // mid-glide (re-focusing during a close) the rect is wherever
+    // the animation happens to be, and a MultiPolygon's rect drags
+    // in overseas territories (see getFocusBounds). The SVG is
+    // centred in the wrap and scaled uniformly (viewBox aspect =
+    // CSS aspect); the wrap transform is pan + zoom about its centre.
+    const vw = wrap.clientWidth;
+    const vh = wrap.clientHeight;
+    const k = svg.clientHeight / vb.h;
+    const svgLeft = (vw - svg.clientWidth) / 2;
+    const svgTop = (vh - svg.clientHeight) / 2;
+    const currentZoom = zoomRef.current || 1;
+    const panX =
+      parseFloat(wrap.style.getPropertyValue("--pan-x")) || 0;
+    const panY =
+      parseFloat(wrap.style.getPropertyValue("--pan-y")) || 0;
+    const toScreen = (x: number, y: number): [number, number] => [
+      vw / 2 + panX + currentZoom * (svgLeft + (x - vb.x) * k - vw / 2),
+      vh / 2 + panY + currentZoom * (svgTop + (y - vb.y) * k - vh / 2),
+    ];
 
     // Side panel width matches BlogCountryModal's
     // clamp(360px, 60vw, 880px).
@@ -594,17 +638,35 @@ export default function BlogMap() {
     // panel, vertically dead-centre.
     const targetCx = availableWidth / 2;
     const targetCy = vh / 2;
-    // Country target box: ≤ 60 % of viewport height (20 % padding
-    // top + bottom) AND ≤ 80 % of the available width (10 % padding
-    // on each side between the left edge and the panel divider).
-    // Pick the smaller of the two scales so neither dimension
-    // exceeds its cap. Floor at 1× so big countries (Russia,
-    // Brazil) stay at their current size instead of zooming out.
-    const targetH = vh * 0.6;
-    const targetW = availableWidth * 0.8;
-    const heightRatio = targetH / rect.height;
-    const widthRatio = targetW / rect.width;
-    const scaleRatio = Math.max(1, Math.min(heightRatio, widthRatio));
+
+    let cx: number;
+    let cy: number;
+    let scaleRatio: number;
+    const projected = visit.coords ? projection(visit.coords) : null;
+    if (projected) {
+      [cx, cy] = toScreen(projected[0], projected[1]);
+      scaleRatio = DOT_FOCUS_SCALE / currentZoom;
+    } else {
+      const bounds = getFocusBounds(iso);
+      if (!bounds) return;
+      const [x0, y0] = toScreen(bounds[0][0], bounds[0][1]);
+      const [x1, y1] = toScreen(bounds[1][0], bounds[1][1]);
+      if (x1 - x0 <= 0 || y1 - y0 <= 0) return;
+      cx = (x0 + x1) / 2;
+      cy = (y0 + y1) / 2;
+      // Country target box: ≤ 60 % of viewport height (20 % padding
+      // top + bottom) AND ≤ 80 % of the available width (10 % padding
+      // on each side between the left edge and the panel divider).
+      // Pick the smaller of the two scales so neither dimension
+      // exceeds its cap. Floor at 1× so big countries (Russia,
+      // Brazil) stay at their current size instead of zooming out.
+      const heightRatio = (vh * 0.6) / (y1 - y0);
+      const widthRatio = (availableWidth * 0.8) / (x1 - x0);
+      scaleRatio = Math.min(
+        Math.max(1, Math.min(heightRatio, widthRatio)),
+        MAX_FOCUS_SCALE / currentZoom
+      );
+    }
 
     // We're REPLACING the wrap's transform (the .focused rule uses
     // --focus-* vars in place of --pan-* / --zoom). Compute the
@@ -612,12 +674,7 @@ export default function BlogMap() {
     // targetCy) at the new scale, accounting for the wrap's
     // transform-origin (viewport centre) and the current pan/
     // zoom that's about to be replaced.
-    const currentZoom = zoomRef.current || 1;
     const newScale = currentZoom * scaleRatio;
-    const panX =
-      parseFloat(wrap.style.getPropertyValue("--pan-x")) || 0;
-    const panY =
-      parseFloat(wrap.style.getPropertyValue("--pan-y")) || 0;
     const focusX =
       targetCx - vw / 2 - (cx - vw / 2 - panX) * scaleRatio;
     const focusY =
@@ -673,7 +730,16 @@ export default function BlogMap() {
 
   // Split visited from the rest so visited paths render LAST and
   // stay on top of their neighbours when they scale up on hover.
-  const unvisited = paths.filter((p) => !VISIT_BY_ISO.has(p.id));
+  // Unvisited countries only ever feed the frosted-glass clip, as a
+  // single merged outline.
+  const unvisitedD = useMemo(
+    () =>
+      paths
+        .filter((p) => !VISIT_BY_ISO.has(p.id))
+        .map((p) => p.d)
+        .join(""),
+    [paths]
+  );
   const visited = paths.filter((p) => VISIT_BY_ISO.has(p.id));
   /**
    * Render order with the hovered country pushed to the end of the
@@ -738,6 +804,20 @@ export default function BlogMap() {
           } as CSSProperties
         }
       >
+        {/* Frosted-glass layer for unvisited (non-clickable)
+            countries: one div that backdrop-filter-blurs everything
+            behind the map (the Grainient surface), clipped to the
+            silhouette of every non-visited country. No shadow, no
+            stroke — just a piece of frosted glass over the Grainient.
+            It is an HTML sibling laid exactly over the <svg>, not a
+            <foreignObject> inside it: WebKit draws composited HTML
+            inside foreignObject without the viewBox scaling (WebKit
+            bug 23113), which on iPhones smeared the blur across the
+            whole map. The clip and the focus-mode fade sit on the
+            div itself — an ancestor with clip-path or opacity < 1
+            would become the blur's "backdrop root" and Chromium
+            would render no blur at all. */}
+        <div className={styles.frostedGlass} aria-hidden="true" />
         <svg
           ref={svgRef}
           viewBox={viewBoxStr}
@@ -756,52 +836,33 @@ export default function BlogMap() {
             ))}
 
             {/* Union clipPath of all unvisited countries — used by the
-                frosted-glass foreignObject below to mask one blur
-                layer to every non-clickable country at once (cheaper
-                than 180 separate backdrop-filter elements). */}
-            <clipPath id="unvisited-union-clip">
-              {unvisited.map((p) => (
-                <path key={`unv-clip-${p.id}`} d={p.d} />
-              ))}
+                frosted-glass div (an HTML sibling of this <svg>, see
+                .frostedGlass) to mask one blur layer to every non-
+                clickable country at once (cheaper than 180 separate
+                backdrop-filter elements). objectBoundingBox units +
+                the normalising transform map viewBox coords onto the
+                div's own box, which matches the SVG's exactly, so the
+                clip follows any viewport size without JS. */}
+            <clipPath
+              id="unvisited-union-clip"
+              clipPathUnits="objectBoundingBox"
+              transform={`scale(${1 / vb.w} ${1 / vb.h}) translate(${-vb.x} ${-vb.y})`}
+            >
+              {/* ONE path for all of them: per-country paths are
+                  anti-aliased one by one, which left hairline seams
+                  (fake borders) wherever two countries meet. */}
+              <path d={unvisitedD} />
             </clipPath>
           </defs>
 
-          {/* Frosted-glass layer for unvisited (non-clickable)
-              countries. A single foreignObject hosts a div that
-              backdrop-filter-blurs everything behind the SVG (the
-              Grainient surface), and the parent <g>'s clip-path
-              constrains that blur to the silhouette of every
-              non-visited country. No shadow, no stroke — just a
-              piece of frosted glass over the Grainient.
-              Clip on the <g> rather than directly on the
-              foreignObject because clip-path on a foreignObject
-              with composited content inside is unreliable across
-              Chromium / WebKit (same fix the LiquidEther layer
-              uses below). The .unvisitedGroup class continues to
-              own the focus-mode opacity fade. */}
-          <g
-            className={styles.unvisitedGroup}
-            clipPath="url(#unvisited-union-clip)"
-            pointerEvents="none"
-          >
-            <foreignObject x={vb.x} y={vb.y} width={vb.w} height={vb.h}>
-              <div className={styles.frostedGlass} />
-            </foreignObject>
-          </g>
-
           {/* Country geometry: visited fills.
-              Visited stroke + hit areas render LATER, after the
-              LiquidEther layer below — SVG paint order = z-stacking,
-              and the stroke needs to draw on top of the fluid. */}
+              Hit areas render LATER, after the LiquidEther layer
+              below — SVG paint order = z-stacking, and they need to
+              sit on top of the fluid to catch the pointer. */}
           <CountryLayer
-            visited={visited}
             visitedSorted={visitedSorted}
             hoveredIso={hover?.visit.iso ?? null}
             selectedIso={selectedIso}
-            onEnter={onCountryEnter}
-            onLeave={onCountryLeave}
-            onClick={onCountryClick}
-            visitedPathRefs={visitedPathRefs}
           />
 
           {/* Dot markers for tiny island visits (Seychelles, etc.) —
@@ -883,7 +944,6 @@ export default function BlogMap() {
             onEnter={onCountryEnter}
             onLeave={onCountryLeave}
             onClick={onCountryClick}
-            visitedPathRefs={visitedPathRefs}
           />
 
           {/* Dot hit areas LAST — 14r transparent circle around the

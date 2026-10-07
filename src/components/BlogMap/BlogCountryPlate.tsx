@@ -39,9 +39,17 @@ export default function BlogCountryPlate({ hover }: Props) {
     const onMove = (e: MouseEvent) => {
       const el = ref.current;
       if (!el) return;
-      el.style.transform = `translate3d(${e.clientX + OFFSET_X}px, ${
-        e.clientY + OFFSET_Y
-      }px, 0)`;
+      // Flip to the cursor's other side when the plate would run off
+      // the right / bottom edge (Japan, Korea, Chile at default zoom).
+      let x = e.clientX + OFFSET_X;
+      let y = e.clientY + OFFSET_Y;
+      if (x + el.offsetWidth > window.innerWidth) {
+        x = e.clientX - OFFSET_X - el.offsetWidth;
+      }
+      if (y + el.offsetHeight > window.innerHeight) {
+        y = e.clientY - OFFSET_Y - el.offsetHeight;
+      }
+      el.style.transform = `translate3d(${x}px, ${y}px, 0)`;
       if (!positionedRef.current) {
         positionedRef.current = true;
         setOpaque(true);
