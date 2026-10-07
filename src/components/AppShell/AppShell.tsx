@@ -23,8 +23,8 @@ type Props = {
   theme?: Theme;
   /**
    * Theme to flip to once the user has scrolled past the hero
-   * (default: 200px). Used by /order, which has a dark hero on top
-   * of a white content section. Without this the shell stays in
+   * (default: 200px), for a page whose hero is darker or lighter
+   * than the content below it. Without this the shell stays in
    * `theme` for the whole page.
    */
   themeScrolled?: Theme;

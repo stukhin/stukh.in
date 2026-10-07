@@ -10,11 +10,12 @@ import styles from "./order.module.css";
 export default function OrderPage() {
   return (
     <div className={styles.order}>
+      {/* Light shell from the top: the parallax hero is pale mist
+          fading into white, so the old dark (white-glyph) top theme
+          left the logo — and the desktop nav — nearly invisible. */}
       <AppShell
-        theme="dark"
-        themeScrolled="light"
-        cursorVariant="light"
-        cursorVariantScrolled="dark"
+        theme="light"
+        cursorVariant="dark"
         burgerClassName={styles.burger}
       >
         <header className={styles.header}>

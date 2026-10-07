@@ -328,7 +328,6 @@
   transform: translateX(-50%);
   width: 370px;
   text-align: center;
-  letter-spacing: -0.03em;
   font-weight: 300;
   padding-top: 60px;
   z-index: 4;
@@ -404,6 +403,7 @@
   line-height: 18px;
   margin: 0;
   font-weight: 300;
+  letter-spacing: -0.02em;
 }
 
 @media (max-width: 1024px) {
@@ -417,7 +417,9 @@
   font-size: 15px;
   line-height: 11px;
   padding-top: 8px;
-  opacity: 0.25;
+  /* 0.25 read at ~1.7:1 on /city's light paper; 0.7 (the site's
+     secondary-text opacity) clears AA on both /city and /nature. */
+  opacity: 0.7;
   margin: 0;
 }
 
