@@ -311,7 +311,7 @@
   transform: translate(-50%, -50%);
   font-family: "Inter", "Rubik", sans-serif;
   font-size: 11px;
-  letter-spacing: 0.32em;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
   color: #1a1a1a;
   opacity: 0.4;
@@ -325,7 +325,7 @@
 @media (max-width: 597px) {
   .stamp {
     font-size: 9px;
-    letter-spacing: 0.24em;
+    letter-spacing: 0.08em;
     padding: 5px 9px;
   }
 }

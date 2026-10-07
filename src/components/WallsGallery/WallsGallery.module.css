@@ -131,7 +131,6 @@
   font-family: "Inter", "Rubik", sans-serif;
   font-size: 14px;
   font-weight: 200;
-  letter-spacing: 0.02em;
   text-transform: lowercase;
   cursor: none;
   white-space: nowrap;
@@ -241,7 +240,6 @@
   font-family: "Inter", "Rubik", sans-serif;
   font-size: 14px;
   font-weight: 200;
-  letter-spacing: 0.02em;
   text-transform: lowercase;
   cursor: none;
   transition: color 0.15s ease, background 0.15s ease;
@@ -464,7 +462,7 @@
   background: rgba(255, 255, 255, 0.95);
   color: #050505;
   font-size: 11px;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
   padding: 6px 12px;
   font-weight: 400;
@@ -651,7 +649,6 @@
   color: #fff;
   font-family: "Rubik", "Inter", sans-serif;
   font-weight: 300;
-  letter-spacing: -0.01em;
   animation: zoomInfoIn 0.22s cubic-bezier(0.4, 0, 0.2, 1) both;
   max-width: 440px;
 }
@@ -672,13 +669,11 @@
   font-size: 17px;
   font-weight: 400;
   text-transform: lowercase;
-  letter-spacing: -0.01em;
 }
 
 .zoomInfoMeta {
   margin: 4px 0 0;
   font-size: 12px;
-  letter-spacing: 0.06em;
   text-transform: lowercase;
   opacity: 0.6;
 }
@@ -695,7 +690,7 @@
   padding-top: 10px;
   border-top: 1px solid rgba(255, 255, 255, 0.16);
   font-size: 11px;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
   opacity: 0.55;
 }

@@ -28,12 +28,13 @@ export const metadata: Metadata = {
 };
 
 const TYPOGRAPHY = [
-  { name: "Logo wordmark", family: "Rubik", size: "112×90px (SVG)", weight: "—", note: "Vector, mix-blend-mode: difference" },
-  { name: "Top nav link", family: "Rubik / Inter", size: "18px / 1", weight: "300", note: "TopNav.module.css .link" },
+  { name: "Tracking scale", family: "—", size: "0 · -0.02em · 0.08em", weight: "—", note: "body / lowercase · display (≥ 20px, country names) · every uppercase label" },
+  { name: "Logo wordmark", family: "Rubik", size: "112×90px (SVG)", weight: "—", note: "Vector, colour from --shell-fg-strong" },
+  { name: "Top nav link", family: "Rubik / Inter", size: "20px / -0.02em", weight: "300", note: "TopNav.module.css .nav (lowercase)" },
   { name: "Walls card title", family: "Rubik", size: "18px", weight: "300", note: ".cardTitle" },
   { name: "Walls card meta / story", family: "Rubik", size: "12px", weight: "300", note: ".meta · .story" },
   { name: "Walls card specs", family: "Rubik", size: "10px / 0.08em uppercase", weight: "300", note: ".specs" },
-  { name: "Walls filter dropdown", family: "Inter / Rubik", size: "14px / 0.02em", weight: "200", note: ".dropdownTrigger (lowercase)" },
+  { name: "Walls filter dropdown", family: "Inter / Rubik", size: "14px / 0", weight: "200", note: ".dropdownTrigger (lowercase)" },
   { name: "Modal placeholder copy", family: "Rubik", size: "12px", weight: "300", note: "Placeholder, popup footer" },
 ];
 
@@ -72,7 +73,6 @@ const MOTION = [
   { name: "Walls zoom FLIP", value: "750ms in / 550ms out, cubic-bezier(0.65,0,0.25,1)" },
   { name: "GalleryModal entrance", value: "0.6s cubic-bezier(0.2,0.7,0.4,1), scale + translate locked together" },
   { name: "GalleryModal backdrop", value: "0.85s open / 0.75s close, cubic-bezier(0.65,0,0.25,1)" },
-  { name: "BlogMap stroke trace", value: "1.5s linear (WAAPI dashoffset)" },
   { name: "BlogMap focus glide", value: "1.4s cubic-bezier(0.5,0,0.4,1) (country → centre, panel slides in)" },
   { name: "BlogCountryModal panel", value: "0.6s desktop (right-slide) / 0.4s mobile (bottom-up)" },
   { name: "Home slide autoplay", value: "7s per slide, single setTimeout per active" },
@@ -91,7 +91,7 @@ const COMPONENTS = [
   { path: "components/GallerySlider", purpose: "/nature & /city horizontal Swiper + zoom modal" },
   { path: "components/GalleryModal", purpose: "Full-screen photo zoom with FLIP morph" },
   { path: "components/ChainBridge", purpose: "Multi-step page transition overlay" },
-  { path: "components/Grainient", purpose: "ogl shader bg used on /walls" },
+  { path: "components/Grainient", purpose: "ogl shader bg on /walls and /blog (pans with the map in-shader)" },
   { path: "components/GridDistortion", purpose: "three.js mouse-warp on home hero (desktop only)" },
   { path: "components/LightRays", purpose: "ogl light-rays bg on /nature & /city" },
   { path: "components/EdgeNav", purpose: "Top/bottom click zones for adjacent page nav" },

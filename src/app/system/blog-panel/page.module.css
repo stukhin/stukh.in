@@ -42,7 +42,7 @@
   margin: 0 0 20px;
   font-size: 12px;
   font-weight: 300;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
   color: rgba(0, 0, 0, 0.5);
 }
@@ -51,7 +51,7 @@
   margin: 0 0 12px;
   font-size: 11px;
   font-weight: 300;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
   color: rgba(0, 0, 0, 0.55);
 }
@@ -92,7 +92,7 @@
   padding: 10px 12px 8px 0;
   border-bottom: 1px solid rgba(0, 0, 0, 0.14);
   color: rgba(0, 0, 0, 0.5);
-  letter-spacing: 0.04em;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
   font-size: 10px;
 }
@@ -135,7 +135,7 @@
 .proposalNum {
   font-size: 11px;
   font-weight: 400;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.08em;
   color: rgba(0, 0, 0, 0.45);
   font-variant-numeric: tabular-nums;
 }
@@ -143,7 +143,6 @@
 .proposalTitle {
   font-size: 17px;
   font-weight: 400;
-  letter-spacing: -0.01em;
   flex: 1;
   color: #1a1a1a;
 }
@@ -151,7 +150,7 @@
 .sev {
   font-size: 9px;
   font-weight: 500;
-  letter-spacing: 0.18em;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
   padding: 3px 8px;
   border-radius: 2px;
@@ -191,7 +190,7 @@
 
 .pairLabel {
   font-size: 10px;
-  letter-spacing: 0.18em;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
   color: rgba(0, 0, 0, 0.45);
   font-weight: 500;

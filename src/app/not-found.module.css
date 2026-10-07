@@ -30,13 +30,13 @@
   align-items: center;
   justify-content: center;
   text-align: center;
-  letter-spacing: -0.03em;
   padding: 0 24px;
 }
 
 .code {
   font-size: 120px;
   font-weight: 300;
+  letter-spacing: -0.02em;
   line-height: 1;
   margin: 0;
 }
