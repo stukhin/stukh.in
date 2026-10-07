@@ -271,14 +271,13 @@ export default function WallsGallery({ items }: Props) {
     // Snapshot whatever had focus when the zoom opened so we can
     // return to it on close. Defer the in-modal focus by one frame
     // so the FLIP entrance has the dialog laid out before we grab.
+    // Focus goes to the dialog itself, not its first button: iOS
+    // Safari drew the focus ring round the (i) button on every tap-
+    // open. globals.css hides the ring on [role="dialog"]; Tab still
+    // lands on the first button.
     zoomTriggerRef.current = document.activeElement;
     const focusTimer = window.setTimeout(() => {
-      const root = zoomDialogRef.current;
-      if (!root) return;
-      const firstBtn = root.querySelector<HTMLButtonElement>(
-        "button:not([disabled])"
-      );
-      firstBtn?.focus({ preventScroll: true });
+      zoomDialogRef.current?.focus({ preventScroll: true });
     }, 0);
 
     const onKey = (e: KeyboardEvent) => {
@@ -300,7 +299,7 @@ export default function WallsGallery({ items }: Props) {
       const last = list[list.length - 1];
       const active = document.activeElement as HTMLElement | null;
       if (e.shiftKey) {
-        if (active === first || !root.contains(active)) {
+        if (active === first || active === root || !root.contains(active)) {
           e.preventDefault();
           last.focus();
         }
@@ -396,6 +395,7 @@ export default function WallsGallery({ items }: Props) {
           role="dialog"
           aria-modal="true"
           aria-label={`${zoomed.title} preview`}
+          tabIndex={-1}
           onClick={closeZoom}
         >
           <div

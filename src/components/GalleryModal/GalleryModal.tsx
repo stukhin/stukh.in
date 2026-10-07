@@ -101,10 +101,9 @@ export default function GalleryModal({
   const zoomWrapRef = useRef<HTMLDivElement>(null);
   const isTouch = useMediaQuery(MQ.TOUCH);
   /** Focus-trap anchors: the element that opened the modal (so we
-   *  can return focus to it on close) and the close button (the
-   *  first focusable inside the modal, what we focus on open). */
+   *  can return focus to it on close) and the dialog itself (what
+   *  we focus on open). */
   const triggerRef = useRef<Element | null>(null);
-  const closeButtonRef = useRef<HTMLButtonElement>(null);
   const dialogRef = useRef<HTMLDivElement>(null);
   /**
    * Pending hover-zoom state, batched via requestAnimationFrame
@@ -253,16 +252,20 @@ export default function GalleryModal({
   // button. We still implement Tab handling explicitly so that if
   // future controls are added the trap continues to wrap correctly.
   // On open the trigger (whatever had focus when the modal opened)
-  // is stashed and focus moves to the close button; on close we
-  // return focus to the trigger.
+  // is stashed and focus moves into the dialog; on close we return
+  // focus to the trigger.
   useEffect(() => {
     if (!open) return;
     triggerRef.current = document.activeElement;
     // Defer focus by one frame: the modal is in its FLIP entrance
     // animation and grabbing focus mid-transition can scroll the
     // page if the close button hasn't finished laying out yet.
+    // Focus the dialog itself rather than the close button — iOS
+    // Safari draws the focus ring on a programmatically focused
+    // button even after a tap. globals.css hides the ring on
+    // [role="dialog"]; Tab then reaches the close button.
     const focusTimer = window.setTimeout(() => {
-      closeButtonRef.current?.focus({ preventScroll: true });
+      dialogRef.current?.focus({ preventScroll: true });
     }, 0);
 
     const focusables = (): HTMLElement[] => {
@@ -286,7 +289,12 @@ export default function GalleryModal({
       const last = list[list.length - 1];
       const active = document.activeElement as HTMLElement | null;
       if (e.shiftKey) {
-        if (active === first || !active || !dialogRef.current?.contains(active)) {
+        if (
+          active === first ||
+          active === dialogRef.current ||
+          !active ||
+          !dialogRef.current?.contains(active)
+        ) {
           e.preventDefault();
           last.focus();
         }
@@ -453,6 +461,7 @@ export default function GalleryModal({
       role="dialog"
       aria-modal="true"
       aria-label={item?.title ? `${item.title} — full screen` : "Photo viewer"}
+      tabIndex={-1}
       onClick={onClose}
     >
       {/* Container does NOT stopPropagation — only the picture itself
@@ -518,7 +527,6 @@ export default function GalleryModal({
       >
         <div className={styles.actionButtons}>
           <button
-            ref={closeButtonRef}
             className={`${styles.button} ${styles.close}`}
             type="button"
             onClick={onClose}
