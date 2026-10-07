@@ -9,6 +9,13 @@
   line-height: 1.5;
 }
 
+/* No AppShell here, so no custom <Cursor /> — bring the native
+   pointer back over the site-wide `cursor: none`. */
+.wrap,
+.wrap * {
+  cursor: auto;
+}
+
 .head {
   max-width: 720px;
   padding-bottom: 48px;
@@ -69,6 +76,15 @@
 
 .table tr:last-child td {
   border-bottom: none;
+}
+
+/* Phones: wide tables scroll sideways inside their own box instead
+   of pushing the whole page wider than the screen. */
+@media (max-width: 597px) {
+  .table {
+    display: block;
+    overflow-x: auto;
+  }
 }
 
 .swatches {

@@ -2,7 +2,6 @@
   position: fixed;
   opacity: 1;
   visibility: visible;
-  transition: visibility 0.5s, opacity 0.5s linear;
   /* Above gallery edge zones (5), range slider (6), modal (40), but below
      MenuPopup (50) so the menu can cover the logo when open. */
   z-index: 45;
@@ -12,7 +11,7 @@
      No mix-blend tricks — those produced grey/coloured glyphs on
      busy photo backgrounds. */
   color: var(--shell-fg-strong);
-  transition: color 0.4s ease;
+  transition: color 0.4s ease, opacity 0.4s ease, visibility 0.4s;
 }
 
 /* During the chain navigation, hold the logo at white so it stays
@@ -39,11 +38,6 @@
 :global(html.chain-settling) .logo {
   color: var(--shell-fg-strong);
   transition: color 0.4s ease;
-}
-
-.logo.hidden {
-  visibility: hidden;
-  opacity: 0;
 }
 
 .noClick {
@@ -89,5 +83,12 @@
     height: 85px;
     transform: scale(0.8);
     transform-origin: top left;
+  }
+
+  /* The /blog country panel is full-screen on phones; the logo
+     would sit on top of its "№ 01" line and hero photo. */
+  :global(html.blog-panel-open) .logo {
+    visibility: hidden;
+    opacity: 0;
   }
 }

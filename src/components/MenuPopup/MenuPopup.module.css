@@ -8,6 +8,11 @@
   flex-direction: column;
   align-items: center;
   z-index: 50;
+  /* Closed by default; MenuPopup.tsx flips these inline to open. */
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 0.5s ease;
   backdrop-filter: blur(22px) saturate(140%);
   /* The popup is always a dark frosted-glass surface, so the menu /
      socials / footer text inside should always read as light —
@@ -127,6 +132,20 @@
   }
   .social {
     padding-bottom: 25px;
+  }
+}
+
+/* Short viewports (phones in landscape): the absolutely-positioned
+   footer would sit on top of the last menu links and steal their
+   taps — put it back in the column flow under the menu instead. */
+@media (max-height: 560px) {
+  .wrapper {
+    position: static;
+    transform: none;
+    padding-bottom: 24px;
+  }
+  .social {
+    padding-bottom: 16px;
   }
 }
 

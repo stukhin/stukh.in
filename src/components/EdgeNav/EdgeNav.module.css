@@ -23,6 +23,14 @@
   bottom: 0;
 }
 
+/* While the /blog country panel is open a click on the map just
+   closes the panel — it must not also page to /walls through the
+   top zone (focus mode drops the countries' own hit areas, so the
+   click would otherwise land here). */
+:global(html.blog-panel-open) .zone {
+  pointer-events: none;
+}
+
 /* Disable on touch devices — the cursor hint isn't visible there and
    accidental taps would feel surprising. */
 @media (hover: none), (max-width: 597px) {

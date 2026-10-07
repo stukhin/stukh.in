@@ -3,7 +3,7 @@
 import { useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { MQ, useMediaQuery } from "./useMediaQuery";
-import { PAGE_ORDER, navigateChained } from "./pageOrder";
+import { PAGE_ORDER, navigateChained, pageNavBlocked } from "./pageOrder";
 
 /**
  * Mobile counterpart to useDesktopPageWheel. A single-finger vertical
@@ -46,6 +46,12 @@ export function useVerticalPageSwipe() {
   useEffect(() => {
     if (!isTouch) return;
 
+    // A swipe down here means "previous page" — keep the browser
+    // from also reading it as pull-to-refresh / rubber-band bounce
+    // (see globals.css).
+    const html = document.documentElement;
+    html.classList.add("page-swipe");
+
     let startY = 0;
     let startX = 0;
     let tracking = false;
@@ -62,7 +68,7 @@ export function useVerticalPageSwipe() {
     };
 
     const onTouchStart = (e: TouchEvent) => {
-      if (Date.now() < cooldownUntil) {
+      if (Date.now() < cooldownUntil || pageNavBlocked()) {
         cancelled = true;
         return;
       }
@@ -130,6 +136,7 @@ export function useVerticalPageSwipe() {
     window.addEventListener("touchend", onTouchEnd, { passive: true });
     window.addEventListener("touchcancel", onTouchCancel, { passive: true });
     return () => {
+      html.classList.remove("page-swipe");
       window.removeEventListener("touchstart", onTouchStart);
       window.removeEventListener("touchmove", onTouchMove);
       window.removeEventListener("touchend", onTouchEnd);

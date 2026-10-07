@@ -18,6 +18,7 @@ export default function Burger({
       type="button"
       className={`${styles.burger} ${open ? styles.open : ""} ${className}`}
       aria-label={open ? "Close menu" : "Open menu"}
+      aria-expanded={open}
       onClick={onClick}
     >
       <div className={styles.line} />

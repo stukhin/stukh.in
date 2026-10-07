@@ -58,6 +58,14 @@
   width: 100%;
 }
 
+/* 28px icons → 44px tap target (the 27px gap between icons keeps
+   the enlarged areas from overlapping). */
+.link a::after {
+  content: "";
+  position: absolute;
+  inset: -8px;
+}
+
 .underline {
   position: absolute;
   left: 50%;

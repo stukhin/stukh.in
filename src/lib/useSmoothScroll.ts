@@ -56,6 +56,9 @@ export function useSmoothScroll({ lerp = 0.12 }: Options = {}) {
     };
 
     const onWheel = (e: WheelEvent) => {
+      // Pinch / Ctrl+wheel (page zoom) and horizontal swipes (back /
+      // forward) belong to the browser — don't hijack them.
+      if (e.ctrlKey || Math.abs(e.deltaX) > Math.abs(e.deltaY)) return;
       const html = document.documentElement;
       const max = html.scrollHeight - html.clientHeight;
       if (max <= 0) return;

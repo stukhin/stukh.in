@@ -88,14 +88,28 @@ body.hidden {
   overflow: hidden;
 }
 
+/* Pages with vertical swipe-to-navigate (home, nature, city) get
+   this class from useVerticalPageSwipe: a swipe down there means
+   "previous page", so it must not also trigger pull-to-refresh or
+   the rubber-band bounce. */
+html.page-swipe,
+html.page-swipe body {
+  overscroll-behavior-y: none;
+}
+
 /* Force every element to cursor: none — the custom <Cursor /> overlay
    is the only cursor we want to ever show. The previous rule only
    targeted body's direct children + a/button, but cursor inheritance
    isn't reliable on every node (notably SVG <path>, <foreignObject>,
    and some canvases keep showing the native arrow). The wildcard
-   below shuts that down everywhere. */
-* {
-  cursor: none;
+   below shuts that down everywhere.
+   Same media gate as the custom cursor itself (Cursor.module.css
+   hides it on touch and ≤597px): a narrow desktop window would
+   otherwise have no pointer at all. */
+@media (hover: hover) and (min-width: 598px) {
+  * {
+    cursor: none;
+  }
 }
 
 a {

@@ -9,6 +9,10 @@
   justify-content: center;
   z-index: 100;
   background-color: #fff;
+  /* The logo takes its colour from the shell theme token, which is
+     white on dark pages (and before hydration) — pin it to black on
+     the loader's white sheet, same trick as the menu popup. */
+  --shell-fg-strong: #000;
   opacity: 1;
   transition: opacity 0.4s ease-in;
 }

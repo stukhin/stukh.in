@@ -8,6 +8,12 @@ import styles from "./Preloader.module.css";
 const FADE_MS = 400;
 /** How long to hold the "100%" frame before fading the loader out. */
 const HOLD_AT_FULL_MS = 250;
+/**
+ * Hard cap on the loader. Errors already count as "loaded", but a
+ * request that simply stalls (flaky mobile network) would otherwise
+ * hold the whole site behind the loader indefinitely.
+ */
+const MAX_WAIT_MS = 6000;
 
 // sessionStorage gate so the loader only shows on the very first
 // page hit per tab. The done-event that used to fire when the
@@ -15,6 +21,25 @@ const HOLD_AT_FULL_MS = 250;
 // listener got removed when the reveal animation was dropped, and
 // nothing else subscribed.
 const HOME_INTRO_KEY = "stukhin.home.intro";
+
+// sessionStorage throws when site data is blocked (Safari "Block All
+// Cookies", some in-app webviews). Unguarded, that throw kills
+// hydration and the loader never lifts — treat it as "not seen yet".
+function introSeen(): boolean {
+  try {
+    return window.sessionStorage.getItem(HOME_INTRO_KEY) === "1";
+  } catch {
+    return false;
+  }
+}
+
+function markIntroSeen() {
+  try {
+    window.sessionStorage.setItem(HOME_INTRO_KEY, "1");
+  } catch {
+    // Storage unavailable — the loader just shows again next load.
+  }
+}
 
 /**
  * Critical preload: things the very first painted screen needs (the
@@ -50,9 +75,9 @@ function buildCriticalUrls(): string[] {
 
 /**
  * Background preload: things we want in the cache so /nature and
- * /city open instantly, but not worth blocking the loader on. These
- * fire at the same time as critical, just without their onload
- * counted toward the progress bar.
+ * /city open instantly, but not worth blocking the loader on. Fired
+ * once the loader finishes (so they don't compete with the critical
+ * set for bandwidth) and skipped entirely under Data Saver.
  */
 function buildBackgroundUrls(): string[] {
   const list: string[] = [];
@@ -86,7 +111,7 @@ export default function Preloader() {
     // Photos cached after the first load, so this doubles as
     // "if the bytes are already there, don't make the user wait
     // through the loader again."
-    if (window.sessionStorage.getItem(HOME_INTRO_KEY) === "1") {
+    if (introSeen()) {
       setPhase("gone");
       return;
     }
@@ -95,21 +120,42 @@ export default function Preloader() {
     const total = critical.length;
     if (total === 0) {
       setPhase("gone");
-      window.sessionStorage.setItem(HOME_INTRO_KEY, "1");
+      markIntroSeen();
       return;
     }
+
+    // While the loader covers the screen, page-strip gestures must
+    // not navigate underneath it (see pageNavBlocked).
+    const html = document.documentElement;
+    html.classList.add("preloading");
 
     let loaded = 0;
     let finished = false;
     const timers: number[] = [];
 
+    const preloadBackground = () => {
+      const connection = (
+        navigator as Navigator & { connection?: { saveData?: boolean } }
+      ).connection;
+      if (connection?.saveData) return;
+      // Straight into the HTTP cache so /nature and /city feel
+      // instant when the user gets there.
+      buildBackgroundUrls().forEach((url) => {
+        const img = new window.Image();
+        img.src = url;
+      });
+    };
+
     const finish = () => {
       if (finished) return;
       finished = true;
+      setProgress(1);
       timers.push(
         window.setTimeout(() => {
           setPhase("hiding");
-          window.sessionStorage.setItem(HOME_INTRO_KEY, "1");
+          html.classList.remove("preloading");
+          markIntroSeen();
+          preloadBackground();
           timers.push(
             window.setTimeout(() => {
               setPhase("gone");
@@ -132,16 +178,11 @@ export default function Preloader() {
       img.src = url;
     });
 
-    // Background — kicked off at the same time, but the loader
-    // doesn't wait for these. They go straight into the HTTP cache
-    // so /nature and /city feel instant when the user gets there.
-    buildBackgroundUrls().forEach((url) => {
-      const img = new window.Image();
-      img.src = url;
-    });
+    timers.push(window.setTimeout(finish, MAX_WAIT_MS));
 
     return () => {
       timers.forEach(window.clearTimeout);
+      html.classList.remove("preloading");
     };
   }, []);
 
@@ -156,7 +197,7 @@ export default function Preloader() {
       }`}
       aria-hidden={phase === "hiding"}
     >
-      <Logo color="#000" noClick className={styles.logo} />
+      <Logo noClick className={styles.logo} />
       {/* Bar + percentage are wrapped together so the percentage can
           sit directly above the bar's right edge regardless of where
           the bar lands on screen. */}

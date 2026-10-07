@@ -112,6 +112,23 @@
   margin-top: 40px;
 }
 
+/* Popup menu links are only 19px tall — extend the tap target into
+   the 40px gaps (12px each way, so neighbours never overlap)
+   without moving anything that's drawn. */
+.menu.column .link::after {
+  content: "";
+  position: absolute;
+  inset: -12px -16px;
+}
+
+/* Phones in landscape: tighter rhythm so the links and the footer
+   fit the short popup (the tap areas above still just meet). */
+@media (max-height: 560px) {
+  .menu.column li + li {
+    margin-top: 24px;
+  }
+}
+
 @media (max-width: 1024px) {
   .menu {
     text-align: center;

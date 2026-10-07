@@ -3,7 +3,7 @@
 import { useEffect, useRef } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { MQ, useMediaQuery } from "./useMediaQuery";
-import { PAGE_ORDER, navigateChained } from "./pageOrder";
+import { PAGE_ORDER, navigateChained, pageNavBlocked } from "./pageOrder";
 
 /**
  * Desktop counterpart to useVerticalPageSwipe. Listens for sustained
@@ -94,7 +94,15 @@ export function useDesktopPageWheel() {
         lastWheelTsRef.current = now;
         return;
       }
-      if (document.documentElement.classList.contains("zoom-open")) return;
+      // Overlay open or a chain still in flight: swallow the gesture
+      // for good, so its tail can't navigate once the block lifts —
+      // AppShell remounts per page, so this hook's cooldown resets
+      // the moment the next page mounts mid-transition.
+      if (pageNavBlocked()) {
+        lastWheelTsRef.current = now;
+        gestureConsumedRef.current = true;
+        return;
+      }
       const path = pathnameRef.current;
       if (PAGE_ORDER.indexOf(path) === -1) return;
 

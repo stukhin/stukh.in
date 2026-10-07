@@ -7,16 +7,13 @@ import { navigateChained } from "@/lib/pageOrder";
 import styles from "./Logo.module.css";
 
 type Props = {
-  color?: string;
   noClick?: boolean;
   className?: string;
 };
 
-export default function Logo({
-  color = "#F5F9FA",
-  noClick = false,
-  className = "",
-}: Props) {
+// Colour comes from the shell theme token (--shell-fg-strong) in
+// Logo.module.css; override the token on an ancestor to recolour.
+export default function Logo({ noClick = false, className = "" }: Props) {
   const pathname = usePathname();
   const router = useRouter();
   const classes = [

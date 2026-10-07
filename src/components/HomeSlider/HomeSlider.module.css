@@ -49,6 +49,11 @@
   right: 0;
 }
 
+/* z 9: above EdgeNav's bottom zone (z 7), which otherwise sits on
+   top of the dots — on desktop a dot click paged to /nature instead
+   of switching the slide. Same tier as the gallery position slider.
+   The full-width row itself lets clicks through so the rest of the
+   band still pages via EdgeNav; only the dots opt back in. */
 .dots {
   position: absolute;
   bottom: 30px;
@@ -56,11 +61,13 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 4;
+  z-index: 9;
+  pointer-events: none;
 }
 
 /* The button is a big clickable area; the visible bar is a child. */
 .dot {
+  pointer-events: auto;
   position: relative;
   display: flex;
   align-items: center;

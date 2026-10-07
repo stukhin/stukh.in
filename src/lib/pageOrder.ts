@@ -14,6 +14,28 @@ type ChainRouter = {
 };
 
 /**
+ * True while something else owns the screen and page-strip gestures
+ * (desktop wheel, mobile vertical swipe) must not navigate under it:
+ * a photo zoom, the /blog country panel, the open menu or walls zoom
+ * (both lock scroll with `body.hidden`), the first-visit preloader, a
+ * chain transition still in flight (the next page's freshly mounted
+ * hooks would otherwise accept the same gesture's tail), or a
+ * pinch-zoomed viewport where a one-finger pan is just looking around.
+ */
+export function pageNavBlocked(): boolean {
+  if (typeof document === "undefined") return false;
+  const html = document.documentElement.classList;
+  return (
+    html.contains("zoom-open") ||
+    html.contains("blog-panel-open") ||
+    html.contains("chain-pending") ||
+    html.contains("preloading") ||
+    document.body.classList.contains("hidden") ||
+    (window.visualViewport?.scale ?? 1) > 1.01
+  );
+}
+
+/**
  * Navigate from `from` to `to`. ALL in-strip navigations (any pair
  * of routes inside PAGE_ORDER) are handed off to ChainBridge, which
  * runs a single continuous translateY animation across stacked

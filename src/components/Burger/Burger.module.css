@@ -10,7 +10,6 @@
   border-radius: 50%;
   background: rgba(0, 0, 0, 0.32);
   backdrop-filter: blur(14px) saturate(140%);
-  -webkit-backdrop-filter: blur(14px) saturate(140%);
   border: 1px solid rgba(255, 255, 255, 0.18);
   padding: 0;
   /* Flex centering for the lines so they sit dead-centre in the
@@ -67,10 +66,12 @@
   }
 }
 
-/* When the gallery zoom modal is open, hide the burger behind the
-   modal's frosted glass — without this it sits in the same top-right
-   corner as the close button and reads as visual noise. */
-:global(html.zoom-open) .burger {
+/* When the gallery zoom modal or the /blog country panel is open,
+   hide the burger — it sits in the same top-right corner as their
+   close (×) buttons, reads as visual noise and, on phones, steals
+   the tap meant for the panel's ×. */
+:global(html.zoom-open) .burger,
+:global(html.blog-panel-open) .burger {
   visibility: hidden;
   opacity: 0;
 }
