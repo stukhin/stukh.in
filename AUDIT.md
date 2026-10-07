@@ -67,8 +67,8 @@ inventing.
 1. **Checkout:** work directly in the main checkout
    `/Users/alexnderstyukhin/Projects/stukh.in` on `main` (the old
    `claude/dazzling-swartz-cbfece` worktree is history). Other
-   sessions also push to `main` (e.g. `public/mom-vacation/`) —
-   `git fetch` / `pull --rebase` before pushing.
+   sessions may push to `main` too — `git fetch` / `pull --rebase`
+   before pushing.
 2. **Read order:** `PROJECT.md` (architecture, page-by-page notes,
    conventions, known footguns) → this file (open backlog + lessons
    from past attempts) → only then start coding.
@@ -163,24 +163,19 @@ failed ogl port saga earlier; lessons documented under
 
 ### 🟡 From the Oct 7 review — not done yet
 Needs a decision from the user first:
-- **Tracking outside the panel** isn't on the 3-value scale:
-  TopNav / menu / 404 `-0.03em`, walls `0.02 / 0.06 / 0.12em`,
-  home `0.04 / 0.12 / 0.18em`, `/blog` stamp `0.32 / 0.24em`.
-- **/city** location subtitle (`#050505` at opacity 0.25 on a light
-  page, ~1.7:1 contrast). **/order**: menu links in `#06f` (off
-  palette); white logo reads poorly at the top and sits over the
-  "book a shoot" text once scrolled.
-- **Home on phones** uses the 2000×1500 landscape heroes; portrait
-  crops in `public/images/gallery/main/mobile/` exist but are unused
-  (which crops?).
+- **Frosted-glass tint** (22 % white) was tuned while the blur
+  didn't render in Chrome; user: fine for now, revisit if it reads
+  too light / too flat.
+- **Off-ramp font sizes** remain (10 / 15 / 16 / 24 / 25px …) —
+  only tracking was folded into the scale.
 - **Touch tablets** skip the focus-mode glide, so on iPads the
   selected country can sit under the 60vw panel.
 - **iPhone landscape** shows white side bars (html/body bg `#fff`);
   set the root bg per route from `PAGE_VISUALS`?
 - **Viewport disables zoom** (`maximumScale: 1, userScalable:
   false`) — Android honours it (a11y).
-- `public/mom-vacation/` (another session's hotel quiz, dates
-  17–20.07 now past): keep or remove?
+- **/order**: the fixed logo still slides over the photo stacks /
+  copy while scrolling (same as /walls' grid).
 
 Perf / polish, no decision needed:
 - **LiquidEther** sizes its canvas to the whole map (~9 MP at
@@ -215,6 +210,18 @@ Perf / polish, no decision needed:
 
 Grouped by area, newest-first within each group. Commits are at
 `https://github.com/stukhin/stukh.in/commit/<sha>`.
+
+**Review follow-ups (Oct 7, user decisions)**
+- ✅ Letter-spacing folded into the 3-value scale site-wide
+  (0 body · -0.02em display ≥ 20px · 0.08em uppercase); `/system`
+  documents it.
+- ✅ Home shows the portrait hero crops on portrait screens (page,
+  transition slide and preloads); phones no longer fetch the
+  2000×1500 landscape files.
+- ✅ /order: light shell from the top (logo + desktop nav were white
+  on the pale hero), links in shell ink instead of `#06f`, bigger
+  tap targets. /city + /nature location line 0.25 → 0.7 opacity.
+- ✅ Removed `public/mom-vacation/` (expired hotel quiz).
 
 **Mobile review (Oct 7)** — every route at 375×812, plus Chromium
 desktop and the iOS Simulator (Safari).
