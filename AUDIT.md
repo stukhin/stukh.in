@@ -72,9 +72,8 @@ inventing.
 2. **Read order:** `PROJECT.md` (architecture, page-by-page notes,
    conventions, known footguns) → this file (open backlog + lessons
    from past attempts) → only then start coding.
-3. **Pick from "What's actually open" below.** The single 🔴 left is
-   the LiquidEther → ogl port — sized for a dedicated session.
-   Otherwise grab a 🟡 / 🟢.
+3. **Pick from "What's actually open" below.** Nothing 🔴 left;
+   grab a 🟡 / 🟢.
 4. **Deploy:** `git push origin main`; Vercel auto-deploys from
    `main`. The user prefers terse Russian, brief English in code
    comments. Once build is clean, commit + push without asking.
@@ -109,99 +108,37 @@ inventing.
 
 ## What's actually open
 
-### 🔴 LiquidEther port to ogl
-`src/components/LiquidEther/LiquidEther.tsx` — 1175 lines, 39
-`new THREE.*` call sites. One of two `three.js` consumers (GridDistortion
-is the other; both now load lazily, desktop only). The remaining consumer
-in the codebase. Porting it lets us drop the `three` package
-entirely (~140–200 KB minified gzipped saved on `/blog`). Sized
-for its own session.
+### 🟡 GridDistortion → ogl (drops `three` entirely)
+Since Oct 30 GridDistortion (home hero warp) is the **only** `three`
+importer — LiquidEther runs on ogl. three ships only to ≥1280px
+desktops on `/` (lazy, ~130 KB gz). Porting it removes the package.
+Lessons from the earlier failed attempt ("GridDistortion ogl saga"
+below, and the LiquidEther port in `5cde0f3`): declare every
+attribute / uniform / varying, no GLSL reserved words (`packed`,
+`sample`, …), try/catch around render, keep float textures, and check
+three's implicit defaults (sRGB→linear colour conversion, premultiplied
+alpha, blend modes) — the LiquidEther port had to replicate all three.
 
-GridDistortion (the other historical `three.js` consumer) had a
-failed ogl port saga earlier; lessons documented under
-"GridDistortion ogl saga" below — apply them upfront:
+### 🟡 Needs a real-device pass
+- Safari / iOS: LiquidEther's half-float path, pinch-zoom now enabled,
+  per-route root bg in landscape (safe-area bars), pre-hydration
+  preloader gate. Chromium only so far.
+- iPad: focus glide is now on for touch tablets — check the 60vw
+  panel framing and rotation re-focus on a real device.
 
-- Declare every attribute / uniform / varying explicitly in the
-  shader source. ogl does NOT auto-prepend the three.js
-  preamble — shader silently fails to compile, the program never
-  links, and Chrome's renderer can crash on `useProgram(invalid)`.
-- Avoid GLSL ES 1.00 reserved words as identifiers — `packed`
-  was a real landmine. Also reserved for future: `sample`, `cast`,
-  `interface`, `template`, `super`.
-- Wrap `renderer.render()` in try/catch so compile errors don't
-  cascade into React render errors.
-- Float-format textures (`RGBA32F` + `FLOAT`) are fine on Chrome
-  desktop — a short detour to `RGBA8` introduced visible mouse-
-  track quantisation jitter.
-- Verify with **DevTools console open** before shipping.
-
-### 🟡 Smaller items worth picking up
-- **GalleryModal** (`src/components/GalleryModal/GalleryModal.tsx`,
-  ~570 lines) still hosts three intertwined animation systems
-  (WAAPI FLIP entrance, CSS opacity backdrop fade, rAF hover-zoom
-  tracker). Each could be its own `useFlipIn` / `useHoverZoom`
-  hook for clarity. No bug — readability win.
-- **Shared modal-backdrop CSS recipe**: `GalleryModal.module.css`
-  and `WallsGallery.module.css` both render the same `tile.webp`
-  + linear-gradient overlay behind their zoom modals. Could lift
-  into a shared utility class in `globals.css`.
-- **Magic offsets** scattered as literal pixels across modules
-  (`top: 200px / 160px / 140px` for walls filters, `top: 66px`
-  for Logo, `bottom: 65px` for TopNav, `bottom: 32px` for BlogMap
-  zoom controls). Promote to CSS custom properties on `:root`.
-- **`BlogMap.tsx` pan write**: `recomputePan` writes
-  `wrap.style.setProperty("--pan-x", …)` and `--pan-y` twice per
-  mousemove frame. Combine into one batched write to save a
-  style-invalidation pass per frame.
-- **`tsconfig.noUncheckedIndexedAccess: true`** would catch
-  `arr[0]` patterns scattered in WebGL components. Currently
-  unchecked.
-- **GridDistortion → ogl re-attempt** (deprioritised). Currently
-  on three.js, works fine, no perf issues. Porting would shave a
-  bit of bundle and unify the WebGL stack with `LightRays` —
-  cosmetic. Defer until LiquidEther is also ported (drops `three`
-  in one go).
-
-### 🟡 From the Oct 7 review — not done yet
-Needs a decision from the user first:
-- **Frosted-glass tint** (22 % white) was tuned while the blur
-  didn't render in Chrome; user: fine for now, revisit if it reads
-  too light / too flat.
-- **Off-ramp font sizes** remain (10 / 15 / 16 / 24 / 25px …) —
-  only tracking was folded into the scale.
-- **Touch tablets** skip the focus-mode glide, so on iPads the
-  selected country can sit under the 60vw panel.
-- **iPhone landscape** shows white side bars (html/body bg `#fff`);
-  set the root bg per route from `PAGE_VISUALS`?
-- **Viewport disables zoom** (`maximumScale: 1, userScalable:
-  false`) — Android honours it (a11y).
-- **/order**: the fixed logo still slides over the photo stacks /
-  copy while scrolling (same as /walls' grid).
-
-Perf / polish, no decision needed:
-- **LiquidEther** sizes its canvas to the whole map (~9 MP at
-  1440×900) for a ~60px country; size the foreignObject to the
-  hovered country's bounds, pixel ratio 1 (lazy-load + no MSAA done Oct 30).
-- **GridDistortion** (home) renders every frame even when idle and
-  its warp never relaxes under a resting cursor.
-- **Preloader** flashes its white "0%" sheet on every reload until
-  hydration (SSR always renders the loading phase); TopNav's typing
-  intro plays hidden under it on first visit.
-- **ChainBridge** slides use `100vh` / centred crops while the pages
-  use `100dvh` / top-left crops — small jump at the end of a slide.
-- **Country panel a11y**: no focus move/trap/restore; countries
-  aren't keyboard-reachable.
-- **BlogMap touch listeners** stay non-passive on `window` while
-  the panel is open (scroll latency inside it).
-
-### 🟢 Nice-to-have, no urgency
-- Pin explicit `JSX.Element` return type on exported components.
-  Strict mode infers it; pinning is better DX for editor hovers.
-- Eric Meyer reset in `globals.css` (35-line tag list) is overkill
-  for Next 16 + modern browsers — could swap for a small modern
-  reset.
-- `useMediaQuery` could subscribe with AbortController instead of
-  `mql.removeEventListener` for symmetry. Trivial.
+### 🟢 Readability, no bug
+- GalleryModal (~590 lines) still hosts three animation systems
+  (FLIP entrance, backdrop fade, hover-zoom) — split into hooks.
+- `tile.webp` modal backdrop recipe duplicated in GalleryModal and
+  WallsGallery (8 lines, a `::before` — composes can't share it).
+- Magic pixel offsets (walls filters top, Logo 66px, TopNav 65px,
+  zoom controls 32px) → `:root` custom properties.
+- `noUncheckedIndexedAccess`, explicit return types, smaller reset,
+  `useMediaQuery` AbortController.
+- BlogMap touch listeners are non-passive on `window` while the panel
+  is open (handlers return early; latency negligible in practice).
+- 4 of 25 nature entries unused (page slices to 21);
+  `public/images/gallery/nature/zoomed/` (2.5 MB) unreferenced.
 
 ---
 
@@ -209,6 +146,24 @@ Perf / polish, no decision needed:
 
 Grouped by area, newest-first within each group. Commits are at
 `https://github.com/stukhin/stukh.in/commit/<sha>`.
+
+**Backlog close-out (Oct 30, second batch)**
+- ✅ LiquidEther on ogl (`5cde0f3`): hover no longer pulls three
+  (−126 KB gz), full dispose, safe partial-init teardown.
+- ✅ /blog map precomputed at build (`scripts/build-map.mjs`, runs as
+  `prebuild`): 236 → 118 KB gz, no topojson / geoPath on mount;
+  duplicate atlas ids merged. Prints use 720px `_md.webp`.
+- ✅ Pan sync map ↔ Grainient via `lib/panBus` (no per-frame custom
+  property on `<html>`).
+- ✅ Keyboard: countries are Tab stops (Enter opens), panel takes and
+  returns focus, filter dropdown arrows / Escape / tab-out.
+- ✅ Walls: popLayout gets the card ref, cards memoised, zoom effect
+  no longer re-runs mid-close.
+- ✅ Home warp relaxes under a resting cursor and skips idle frames.
+- ✅ Preloader hidden pre-hydration on repeat visits / no JS.
+- ✅ User decisions: pinch-zoom on; root bg per route; /order logo
+  scrolls; text sizes on the ramp (icons + display numerals exempt);
+  touch-tablet focus glide + refocus on resize; frosted glass 32 %.
 
 **Full audit pass (Oct 30)**
 - ✅ Fonts via `next/font` (self-hosted, `--font-rubik` / `--font-inter`).
