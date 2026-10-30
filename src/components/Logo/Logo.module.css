@@ -25,6 +25,12 @@
    No transition here so the logo doesn't lerp from a previous
    theme colour into white as the chain begins; the home page's
    logo is already white, so this is a no-op visually. */
+/* Long scrolling pages (/order): anchored to the page top, so it
+   leaves with the hero instead of riding over the copy. */
+.logo.scrolls {
+  position: absolute;
+}
+
 :global(html.chain-active) .logo {
   color: #ffffff;
   transition: none;

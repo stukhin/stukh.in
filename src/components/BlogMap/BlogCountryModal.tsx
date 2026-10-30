@@ -7,6 +7,11 @@ import type { Visit, Recommendation, Photo } from "./visits";
 import { VISITS } from "./visits";
 import styles from "./BlogCountryModal.module.css";
 
+/** Prints render ≤ ~370 CSS px wide — serve the 720px walls variant
+ *  instead of the 1080×1920 original (Spain's stack: 1.9 MB → ~0.5). */
+const printSrc = (src: string) =>
+  src.startsWith("/images/walls/") ? src.replace(/\.webp$/, "_md.webp") : src;
+
 type Props = {
   visit: Visit | null;
   onClose: () => void;
@@ -69,6 +74,18 @@ export default function BlogCountryModal({ visit, onClose }: Props) {
     document.documentElement.classList.add("blog-panel-open");
     return () => {
       document.documentElement.classList.remove("blog-panel-open");
+    };
+  }, [isOpen]);
+
+  // Focus moves into the panel on open and back to whatever had it
+  // (the country hit area, for keyboard users) on close.
+  const panelRef = useRef<HTMLElement>(null);
+  useEffect(() => {
+    if (!isOpen) return;
+    const trigger = document.activeElement as HTMLElement | null;
+    panelRef.current?.focus({ preventScroll: true });
+    return () => {
+      if (trigger?.isConnected) trigger.focus({ preventScroll: true });
     };
   }, [isOpen]);
 
@@ -139,6 +156,8 @@ export default function BlogCountryModal({ visit, onClose }: Props) {
 
   return (
     <aside
+      ref={panelRef}
+      tabIndex={-1}
       className={styles.panel}
       role="dialog"
       aria-modal="false"
@@ -437,6 +456,9 @@ function ChipInQuadrant({
       type="button"
       layoutId={`chip-${index}`}
       className={`${styles.tasteChip} ${isHidden ? styles.tasteChipHidden : ""}`}
+      // The slot copy behind a locked chip stays out of the tab order.
+      tabIndex={isHidden ? -1 : undefined}
+      aria-hidden={isHidden || undefined}
       data-category={rec.category}
       // Tilt goes through motion (not a CSS transform) so hover and
       // the lock/unlock layout animation return to it instead of
@@ -495,7 +517,7 @@ function LockedChipOverlay({
         {rec.photo && (
           <div
             className={styles.lockedPhoto}
-            style={{ backgroundImage: `url(${rec.photo})` }}
+            style={{ backgroundImage: `url(${printSrc(rec.photo)})` }}
             role="img"
             aria-label={rec.name}
           />
@@ -551,7 +573,7 @@ function GallerySpread({ photos }: { photos: Photo[] }) {
           >
             <div
               className={styles.galleryStackImage}
-              style={{ backgroundImage: `url(${p.src})` }}
+              style={{ backgroundImage: `url(${printSrc(p.src)})` }}
               role="img"
               aria-label={p.caption ?? p.place ?? "photograph"}
             />

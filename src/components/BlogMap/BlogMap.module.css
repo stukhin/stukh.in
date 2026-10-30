@@ -134,7 +134,7 @@
   width: calc(100dvh * var(--map-aspect, 2));
   transform: translateX(-50%);
   backdrop-filter: blur(10px) brightness(1.08) saturate(1.1);
-  background-color: rgba(255, 255, 255, 0.22);
+  background-color: rgba(255, 255, 255, 0.32);
   clip-path: url(#unvisited-union-clip);
   pointer-events: none;
   opacity: 1;
@@ -401,17 +401,11 @@
     transform: translate3d(var(--pan-x, 0px), var(--pan-y, 0px), 0)
       scale(var(--zoom, 1));
   }
-  /* Mobile: the country detail modal covers the full screen, so the
-     desktop focus-mode glide (country zooms to centre between left
-     edge and right-side panel) is meaningless — and the default
-     --focus-* values would snap the map to identity, blowing away
-     the user's current pan/zoom. Keep the regular drag-pan / pinch-
-     zoom transform regardless of focused / closing state. */
-  .mapWrap.focused,
-  .mapWrap.closing {
-    transform: translate3d(var(--pan-x, 0px), var(--pan-y, 0px), 0)
-      scale(var(--zoom, 1));
-    transition: none;
+  /* Touch tablets keep the focus glide (the base .mapWrap rule above
+     drops transitions for direct pan / pinch); phones skip framing
+     altogether — see the rule at the end of the file. */
+  .mapWrap.focused {
+    transition: transform 1.4s cubic-bezier(0.5, 0, 0.4, 1);
   }
   .visitedVisual {
     transition: fill 0.22s ease;
@@ -419,5 +413,27 @@
   .liquidWrap {
     animation: none;
     opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mapWrap.focused,
+  .mapWrap.closing {
+    transition: none;
+  }
+}
+
+/* Phones: the country detail panel covers the full screen, so the
+   focus-mode framing (country centred left of the side panel) is
+   meaningless — and the default --focus-* values would snap the map
+   to identity, blowing away the user's pan/zoom. Keep the regular
+   drag-pan / pinch-zoom transform. Matches applyFocus() in
+   BlogMap.tsx. */
+@media (max-width: 597px) {
+  .mapWrap.focused,
+  .mapWrap.closing {
+    transform: translate3d(var(--pan-x, 0px), var(--pan-y, 0px), 0)
+      scale(var(--zoom, 1));
+    transition: none;
   }
 }

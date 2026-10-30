@@ -399,7 +399,7 @@
 }
 
 .title {
-  font-size: 24px;
+  font-size: 20px;
   line-height: 18px;
   margin: 0;
   font-weight: 300;
@@ -414,7 +414,7 @@
 }
 
 .location {
-  font-size: 15px;
+  font-size: 14px;
   line-height: 11px;
   padding-top: 8px;
   /* 0.25 read at ~1.7:1 on /city's light paper; 0.7 (the site's

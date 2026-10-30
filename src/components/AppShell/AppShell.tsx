@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useState, ReactNode } from "react";
+import { usePathname } from "next/navigation";
+import { rootBgFor } from "@/lib/pageVisuals";
 import Logo from "../Logo/Logo";
 import Burger from "../Burger/Burger";
 import MenuPopup from "../MenuPopup/MenuPopup";
@@ -33,6 +35,9 @@ type Props = {
   cursorVariant?: CursorVariant;
   cursorVariantScrolled?: CursorVariant;
   logoNoClick?: boolean;
+  /** Logo scrolls away with the page instead of staying fixed —
+   *  for long scrolling pages where it would ride over content. */
+  logoScrolls?: boolean;
   burgerClassName?: string;
 };
 
@@ -44,10 +49,18 @@ export default function AppShell({
   cursorVariant = "light",
   cursorVariantScrolled,
   logoNoClick = false,
+  logoScrolls = false,
   burgerClassName = "",
 }: Props) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+
+  // Root bg follows the page so iPhone landscape side bars and
+  // overscroll match it instead of showing white.
+  const pathname = usePathname();
+  useEffect(() => {
+    document.documentElement.style.setProperty("--root-bg", rootBgFor(pathname));
+  }, [pathname]);
 
   // Desktop-only: wheel/trackpad past a threshold pages between
   // PAGE_ORDER routes (matches the mobile vertical-swipe gesture
@@ -80,7 +93,7 @@ export default function AppShell({
   return (
     <>
       <Cursor variant={effectiveCursor} />
-      <Logo noClick={logoNoClick} />
+      <Logo noClick={logoNoClick} scrolls={logoScrolls} />
       <TopNav />
       <Burger
         open={menuOpen}

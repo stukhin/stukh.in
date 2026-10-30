@@ -33,7 +33,7 @@ const TYPOGRAPHY = [
   { name: "Top nav link", family: "Rubik / Inter", size: "20px / -0.02em", weight: "300", note: "TopNav.module.css .nav (lowercase)" },
   { name: "Walls card title", family: "Rubik", size: "18px", weight: "300", note: ".cardTitle" },
   { name: "Walls card meta / story", family: "Rubik", size: "12px", weight: "300", note: ".meta · .story" },
-  { name: "Walls card specs", family: "Rubik", size: "10px / 0.08em uppercase", weight: "300", note: ".specs" },
+  { name: "Walls plate format hint", family: "Rubik", size: "11px", weight: "300", note: "WallpaperHoverPlate .format" },
   { name: "Walls filter dropdown", family: "Inter / Rubik", size: "14px / 0", weight: "200", note: ".dropdownTrigger (lowercase)" },
   { name: "Modal placeholder copy", family: "Rubik", size: "12px", weight: "300", note: "Placeholder, popup footer" },
 ];

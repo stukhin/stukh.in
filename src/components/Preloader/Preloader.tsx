@@ -190,6 +190,8 @@ export default function Preloader() {
 
   return (
     <div
+      // Hidden pre-hydration by layout.tsx (repeat visit / no JS).
+      data-preloader=""
       className={`${styles.preloader} ${
         phase === "hiding" ? styles.hiding : ""
       }`}

@@ -78,6 +78,12 @@ html, body {
   margin: 0;
 }
 
+/* Canvas colour (safe-area bars, overscroll) — set per route by
+   AppShell and the pre-hydration script in layout.tsx. */
+html {
+  background-color: var(--root-bg, #fff);
+}
+
 /* Full-viewport pages (home, nature, city, 404) opt in via this class on
    their outer wrapper; they want exactly 100vh and no page scroll.
    Order is the exception — it sets its own min-height and lets the page

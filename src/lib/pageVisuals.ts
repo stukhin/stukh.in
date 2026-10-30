@@ -103,3 +103,19 @@ export function getRouteBg(route: string): string | undefined {
   return routeBgOverrides.get(route) ?? PAGE_VISUALS[route]?.bg;
 }
 
+
+/**
+ * Root (html) background per route — what shows in iPhone landscape
+ * safe-area bars and overscroll. Strip pages use their slide colour;
+ * anything else (/order, /trips, 404) stays white.
+ */
+export function rootBgFor(pathname: string): string {
+  return PAGE_VISUALS[pathname]?.color ?? "#fff";
+}
+
+/** Inline pre-hydration version of rootBgFor (layout.tsx <head>). */
+export const ROOT_BG_SCRIPT = `try{var c=${JSON.stringify(
+  Object.fromEntries(
+    Object.entries(PAGE_VISUALS).map(([k, v]) => [k, v.color])
+  )
+)}[location.pathname];if(c)document.documentElement.style.setProperty("--root-bg",c)}catch(e){}`;

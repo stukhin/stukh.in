@@ -17,6 +17,7 @@ export default function OrderPage() {
         theme="light"
         cursorVariant="dark"
         burgerClassName={styles.burger}
+        logoScrolls
       >
         <header className={styles.header}>
           <Parallax />

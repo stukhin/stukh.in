@@ -92,6 +92,15 @@ export function CountryStrokesAndHits({
             onMouseEnter={() => onEnter(p.id)}
             onMouseLeave={onLeave}
             onClick={() => onClick(p.id)}
+            // Keyboard: countries are Tab stops, Enter / Space opens.
+            tabIndex={0}
+            role="button"
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                onClick(p.id);
+              }
+            }}
             data-cursor="magnifier"
             aria-label={p.name}
           />

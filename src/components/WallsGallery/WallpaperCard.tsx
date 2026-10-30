@@ -1,6 +1,6 @@
 "use client";
 
-import { MouseEvent, useEffect, useRef, useState } from "react";
+import { MouseEvent, memo, useCallback, useEffect, useRef, useState } from "react";
 import { motion, useMotionValue, useSpring } from "motion/react";
 import type { Wallpaper } from "./WallsGallery";
 import styles from "./WallsGallery.module.css";
@@ -44,10 +44,22 @@ type CardProps = {
   onCardLeave?: () => void;
   onDownloadEnter?: () => void;
   onDownloadLeave?: () => void;
+  /** Set by AnimatePresence mode="popLayout" (React 19 ref-as-prop):
+   *  it measures the exiting card through this to pop it out of the
+   *  grid flow. */
+  ref?: React.Ref<HTMLLIElement>;
 };
 
-export default function WallpaperCard(props: CardProps) {
+function WallpaperCard({ ref, ...props }: CardProps) {
   const liRef = useRef<HTMLLIElement | null>(null);
+  const setLi = useCallback(
+    (el: HTMLLIElement | null) => {
+      liRef.current = el;
+      if (typeof ref === "function") ref(el);
+      else if (ref) ref.current = el;
+    },
+    [ref]
+  );
   const [hasMotion, setHasMotion] = useState(false);
 
   // One-shot upgrade: as soon as the card crosses the rootMargin we
@@ -76,13 +88,14 @@ export default function WallpaperCard(props: CardProps) {
   }, [hasMotion]);
 
   if (!hasMotion) {
-    return <StaticCard liRef={liRef} {...props} />;
+    return <StaticCard liRef={liRef} setLi={setLi} {...props} />;
   }
-  return <MotionCard liRef={liRef} {...props} />;
+  return <MotionCard liRef={liRef} setLi={setLi} {...props} />;
 }
 
-type InternalProps = CardProps & {
+type InternalProps = Omit<CardProps, "ref"> & {
   liRef: React.MutableRefObject<HTMLLIElement | null>;
+  setLi: (el: HTMLLIElement | null) => void;
 };
 
 /**
@@ -123,6 +136,7 @@ function InnerContent({
           src={`/images/walls/${wallpaper.id}_thumb.webp`}
           alt={wallpaper.title}
           className={styles.thumb}
+          decoding="async"
           draggable={false}
         />
 
@@ -183,13 +197,13 @@ function InnerContent({
  * pre-upgrade visual is identical to the upgraded one.
  */
 function StaticCard({
-  liRef,
+  setLi,
   isZoomed,
   ...inner
 }: InternalProps) {
   return (
     <li
-      ref={liRef}
+      ref={setLi}
       className={`${styles.card} ${isZoomed ? styles.cardZoomed : ""}`}
     >
       <div className={styles.tilt}>
@@ -205,6 +219,7 @@ function StaticCard({
  */
 function MotionCard({
   liRef,
+  setLi,
   isZoomed,
   onCardEnter,
   onCardLeave,
@@ -239,9 +254,7 @@ function MotionCard({
 
   return (
     <motion.li
-      ref={(el) => {
-        liRef.current = el;
-      }}
+      ref={setLi}
       layout
       initial={{ opacity: 0, scale: 0.85 }}
       animate={{ opacity: 1, scale: 1 }}
@@ -261,3 +274,7 @@ function MotionCard({
     </motion.li>
   );
 }
+
+// Memoised: hover-plate state lives in WallsGallery, and every
+// enter / leave used to re-render all 67 cards.
+export default memo(WallpaperCard);

@@ -9,6 +9,7 @@
  *   - centre-crops to 9:16
  *   - writes <id>.webp        (1080×1920, q=88)  ← grid display
  *   - writes <id>_thumb.webp  (360×640,   q=80)  ← grid preview
+ *   - writes <id>_md.webp     (720×1280,  q=82)  ← /blog prints
  *   - writes <id>.jpg         (1080×1920, q=92)  ← downloadable file
  *     (most phones, especially iOS, don't accept .webp as wallpaper)
  *   - moves the original to incoming/processed/
@@ -118,6 +119,7 @@ async function processOne(filename, walls) {
   }
   const fullOut = join(OUT_DIR, `${id}.webp`);
   const thumbOut = join(OUT_DIR, `${id}_thumb.webp`);
+  const mdOut = join(OUT_DIR, `${id}_md.webp`);
   const jpgOut = join(OUT_DIR, `${id}.jpg`);
   if (walls.some((w) => w.id === id) && (await pathExists(fullOut))) {
     console.log("skip (already exists):", id);
@@ -137,6 +139,11 @@ async function processOne(filename, walls) {
     .resize({ width: FULL_W, height: FULL_H, fit: "cover" });
 
   await cropped.clone().webp({ quality: 88, effort: 6 }).toFile(fullOut);
+  await cropped
+    .clone()
+    .resize({ width: 720, height: 1280, fit: "cover" })
+    .webp({ quality: 82, effort: 6 })
+    .toFile(mdOut);
   await cropped
     .clone()
     .jpeg({ quality: 92, mozjpeg: true })

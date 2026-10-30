@@ -115,6 +115,10 @@ export default function GridDistortion({
   const imageAspectRef = useRef(1);
   const handleResizeRef = useRef<(() => void) | null>(null);
   const transitionRafRef = useRef<number | null>(null);
+  // Set whenever something outside the render loop changes what's on
+  // screen (resize, new texture, transition end) — the loop otherwise
+  // skips frames once the grid has relaxed.
+  const renderPendingRef = useRef(true);
   const onErrorRef = useRef(onError);
   onErrorRef.current = onError;
 
@@ -193,6 +197,7 @@ export default function GridDistortion({
     scene.add(plane);
 
     const handleResize = () => {
+      renderPendingRef.current = true;
       const rect = container.getBoundingClientRect();
       const width = rect.width;
       const height = rect.height;
@@ -267,6 +272,7 @@ export default function GridDistortion({
       const arr = dataTexture.image.data as unknown as Float32Array;
       for (let i = 0; i < arr.length; i++) arr[i] = 0;
       dataTexture.needsUpdate = true;
+      renderPendingRef.current = true;
     };
 
     const handleMouseMove = (e: MouseEvent) => {
@@ -298,6 +304,7 @@ export default function GridDistortion({
     const handleMouseLeave = () => {
       resetMouse();
       dataTexture.needsUpdate = true;
+      renderPendingRef.current = true;
     };
 
     // Tab/window focus changes can throttle rAF and skip mousemoves —
@@ -334,10 +341,17 @@ export default function GridDistortion({
       lastFrame = now;
       const decay = Math.pow(relaxation, dt);
 
+      // The last mousemove's velocity would otherwise be re-applied
+      // every frame, so the warp never settled under a resting cursor.
+      mouseState.vX *= decay;
+      mouseState.vY *= decay;
+
       const arr = dataTexture.image.data as unknown as Float32Array;
+      let peak = 0;
       for (let i = 0; i < size * size; i++) {
         let a = arr[i * 4] * decay;
         let b = arr[i * 4 + 1] * decay;
+        peak = Math.max(peak, Math.abs(a), Math.abs(b));
         // Clamp absolute value — a runaway accumulation here is what
         // produces the dark-grid glitch the user reported.
         if (a > MAX_OFFSET) a = MAX_OFFSET;
@@ -347,6 +361,20 @@ export default function GridDistortion({
         arr[i * 4] = a;
         arr[i * 4 + 1] = b;
       }
+
+      // Idle: grid relaxed, cursor still, no crossfade — skip the
+      // grid pass and the draw (the frame on screen is already right).
+      const moving =
+        Math.abs(mouseState.vX) > 1e-4 || Math.abs(mouseState.vY) > 1e-4;
+      if (
+        !moving &&
+        peak < 1e-3 &&
+        transitionRafRef.current === null &&
+        !renderPendingRef.current
+      ) {
+        return;
+      }
+      renderPendingRef.current = false;
 
       const gridMouseX = size * mouseState.x;
       const gridMouseY = size * mouseState.y;
@@ -481,6 +509,7 @@ export default function GridDistortion({
           transitionRafRef.current = null;
           uniforms.uTexture.value = uniforms.uTexture2.value;
           uniforms.uProgress.value = 0;
+          renderPendingRef.current = true;
           if (previousCurrent && previousCurrent !== uniforms.uTexture.value) {
             previousCurrent.dispose();
           }

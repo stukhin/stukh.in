@@ -79,6 +79,15 @@ export function DotHits({
             onMouseEnter={() => onEnter(m.iso)}
             onMouseLeave={onLeave}
             onClick={() => onClick(m.iso)}
+            // Keyboard: countries are Tab stops, Enter / Space opens.
+            tabIndex={0}
+            role="button"
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                onClick(m.iso);
+              }
+            }}
             data-cursor="magnifier"
             aria-label={m.name}
           />

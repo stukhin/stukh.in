@@ -10,6 +10,7 @@ import {
 } from "react";
 import { MQ, useMediaQuery } from "@/lib/useMediaQuery";
 import { pageNavBlocked } from "@/lib/pageOrder";
+import { clearPan, setPan } from "@/lib/panBus";
 import dynamic from "next/dynamic";
 import BlogCountryPlate, {
   type CountryHoverState,
@@ -147,6 +148,14 @@ export default function BlogMap() {
    */
   const [closing, setClosing] = useState(false);
   const closingTimerRef = useRef<number | null>(null);
+  // Hover-leave debounce + close glide must not fire after leaving /blog.
+  useEffect(
+    () => () => {
+      if (leaveTimerRef.current !== null) window.clearTimeout(leaveTimerRef.current);
+      if (closingTimerRef.current !== null) window.clearTimeout(closingTimerRef.current);
+    },
+    []
+  );
   // Mirror of selectedIso for the imperatively-updated coords
   // readout (same trick as hoverRef). flush() reads this and bails
   // when a country is in focus mode — the side panel covers the
@@ -166,8 +175,15 @@ export default function BlogMap() {
   // lets Antarctica's coastline sit flush with the viewport bottom.
   // Logic lives in mapProjection.ts — pure cartographic glue, no
   // React state, kept out of this file to make the component read.
-  const { paths, viewBoxStr, mapAspect, vb, projection, getFocusBounds } =
-    useMemo(() => buildMapProjection(), []);
+  const {
+    paths: visited,
+    unvisitedD,
+    viewBoxStr,
+    mapAspect,
+    vb,
+    projection,
+    getFocusBounds,
+  } = useMemo(() => buildMapProjection(), []);
 
   // Keep the ref in sync for the imperative lat/long flush below
   // (which can't capture `projection` from the render scope without
@@ -192,20 +208,16 @@ export default function BlogMap() {
     wrap.style.setProperty("--zoom", String(zoomRef.current));
 
     /**
-     * Pan vars are written to BOTH the map wrap (consumed by the
-     * map's own SVG transform) AND `document.documentElement` (so
-     * sibling layers like /blog's Grainient bg can read the same
-     * values via `var(--blog-map-pan-x)` and translate in sync —
-     * makes the bg feel attached to the map rather than static
-     * underneath it). Distinct global names so we don't collide
-     * with the map's own `--pan-x` / `--pan-y` consumers.
+     * Pan is written to the map wrap (consumed by the map's own SVG
+     * transform) AND to panBus, which /blog's Grainient bg reads each
+     * frame to translate in sync — the bg feels attached to the map
+     * rather than static underneath it.
      */
-    const docEl = document.documentElement;
     const setPanVars = (xPx: string, yPx: string) => {
       wrap.style.setProperty("--pan-x", xPx);
       wrap.style.setProperty("--pan-y", yPx);
-      docEl.style.setProperty("--blog-map-pan-x", xPx);
-      docEl.style.setProperty("--blog-map-pan-y", yPx);
+      setPan("--blog-map-pan-x", parseFloat(xPx) || 0);
+      setPan("--blog-map-pan-y", parseFloat(yPx) || 0);
     };
     setPanVars("0px", "0px");
 
@@ -468,8 +480,7 @@ export default function BlogMap() {
       }
       // Global pan vars only live while /blog is mounted — wipe so
       // other routes never inherit a stale pan offset.
-      docEl.style.removeProperty("--blog-map-pan-x");
-      docEl.style.removeProperty("--blog-map-pan-y");
+      clearPan("--blog-map-pan-x", "--blog-map-pan-y");
     };
   }, [mapAspect, isTouch]);
 
@@ -605,14 +616,22 @@ export default function BlogMap() {
     }
     setClosing(false);
 
-    // Mobile: skip the map-glide-and-scale animation entirely. The
-    // detail panel covers the whole viewport on touch so centring
-    // the country in the empty space is pointless — and the
-    // .mapWrap.focused transform would just stash a default
-    // identity matrix on top of the user's current pan/zoom.
-    if (isTouch) {
-      return;
-    }
+    applyFocus(iso);
+  };
+
+  /**
+   * Glide + scale the map so the focused country sits centred in the
+   * space left of the side panel. Re-run on resize / rotation while a
+   * panel is open (the targets depend on the viewport).
+   */
+  const applyFocus = (iso: string) => {
+    const visit = VISIT_BY_ISO.get(iso);
+    if (!visit) return;
+    // Phones: the panel covers the whole viewport, so there's no
+    // empty space to centre in (BlogMap.module.css keeps the plain
+    // pan/zoom transform there). Touch tablets get the glide too —
+    // their 60vw panel would otherwise sit over the country.
+    if (window.matchMedia("(max-width: 597px)").matches) return;
 
     const wrap = wrapRef.current;
     const svg = svgRef.current;
@@ -714,6 +733,22 @@ export default function BlogMap() {
     }, 1400);
   }, []);
 
+  const applyFocusRef = useRef(applyFocus);
+  applyFocusRef.current = applyFocus;
+  useEffect(() => {
+    if (!selectedIso) return;
+    let raf = 0;
+    const onResize = () => {
+      cancelAnimationFrame(raf);
+      raf = requestAnimationFrame(() => applyFocusRef.current(selectedIso));
+    };
+    window.addEventListener("resize", onResize);
+    return () => {
+      window.removeEventListener("resize", onResize);
+      cancelAnimationFrame(raf);
+    };
+  }, [selectedIso]);
+
   // Document-level click outside the right panel exits focus mode.
   // The panel marks itself with [data-blog-country-panel]; clicks
   // anywhere else (map, empty paper, even another country) close
@@ -738,19 +773,8 @@ export default function BlogMap() {
     ? VISIT_BY_ISO.get(selectedIso) ?? null
     : null;
 
-  // Split visited from the rest so visited paths render LAST and
-  // stay on top of their neighbours when they scale up on hover.
   // Unvisited countries only ever feed the frosted-glass clip, as a
-  // single merged outline.
-  const unvisitedD = useMemo(
-    () =>
-      paths
-        .filter((p) => !VISIT_BY_ISO.has(p.id))
-        .map((p) => p.d)
-        .join(""),
-    [paths]
-  );
-  const visited = paths.filter((p) => VISIT_BY_ISO.has(p.id));
+  // single merged outline (precomputed in mapData.json).
   /**
    * Render order with the hovered country pushed to the end of the
    * array. SVG has no z-index — paint order = render order — so a

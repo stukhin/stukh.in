@@ -42,14 +42,39 @@ export default function FilterDropdown({
 }: Props) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const menuRef = useRef<HTMLUListElement>(null);
 
+  const optionButtons = () =>
+    Array.from(
+      menuRef.current?.querySelectorAll<HTMLButtonElement>("[role=option]") ??
+        []
+    );
+
+  // Keyboard: focus moves into the menu on open (the selected option),
+  // arrows walk it, Escape returns focus to the trigger.
   useEffect(() => {
     if (!open) return;
+    const btns = optionButtons();
+    (btns.find((b) => b.getAttribute("aria-selected") === "true") ?? btns[0])
+      ?.focus({ preventScroll: true });
+
     const onMouseDown = (e: globalThis.MouseEvent) => {
       if (!ref.current?.contains(e.target as Node)) setOpen(false);
     };
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setOpen(false);
+      if (e.key === "Escape") {
+        setOpen(false);
+        triggerRef.current?.focus({ preventScroll: true });
+        return;
+      }
+      if (e.key !== "ArrowDown" && e.key !== "ArrowUp") return;
+      const list = optionButtons();
+      const i = list.indexOf(document.activeElement as HTMLButtonElement);
+      if (i === -1) return;
+      e.preventDefault();
+      const step = e.key === "ArrowDown" ? 1 : -1;
+      list[(i + step + list.length) % list.length]?.focus();
     };
     document.addEventListener("mousedown", onMouseDown);
     document.addEventListener("keydown", onKey);
@@ -62,8 +87,16 @@ export default function FilterDropdown({
   const current = options.find((o) => o.value === value);
 
   return (
-    <div className={styles.dropdown} ref={ref}>
+    <div
+      className={styles.dropdown}
+      ref={ref}
+      // Tabbing out of the dropdown closes it.
+      onBlur={(e) => {
+        if (!ref.current?.contains(e.relatedTarget as Node)) setOpen(false);
+      }}
+    >
       <button
+        ref={triggerRef}
         type="button"
         className={`${styles.dropdownTrigger} ${
           open ? styles.dropdownTriggerOpen : ""
@@ -87,9 +120,14 @@ export default function FilterDropdown({
         </span>
       </button>
       {open && (
-        <ul className={styles.dropdownMenu} role="listbox">
+        <ul
+          ref={menuRef}
+          className={styles.dropdownMenu}
+          role="listbox"
+          aria-label={label}
+        >
           {options.map((opt) => (
-            <li key={opt.value}>
+            <li key={opt.value} role="presentation">
               <button
                 type="button"
                 className={`${styles.dropdownOption} ${
@@ -100,6 +138,7 @@ export default function FilterDropdown({
                 onClick={() => {
                   onChange(opt.value);
                   setOpen(false);
+                  triggerRef.current?.focus({ preventScroll: true });
                 }}
                 data-cursor="hover"
                 style={

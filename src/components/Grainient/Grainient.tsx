@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import { Mesh, Program, Renderer, Triangle } from "ogl";
+import { getPan } from "@/lib/panBus";
 import styles from "./Grainient.module.css";
 
 type Props = {
@@ -246,9 +247,8 @@ export default function Grainient({
 
     const mesh = new Mesh(gl, { geometry, program });
     const offset = program.uniforms.uOffset.value as Float32Array;
-    const docStyle = document.documentElement.style;
     const readPan = (name: string) =>
-      name ? parseFloat(docStyle.getPropertyValue(name)) || 0 : 0;
+      name ? getPan(name) : 0;
 
     // Overscan margin in drawing-buffer px, refreshed on resize.
     let marginX = 0;

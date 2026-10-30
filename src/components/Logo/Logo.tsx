@@ -8,17 +8,24 @@ import styles from "./Logo.module.css";
 
 type Props = {
   noClick?: boolean;
+  /** position: absolute — scrolls with the page (see AppShell). */
+  scrolls?: boolean;
   className?: string;
 };
 
 // Colour comes from the shell theme token (--shell-fg-strong) in
 // Logo.module.css; override the token on an ancestor to recolour.
-export default function Logo({ noClick = false, className = "" }: Props) {
+export default function Logo({
+  noClick = false,
+  scrolls = false,
+  className = "",
+}: Props) {
   const pathname = usePathname();
   const router = useRouter();
   const classes = [
     styles.logo,
     noClick ? styles.noClick : "",
+    scrolls ? styles.scrolls : "",
     className,
   ]
     .filter(Boolean)

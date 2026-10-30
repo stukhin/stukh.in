@@ -128,13 +128,37 @@ export default function WallsGallery({ items }: Props) {
   // Desktop hover-plate plumbing. Cards fire enter/leave; the
   // download button fires its own pair on top so the plate can
   // include the format hint when the user is over it.
-  const onCardEnter = (w: Wallpaper) =>
-    setHover({ wallpaper: w, isHoveringDownload: false });
-  const onCardLeave = () => setHover(null);
-  const onDownloadEnter = () =>
-    setHover((prev) => (prev ? { ...prev, isHoveringDownload: true } : prev));
-  const onDownloadLeave = () =>
-    setHover((prev) => (prev ? { ...prev, isHoveringDownload: false } : prev));
+  // All stable (setState only) so memoised cards skip the re-render
+  // every hover change triggers here.
+  const onCardEnter = useCallback(
+    (w: Wallpaper) => setHover({ wallpaper: w, isHoveringDownload: false }),
+    []
+  );
+  const onCardLeave = useCallback(() => setHover(null), []);
+  const onDownloadEnter = useCallback(
+    () =>
+      setHover((prev) => (prev ? { ...prev, isHoveringDownload: true } : prev)),
+    []
+  );
+  const onDownloadLeave = useCallback(
+    () =>
+      setHover((prev) =>
+        prev ? { ...prev, isHoveringDownload: false } : prev
+      ),
+    []
+  );
+  // One stable ref callback per card id.
+  const imgRefCbs = useRef(new Map<string, (el: HTMLImageElement | null) => void>());
+  const registerImgFor = (id: string) => {
+    let cb = imgRefCbs.current.get(id);
+    if (!cb) {
+      cb = (el) => {
+        cardImgRefs.current[id] = el;
+      };
+      imgRefCbs.current.set(id, cb);
+    }
+    return cb;
+  };
 
   // Persist download counts in localStorage so they grow over visits.
   useEffect(() => {
@@ -199,6 +223,19 @@ export default function WallsGallery({ items }: Props) {
     setZoomed(w);
   };
 
+  // Stable wrappers for the memoised cards; they always call the
+  // latest closure (which reads current download / zoom state).
+  const latestRef = useRef({ openZoom, download });
+  latestRef.current = { openZoom, download };
+  const onZoomStable = useCallback(
+    (w: Wallpaper) => latestRef.current.openZoom(w),
+    []
+  );
+  const onDownloadStable = useCallback(
+    (w: Wallpaper) => latestRef.current.download(w),
+    []
+  );
+
   const closeZoom = useCallback(() => {
     if (!zoomed || zoomClosing) return;
     // Hide the Download button immediately as the photo starts
@@ -237,6 +274,11 @@ export default function WallsGallery({ items }: Props) {
       setZoomClosing(false);
     }, ZOOM_OUT_MS);
   }, [zoomed, zoomClosing]);
+  // The lock / focus effect below reads closeZoom through a ref: its
+  // identity changes as a close starts, and depending on it re-ran
+  // the effect mid-close (focus bounced trigger → dialog → trigger).
+  const closeZoomRef = useRef(closeZoom);
+  closeZoomRef.current = closeZoom;
 
   // Run the FLIP morph as soon as the modal img mounts. Use the
   // Web Animations API directly — more reliable than juggling CSS
@@ -292,7 +334,7 @@ export default function WallsGallery({ items }: Props) {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
         e.preventDefault();
-        closeZoom();
+        closeZoomRef.current();
         return;
       }
       if (e.key !== "Tab") return;
@@ -336,7 +378,7 @@ export default function WallsGallery({ items }: Props) {
       }
       zoomTriggerRef.current = null;
     };
-  }, [zoomed, closeZoom]);
+  }, [zoomed]);
 
   return (
     <>
@@ -379,15 +421,13 @@ export default function WallsGallery({ items }: Props) {
                   wallpaper={w}
                   state={state}
                   isZoomed={zoomed?.id === w.id}
-                  onZoom={openZoom}
-                  onDownload={download}
+                  onZoom={onZoomStable}
+                  onDownload={onDownloadStable}
                   onCardEnter={onCardEnter}
                   onCardLeave={onCardLeave}
                   onDownloadEnter={onDownloadEnter}
                   onDownloadLeave={onDownloadLeave}
-                  registerImg={(el) => {
-                    cardImgRefs.current[w.id] = el;
-                  }}
+                  registerImg={registerImgFor(w.id)}
                 />
               );
             })}
