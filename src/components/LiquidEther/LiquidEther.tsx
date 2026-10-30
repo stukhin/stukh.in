@@ -3,15 +3,34 @@
 /* Vendored from React Bits — fluid simulation rendered to a WebGL
  * canvas. We use it on /blog as the "liquid" inside a hovered
  * country: a single instance is mounted while hover is active and
- * clipped to the country's path via SVG <clipPath>. Source kept
- * mostly verbatim so future upstream tweaks are easy to follow —
- * the .tsx port adds types but does not restructure the simulation. */
+ * clipped to the country's path via SVG <clipPath>. The simulation
+ * is kept mostly verbatim so future upstream tweaks are easy to
+ * follow; the GL layer is ported from three.js to ogl (already
+ * shipped for LightRays / Grainient), which drops `three` from
+ * /blog. Port notes:
+ *  - ogl prepends nothing to shaders. The upstream sources were
+ *    RawShaderMaterial already, so every attribute / uniform /
+ *    varying is declared explicitly — keep it that way.
+ *  - three state the port has to reproduce by hand: per-material
+ *    blend funcs (non-premultiplied Normal / Additive), a
+ *    premultiplied-alpha context, autoClear off, and the sRGB →
+ *    linear conversion `new THREE.Color(hex)` applied to the palette.
+ */
 
 import { useEffect, useRef, type CSSProperties } from "react";
-import * as THREE from "three";
+import {
+  Geometry,
+  Mesh,
+  Plane,
+  Program,
+  Renderer,
+  RenderTarget,
+  Texture,
+  Transform,
+  Vec2,
+  type OGLRenderingContext,
+} from "ogl";
 import "./LiquidEther.css";
-
-type Vec2 = THREE.Vector2;
 
 type Props = {
   mouseForce?: number;
@@ -43,16 +62,13 @@ type ShaderPassMaterialProps = {
   vertexShader: string;
   fragmentShader: string;
   uniforms: UniformRecord;
-  blending?: THREE.Blending;
-  depthWrite?: boolean;
-  transparent?: boolean;
 };
 
 type ShaderPassPropsBase = {
   material?: ShaderPassMaterialProps;
-  output?: THREE.WebGLRenderTarget | null;
-  output0?: THREE.WebGLRenderTarget;
-  output1?: THREE.WebGLRenderTarget;
+  output?: RenderTarget | null;
+  output0?: RenderTarget;
+  output1?: RenderTarget;
 };
 
 // Per-pass uniform shapes — narrows the `unknown` in UniformRecord at
@@ -61,7 +77,7 @@ type AdvectionUniforms = {
   boundarySpace: { value: Vec2 };
   px: { value: Vec2 };
   fboSize: { value: Vec2 };
-  velocity: { value: THREE.Texture };
+  velocity: { value: Texture };
   dt: { value: number };
   isBFECC: { value: boolean };
 };
@@ -73,28 +89,28 @@ type ExternalForceUniforms = {
 };
 type ViscousUniforms = {
   boundarySpace: { value: Vec2 };
-  velocity: { value: THREE.Texture };
-  velocity_new: { value: THREE.Texture };
+  velocity: { value: Texture };
+  velocity_new: { value: Texture };
   v: { value: number };
   px: { value: Vec2 };
   dt: { value: number };
 };
 type DivergenceUniforms = {
   boundarySpace: { value: Vec2 };
-  velocity: { value: THREE.Texture };
+  velocity: { value: Texture };
   px: { value: Vec2 };
   dt: { value: number };
 };
 type PoissonUniforms = {
   boundarySpace: { value: Vec2 };
-  pressure: { value: THREE.Texture };
-  divergence: { value: THREE.Texture };
+  pressure: { value: Texture };
+  divergence: { value: Texture };
   px: { value: Vec2 };
 };
 type PressureUniforms = {
   boundarySpace: { value: Vec2 };
-  pressure: { value: THREE.Texture };
-  velocity: { value: THREE.Texture };
+  pressure: { value: Texture };
+  velocity: { value: Texture };
   px: { value: Vec2 };
   dt: { value: number };
 };
@@ -103,11 +119,11 @@ type SimProps = {
   cellScale: Vec2;
   fboSize: Vec2;
   dt: number;
-  src: THREE.WebGLRenderTarget;
-  dst: THREE.WebGLRenderTarget;
-  dst_?: THREE.WebGLRenderTarget;
-  src_p?: THREE.WebGLRenderTarget;
-  src_v?: THREE.WebGLRenderTarget;
+  src: RenderTarget;
+  dst: RenderTarget;
+  dst_?: RenderTarget;
+  src_p?: RenderTarget;
+  src_v?: RenderTarget;
   cursor_size?: number;
   boundarySpace?: Vec2;
   viscous?: number;
@@ -144,6 +160,7 @@ type AutoDriverOpts = {
 
 type WebGLManagerProps = {
   $wrapper: HTMLElement;
+  simOptions: SimulationOptions;
   autoDemo: boolean;
   autoSpeed: number;
   autoIntensity: number;
@@ -151,6 +168,40 @@ type WebGLManagerProps = {
   autoResumeDelay: number;
   autoRampDuration: number;
 };
+
+// GL enums WebGLRenderingContext doesn't type (WebGL2 core / WebGL1
+// extension values) — `gl` is typed as the WebGL1 | WebGL2 union.
+const GL_RGBA32F = 0x8814;
+const GL_RGBA16F = 0x881a;
+const GL_HALF_FLOAT = 0x140b;
+const GL_HALF_FLOAT_OES = 0x8d61;
+
+// three.js `SRGBToLinear` — what `new THREE.Color("#hex")` did to
+// every palette stop under its default colour management. The palette
+// texture is sampled raw and written straight to the canvas, so the
+// upstream look depends on these linearised (darker) values.
+const srgbToLinear = (c: number) =>
+  c < 0.04045 ? c * 0.0773993808 : Math.pow(c * 0.9478672986 + 0.0521327014, 2.4);
+
+// Any CSS colour → [r, g, b] in 0..1 sRGB. Normalised through a 2D
+// context so names / rgb() keep working like THREE.Color's parser;
+// anything unparseable falls back to white.
+function parseCssColor(css: string): [number, number, number] {
+  let hex = css;
+  const ctx = document.createElement("canvas").getContext("2d");
+  if (ctx) {
+    ctx.fillStyle = "#ffffff";
+    ctx.fillStyle = css;
+    hex = String(ctx.fillStyle);
+  }
+  const m = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+  if (!m) return [1, 1, 1];
+  return [
+    parseInt(m[1], 16) / 255,
+    parseInt(m[2], 16) / 255,
+    parseInt(m[3], 16) / 255,
+  ];
+}
 
 // ---- Component -----------------------------------------------------------
 
@@ -178,8 +229,7 @@ export default function LiquidEther({
   const mountRef = useRef<HTMLDivElement | null>(null);
   // WebGLManager / Output / Simulation are all defined inside the
   // useEffect closure so they can share the CommonClass / MouseClass
-  // singletons there. Type the ref through a structural interface so
-  // the secondary effect below can poke at the simulation options.
+  // singletons there. The ref only needs the lifecycle surface.
   const webglRef = useRef<WebGLManagerLike | null>(null);
   const resizeObserverRef = useRef<ResizeObserver | null>(null);
   const rafRef = useRef<number | null>(null);
@@ -187,10 +237,26 @@ export default function LiquidEther({
   const isVisibleRef = useRef(true);
   const resizeRafRef = useRef<number | null>(null);
 
+  // Every prop is a dep, so a prop change tears the whole sim down
+  // and rebuilds it with the new values — there is no separate
+  // "apply options" path.
   useEffect(() => {
     if (!mountRef.current) return;
 
-    function makePaletteTexture(stops: string[]): THREE.DataTexture {
+    // Every GL object the sim allocates, so teardown (normal dispose
+    // and a constructor that throws halfway) can free them explicitly
+    // instead of waiting on the context loss.
+    const gpu = {
+      programs: [] as Program[],
+      geometries: [] as Geometry[],
+      targets: [] as RenderTarget[],
+      textures: [] as Texture[],
+    };
+
+    function makePaletteTexture(
+      gl: OGLRenderingContext,
+      stops: string[]
+    ): Texture {
       let arr: string[];
       if (Array.isArray(stops) && stops.length > 0) {
         if (stops.length === 1) {
@@ -204,24 +270,28 @@ export default function LiquidEther({
       const w = arr.length;
       const data = new Uint8Array(w * 4);
       for (let i = 0; i < w; i++) {
-        const c = new THREE.Color(arr[i]);
-        data[i * 4 + 0] = Math.round(c.r * 255);
-        data[i * 4 + 1] = Math.round(c.g * 255);
-        data[i * 4 + 2] = Math.round(c.b * 255);
+        const [r, g, b] = parseCssColor(arr[i]).map(srgbToLinear);
+        data[i * 4 + 0] = Math.round(r * 255);
+        data[i * 4 + 1] = Math.round(g * 255);
+        data[i * 4 + 2] = Math.round(b * 255);
         data[i * 4 + 3] = 255;
       }
-      const tex = new THREE.DataTexture(data, w, 1, THREE.RGBAFormat);
-      tex.magFilter = THREE.LinearFilter;
-      tex.minFilter = THREE.LinearFilter;
-      tex.wrapS = THREE.ClampToEdgeWrapping;
-      tex.wrapT = THREE.ClampToEdgeWrapping;
-      tex.generateMipmaps = false;
-      tex.needsUpdate = true;
+      const tex = new Texture(gl, {
+        image: data,
+        width: w,
+        height: 1,
+        magFilter: gl.LINEAR,
+        minFilter: gl.LINEAR,
+        wrapS: gl.CLAMP_TO_EDGE,
+        wrapT: gl.CLAMP_TO_EDGE,
+        generateMipmaps: false,
+        flipY: false,
+      });
+      gpu.textures.push(tex);
       return tex;
     }
 
-    const paletteTex = makePaletteTexture(colors);
-    const bgVec4 = new THREE.Vector4(0, 0, 0, 0);
+    const bgVec4 = [0, 0, 0, 0];
 
     class CommonClass {
       width = 0;
@@ -235,26 +305,44 @@ export default function LiquidEther({
       time = 0;
       delta = 0;
       container: HTMLElement | null = null;
-      renderer: THREE.WebGLRenderer | null = null;
-      clock: THREE.Clock | null = null;
+      renderer: Renderer | null = null;
+      gl: OGLRenderingContext | null = null;
+      private lastTime = 0;
 
       init(container: HTMLElement) {
         this.container = container;
         this.pixelRatio = Math.min(window.devicePixelRatio || 1, 2);
         this.resize();
-        this.renderer = new THREE.WebGLRenderer({
+        // three's WebGLRenderer defaults, made explicit: premultiplied
+        // context (the colour pass writes rgb·a), no depth / stencil
+        // (no pass ever tests them), no auto-clear (each pass covers
+        // its whole target; the browser clears the canvas per frame).
+        // ogl throws on the null context when WebGL is unavailable —
+        // caught by the effect below.
+        this.renderer = new Renderer({
+          webgl: 2,
           antialias: false,
           alpha: true,
+          premultipliedAlpha: true,
+          depth: false,
+          stencil: false,
+          autoClear: false,
+          dpr: this.pixelRatio,
         });
-        this.renderer.autoClear = false;
-        this.renderer.setClearColor(new THREE.Color(0x000000), 0);
-        this.renderer.setPixelRatio(this.pixelRatio);
+        this.gl = this.renderer.gl;
+        this.gl.clearColor(0, 0, 0, 0);
+        this.setRendererSize();
+        this.lastTime = performance.now();
+      }
+      // ogl's setSize writes px into the canvas style — re-assert the
+      // fluid fill the container expects.
+      setRendererSize() {
+        if (!this.renderer) return;
         this.renderer.setSize(this.width, this.height);
-        this.renderer.domElement.style.width = "100%";
-        this.renderer.domElement.style.height = "100%";
-        this.renderer.domElement.style.display = "block";
-        this.clock = new THREE.Clock();
-        this.clock.start();
+        const canvas = this.renderer.gl.canvas;
+        canvas.style.width = "100%";
+        canvas.style.height = "100%";
+        canvas.style.display = "block";
       }
       resize() {
         if (!this.container) return;
@@ -262,11 +350,12 @@ export default function LiquidEther({
         this.width = Math.max(1, Math.floor(rect.width));
         this.height = Math.max(1, Math.floor(rect.height));
         this.aspect = this.width / this.height;
-        if (this.renderer) this.renderer.setSize(this.width, this.height, false);
+        this.setRendererSize();
       }
       update() {
-        if (!this.clock) return;
-        this.delta = this.clock.getDelta();
+        const now = performance.now();
+        this.delta = (now - this.lastTime) / 1000;
+        this.lastTime = now;
         this.time += this.delta;
       }
     }
@@ -274,9 +363,9 @@ export default function LiquidEther({
 
     class MouseClass {
       mouseMoved = false;
-      coords = new THREE.Vector2();
-      coords_old = new THREE.Vector2();
-      diff = new THREE.Vector2();
+      coords = new Vec2();
+      coords_old = new Vec2();
+      diff = new Vec2();
       timer: number | null = null;
       container: HTMLElement | null = null;
       docTarget: Document | null = null;
@@ -288,8 +377,8 @@ export default function LiquidEther({
       takeoverActive = false;
       takeoverStartTime = 0;
       takeoverDuration = 0.25;
-      takeoverFrom = new THREE.Vector2();
-      takeoverTo = new THREE.Vector2();
+      takeoverFrom = new Vec2();
+      takeoverTo = new Vec2();
       onInteract: (() => void) | null = null;
       private readonly _onMouseMove: (event: MouseEvent) => void;
       private readonly _onTouchStart: (event: TouchEvent) => void;
@@ -324,7 +413,13 @@ export default function LiquidEther({
           this.docTarget.addEventListener("mouseleave", this._onDocumentLeave);
         }
       }
+      // Safe to call more than once, and before / without init().
       dispose() {
+        if (this.timer !== null) {
+          window.clearTimeout(this.timer);
+          this.timer = null;
+        }
+        this.onInteract = null;
         if (this.listenerTarget) {
           this.listenerTarget.removeEventListener(
             "mousemove",
@@ -438,12 +533,12 @@ export default function LiquidEther({
             this.coords.copy(this.takeoverFrom).lerp(this.takeoverTo, k);
           }
         }
-        this.diff.subVectors(this.coords, this.coords_old);
+        this.diff.sub(this.coords, this.coords_old);
         this.coords_old.copy(this.coords);
         if (this.coords_old.x === 0 && this.coords_old.y === 0)
           this.diff.set(0, 0);
         if (this.isAutoActive && !this.takeoverActive)
-          this.diff.multiplyScalar(this.autoIntensity);
+          this.diff.scale(this.autoIntensity);
       }
     }
     const Mouse = new MouseClass();
@@ -458,12 +553,12 @@ export default function LiquidEther({
       resumeDelay: number;
       rampDurationMs: number;
       active = false;
-      current = new THREE.Vector2(0, 0);
-      target = new THREE.Vector2();
+      current = new Vec2(0, 0);
+      target = new Vec2();
       lastTime = performance.now();
       activationTime = 0;
       margin = 0.2;
-      private _tmpDir = new THREE.Vector2();
+      private _tmpDir = new Vec2();
 
       constructor(
         mouse: MouseClass,
@@ -512,8 +607,8 @@ export default function LiquidEther({
         let dtSec = (now - this.lastTime) / 1000;
         this.lastTime = now;
         if (dtSec > 0.2) dtSec = 0.016;
-        const dir = this._tmpDir.subVectors(this.target, this.current);
-        const dist = dir.length();
+        const dir = this._tmpDir.sub(this.target, this.current);
+        const dist = dir.len();
         if (dist < 0.01) {
           this.pickNewTarget();
           return;
@@ -529,12 +624,16 @@ export default function LiquidEther({
         }
         const step = this.speed * dtSec * ramp;
         const move = Math.min(step, dist);
-        this.current.addScaledVector(dir, move);
+        this.current.x += dir.x * move;
+        this.current.y += dir.y * move;
         this.mouse.setNormalized(this.current.x, this.current.y);
       }
     }
 
     // ---- Shaders ----
+    // GLSL ES 1.00, exactly what three compiled from the upstream
+    // RawShaderMaterials (no preamble either way). Only change:
+    // pressure_frag's local `step` (shadowed the builtin) → `offs`.
 
     const face_vert = `
   attribute vec3 position;
@@ -676,11 +775,11 @@ export default function LiquidEther({
     uniform float dt;
     varying vec2 uv;
     void main(){
-    float step = 1.0;
-    float p0 = texture2D(pressure, uv + vec2(px.x * step, 0.0)).r;
-    float p1 = texture2D(pressure, uv - vec2(px.x * step, 0.0)).r;
-    float p2 = texture2D(pressure, uv + vec2(0.0, px.y * step)).r;
-    float p3 = texture2D(pressure, uv - vec2(0.0, px.y * step)).r;
+    float offs = 1.0;
+    float p0 = texture2D(pressure, uv + vec2(px.x * offs, 0.0)).r;
+    float p1 = texture2D(pressure, uv - vec2(px.x * offs, 0.0)).r;
+    float p2 = texture2D(pressure, uv + vec2(0.0, px.y * offs)).r;
+    float p3 = texture2D(pressure, uv - vec2(0.0, px.y * offs)).r;
     vec2 v = texture2D(velocity, uv).xy;
     vec2 gradP = vec2(p0 - p1, p2 - p3) * 0.5;
     v = v - gradP * dt;
@@ -707,44 +806,94 @@ export default function LiquidEther({
 }
 `;
 
+    // ---- GL helpers ----
+
+    function requireGL(): OGLRenderingContext {
+      if (!Common.gl) throw new Error("LiquidEther: no GL context");
+      return Common.gl;
+    }
+
+    // Program with three's RawShaderMaterial defaults minus the depth
+    // test (there is no depth buffer). Culling stays off: every quad
+    // here is screen-aligned, so three's back-face cull never culled
+    // anything — disabling it just removes a winding dependency.
+    function makeProgram(
+      vertex: string,
+      fragment: string,
+      uniforms: UniformRecord
+    ): Program {
+      const gl = requireGL();
+      const program = new Program(gl, {
+        vertex,
+        fragment,
+        uniforms,
+        cullFace: false,
+        depthTest: false,
+        depthWrite: false,
+      });
+      gpu.programs.push(program);
+      // ogl only console.warns on a failed link — fail loudly so the
+      // effect's catch skips the fluid rather than drawing with an
+      // invalid program every frame.
+      if (!gl.getProgramParameter(program.program, gl.LINK_STATUS)) {
+        throw new Error("LiquidEther: shader program failed to link");
+      }
+      return program;
+    }
+
+    function makePlane(width: number, height: number): Plane {
+      const geometry = new Plane(requireGL(), { width, height });
+      gpu.geometries.push(geometry);
+      return geometry;
+    }
+
     // ---- ShaderPass + subclasses ----
 
     class ShaderPass<TUniforms extends UniformRecord = UniformRecord> {
       props: ShaderPassPropsBase;
       uniforms: TUniforms | undefined;
-      scene: THREE.Scene | null = null;
-      camera: THREE.Camera | null = null;
-      material: THREE.RawShaderMaterial | null = null;
-      geometry: THREE.PlaneGeometry | null = null;
-      plane: THREE.Mesh | null = null;
+      scene: Transform | null = null;
+      program: Program | null = null;
+      plane: Mesh | null = null;
 
       constructor(props: ShaderPassPropsBase) {
         this.props = props || {};
         this.uniforms = (this.props.material?.uniforms as TUniforms) ?? undefined;
       }
       init() {
-        this.scene = new THREE.Scene();
-        this.camera = new THREE.Camera();
+        this.scene = new Transform();
         if (this.uniforms && this.props.material) {
-          this.material = new THREE.RawShaderMaterial(this.props.material);
-          this.geometry = new THREE.PlaneGeometry(2.0, 2.0);
-          this.plane = new THREE.Mesh(this.geometry, this.material);
-          this.scene.add(this.plane);
+          this.program = makeProgram(
+            this.props.material.vertexShader,
+            this.props.material.fragmentShader,
+            this.props.material.uniforms
+          );
+          this.plane = new Mesh(requireGL(), {
+            geometry: makePlane(2.0, 2.0),
+            program: this.program,
+          });
+          this.plane.setParent(this.scene);
         }
       }
       // Optional `unknown` arg so subclasses can override with their
       // own required-arg signature — TS method variance forbids
       // tightening a base no-arg signature into a required arg.
       update(_args?: unknown) {
-        if (!Common.renderer || !this.scene || !this.camera) return;
-        Common.renderer.setRenderTarget(this.props.output ?? null);
-        Common.renderer.render(this.scene, this.camera);
-        Common.renderer.setRenderTarget(null);
+        if (!Common.renderer || !this.scene) return;
+        // Scene order = draw order (three sorted the same meshes by
+        // material id, i.e. creation order). No camera: every vertex
+        // shader writes clip space directly.
+        Common.renderer.render({
+          scene: this.scene,
+          target: this.props.output ?? undefined,
+          sort: false,
+          frustumCull: false,
+        });
       }
     }
 
     class Advection extends ShaderPass<AdvectionUniforms> {
-      line: THREE.LineSegments | null = null;
+      line: Mesh | null = null;
       constructor(simProps: SimProps) {
         super({
           material: {
@@ -770,22 +919,27 @@ export default function LiquidEther({
       }
       createBoundary() {
         if (!this.scene || !this.uniforms) return;
-        const boundaryG = new THREE.BufferGeometry();
+        const gl = requireGL();
         const vertices_boundary = new Float32Array([
           -1, -1, 0, -1, 1, 0, -1, 1, 0, 1, 1, 0, 1, 1, 0, 1, -1, 0, 1, -1, 0,
           -1, -1, 0,
         ]);
-        boundaryG.setAttribute(
-          "position",
-          new THREE.BufferAttribute(vertices_boundary, 3)
-        );
-        const boundaryM = new THREE.RawShaderMaterial({
-          vertexShader: line_vert,
-          fragmentShader: advection_frag,
-          uniforms: this.uniforms as unknown as UniformRecord,
+        const boundaryG = new Geometry(gl, {
+          position: { size: 3, data: vertices_boundary },
         });
-        this.line = new THREE.LineSegments(boundaryG, boundaryM);
-        this.scene.add(this.line);
+        gpu.geometries.push(boundaryG);
+        // Shares the plane's uniform object, as upstream did.
+        const boundaryM = makeProgram(
+          line_vert,
+          advection_frag,
+          this.uniforms as unknown as UniformRecord
+        );
+        this.line = new Mesh(gl, {
+          geometry: boundaryG,
+          program: boundaryM,
+          mode: gl.LINES,
+        });
+        this.line.setParent(this.scene);
       }
       update({
         dt,
@@ -805,7 +959,8 @@ export default function LiquidEther({
     }
 
     class ExternalForce extends ShaderPass<ExternalForceUniforms> {
-      mouse: THREE.Mesh | null = null;
+      mouse: Mesh | null = null;
+      mouseUniforms: ExternalForceUniforms | null = null;
       constructor(simProps: SimProps) {
         super({ output: simProps.dst });
         this.init(simProps);
@@ -813,33 +968,37 @@ export default function LiquidEther({
       init(simProps?: SimProps) {
         super.init();
         if (!this.scene || !simProps) return;
-        const mouseG = new THREE.PlaneGeometry(1, 1);
-        const mouseM = new THREE.RawShaderMaterial({
-          vertexShader: mouse_vert,
-          fragmentShader: externalForce_frag,
-          blending: THREE.AdditiveBlending,
-          depthWrite: false,
-          uniforms: {
-            px: { value: simProps.cellScale },
-            force: { value: new THREE.Vector2(0.0, 0.0) },
-            center: { value: new THREE.Vector2(0.0, 0.0) },
-            scale: {
-              value: new THREE.Vector2(
-                simProps.cursor_size ?? 0,
-                simProps.cursor_size ?? 0
-              ),
-            },
-          } satisfies ExternalForceUniforms,
+        const gl = requireGL();
+        this.mouseUniforms = {
+          px: { value: simProps.cellScale },
+          force: { value: new Vec2(0.0, 0.0) },
+          center: { value: new Vec2(0.0, 0.0) },
+          scale: {
+            value: new Vec2(
+              simProps.cursor_size ?? 0,
+              simProps.cursor_size ?? 0
+            ),
+          },
+        };
+        const mouseM = makeProgram(
+          mouse_vert,
+          externalForce_frag,
+          this.mouseUniforms
+        );
+        // three's AdditiveBlending on a non-premultiplied material.
+        mouseM.setBlendFunc(gl.SRC_ALPHA, gl.ONE, gl.ONE, gl.ONE);
+        this.mouse = new Mesh(gl, {
+          geometry: makePlane(1, 1),
+          program: mouseM,
         });
-        this.mouse = new THREE.Mesh(mouseG, mouseM);
-        this.scene.add(this.mouse);
+        this.mouse.setParent(this.scene);
       }
       update(props: {
         cursor_size: number;
         mouse_force: number;
         cellScale: Vec2;
       }) {
-        if (!this.mouse) return;
+        if (!this.mouse || !this.mouseUniforms) return;
         const forceX = (Mouse.diff.x / 2) * props.mouse_force;
         const forceY = (Mouse.diff.y / 2) * props.mouse_force;
         const cursorSizeX = props.cursor_size * props.cellScale.x;
@@ -852,8 +1011,7 @@ export default function LiquidEther({
           Math.max(Mouse.coords.y, -1 + cursorSizeY + props.cellScale.y * 2),
           1 - cursorSizeY - props.cellScale.y * 2
         );
-        const uniforms = (this.mouse.material as THREE.RawShaderMaterial)
-          .uniforms as unknown as ExternalForceUniforms;
+        const uniforms = this.mouseUniforms;
         uniforms.force.value.set(forceX, forceY);
         uniforms.center.value.set(centerX, centerY);
         uniforms.scale.value.set(props.cursor_size, props.cursor_size);
@@ -891,10 +1049,10 @@ export default function LiquidEther({
         viscous: number;
         iterations: number;
         dt: number;
-      }): THREE.WebGLRenderTarget | undefined {
+      }): RenderTarget | undefined {
         if (!this.uniforms) return undefined;
-        let fbo_in: THREE.WebGLRenderTarget | undefined;
-        let fbo_out: THREE.WebGLRenderTarget | undefined;
+        let fbo_in: RenderTarget | undefined;
+        let fbo_out: RenderTarget | undefined;
         this.uniforms.v.value = viscous;
         for (let i = 0; i < iterations; i++) {
           if (i % 2 === 0) {
@@ -931,7 +1089,7 @@ export default function LiquidEther({
         this.uniforms = this.props.material!.uniforms as DivergenceUniforms;
         this.init();
       }
-      update({ vel }: { vel: THREE.WebGLRenderTarget }) {
+      update({ vel }: { vel: RenderTarget }) {
         if (!this.uniforms) return;
         this.uniforms.velocity.value = vel.texture;
         super.update();
@@ -962,10 +1120,10 @@ export default function LiquidEther({
         iterations,
       }: {
         iterations: number;
-      }): THREE.WebGLRenderTarget | undefined {
+      }): RenderTarget | undefined {
         if (!this.uniforms) return undefined;
-        let p_in: THREE.WebGLRenderTarget | undefined;
-        let p_out: THREE.WebGLRenderTarget | undefined;
+        let p_in: RenderTarget | undefined;
+        let p_out: RenderTarget | undefined;
         for (let i = 0; i < iterations; i++) {
           if (i % 2 === 0) {
             p_in = this.props.output0;
@@ -1005,8 +1163,8 @@ export default function LiquidEther({
         vel,
         pressure,
       }: {
-        vel: THREE.WebGLRenderTarget;
-        pressure: THREE.WebGLRenderTarget;
+        vel: RenderTarget;
+        pressure: RenderTarget;
       }) {
         if (!this.uniforms) return;
         this.uniforms.velocity.value = vel.texture;
@@ -1017,10 +1175,10 @@ export default function LiquidEther({
 
     class Simulation {
       options: SimulationOptions;
-      fbos: Record<SimulationFboKey, THREE.WebGLRenderTarget | null>;
-      fboSize = new THREE.Vector2();
-      cellScale = new THREE.Vector2();
-      boundarySpace = new THREE.Vector2();
+      fbos: Record<SimulationFboKey, RenderTarget | null>;
+      fboSize = new Vec2();
+      cellScale = new Vec2();
+      boundarySpace = new Vec2();
       advection!: Advection;
       externalForce!: ExternalForce;
       viscous!: Viscous;
@@ -1058,27 +1216,73 @@ export default function LiquidEther({
         this.createAllFBO();
         this.createShaderPass();
       }
-      getFloatType(): THREE.TextureDataType {
+      // Upstream: FLOAT everywhere, HALF_FLOAT on iOS (no linear
+      // filtering of 32F there). Same rule, plus the capability
+      // check three skipped: 32F also needs linear filtering and
+      // blending (the external-force pass blends additively).
+      // ogl's Renderer already requested EXT_color_buffer_float /
+      // OES_texture_float(_linear) / OES_texture_half_float.
+      getFloatFormat(gl: OGLRenderingContext, preferFull: boolean) {
+        const isWebgl2 = !!Common.renderer?.isWebgl2;
         const isIOS = /(iPad|iPhone|iPod)/i.test(navigator.userAgent);
-        return isIOS ? THREE.HalfFloatType : THREE.FloatType;
+        const full =
+          preferFull &&
+          !isIOS &&
+          !!gl.getExtension("OES_texture_float_linear") &&
+          (!isWebgl2 || !!gl.getExtension("EXT_float_blend"));
+        if (isWebgl2) {
+          return full
+            ? { type: gl.FLOAT, internalFormat: GL_RGBA32F }
+            : { type: GL_HALF_FLOAT, internalFormat: GL_RGBA16F };
+        }
+        return full
+          ? { type: gl.FLOAT, internalFormat: gl.RGBA }
+          : { type: GL_HALF_FLOAT_OES, internalFormat: gl.RGBA };
+      }
+      makeTarget(gl: OGLRenderingContext, preferFull: boolean): RenderTarget {
+        const { type, internalFormat } = this.getFloatFormat(gl, preferFull);
+        const target = new RenderTarget(gl, {
+          width: this.fboSize.x,
+          height: this.fboSize.y,
+          type,
+          format: gl.RGBA,
+          internalFormat,
+          depth: false,
+          stencil: false,
+          minFilter: gl.LINEAR,
+          magFilter: gl.LINEAR,
+          wrapS: gl.CLAMP_TO_EDGE,
+          wrapT: gl.CLAMP_TO_EDGE,
+        });
+        gpu.targets.push(target);
+        return target;
+      }
+      isComplete(gl: OGLRenderingContext, target: RenderTarget): boolean {
+        Common.renderer!.bindFramebuffer(target);
+        const ok =
+          gl.checkFramebufferStatus(gl.FRAMEBUFFER) === gl.FRAMEBUFFER_COMPLETE;
+        Common.renderer!.bindFramebuffer();
+        return ok;
       }
       createAllFBO() {
-        const type = this.getFloatType();
-        const opts = {
-          type,
-          depthBuffer: false,
-          stencilBuffer: false,
-          minFilter: THREE.LinearFilter,
-          magFilter: THREE.LinearFilter,
-          wrapS: THREE.ClampToEdgeWrapping,
-          wrapT: THREE.ClampToEdgeWrapping,
-        };
-        (Object.keys(this.fbos) as SimulationFboKey[]).forEach((key) => {
-          this.fbos[key] = new THREE.WebGLRenderTarget(
-            this.fboSize.x,
-            this.fboSize.y,
-            opts
-          );
+        const gl = requireGL();
+        // Probe the first target: if the driver can't render to 32F,
+        // fall back to half float; if neither works, throw so the
+        // effect skips the fluid.
+        let preferFull = true;
+        let probe = this.makeTarget(gl, preferFull);
+        if (!this.isComplete(gl, probe)) {
+          preferFull = false;
+          gl.deleteTexture(probe.texture.texture);
+          gl.deleteFramebuffer(probe.buffer);
+          gpu.targets.pop();
+          probe = this.makeTarget(gl, preferFull);
+          if (!this.isComplete(gl, probe)) {
+            throw new Error("LiquidEther: float render targets unsupported");
+          }
+        }
+        (Object.keys(this.fbos) as SimulationFboKey[]).forEach((key, i) => {
+          this.fbos[key] = i === 0 ? probe : this.makeTarget(gl, preferFull);
         });
       }
       createShaderPass() {
@@ -1171,7 +1375,7 @@ export default function LiquidEther({
           mouse_force: this.options.mouse_force,
           cellScale: this.cellScale,
         });
-        let vel: THREE.WebGLRenderTarget = this.fbos.vel_1!;
+        let vel: RenderTarget = this.fbos.vel_1!;
         if (this.options.isViscous) {
           const viscousResult = this.viscous.update({
             viscous: this.options.viscous,
@@ -1190,41 +1394,40 @@ export default function LiquidEther({
 
     class Output {
       simulation: Simulation;
-      scene: THREE.Scene;
-      camera: THREE.Camera;
-      output: THREE.Mesh;
+      scene: Transform;
+      output: Mesh;
 
-      constructor() {
-        this.simulation = new Simulation();
-        this.scene = new THREE.Scene();
-        this.camera = new THREE.Camera();
-        this.output = new THREE.Mesh(
-          new THREE.PlaneGeometry(2, 2),
-          new THREE.RawShaderMaterial({
-            vertexShader: face_vert,
-            fragmentShader: color_frag,
-            transparent: true,
-            depthWrite: false,
-            uniforms: {
-              velocity: { value: this.simulation.fbos.vel_0!.texture },
-              boundarySpace: { value: new THREE.Vector2() },
-              palette: { value: paletteTex },
-              bgColor: { value: bgVec4 },
-            },
-          })
+      constructor(options: SimulationOptions) {
+        const gl = requireGL();
+        this.simulation = new Simulation(options);
+        this.scene = new Transform();
+        const program = makeProgram(face_vert, color_frag, {
+          velocity: { value: this.simulation.fbos.vel_0!.texture },
+          boundarySpace: { value: new Vec2() },
+          palette: { value: makePaletteTexture(gl, colors) },
+          bgColor: { value: bgVec4 },
+        });
+        // three's NormalBlending on a transparent, non-premultiplied
+        // material (ogl's own default would be premultiplied here).
+        program.setBlendFunc(
+          gl.SRC_ALPHA,
+          gl.ONE_MINUS_SRC_ALPHA,
+          gl.ONE,
+          gl.ONE_MINUS_SRC_ALPHA
         );
-        this.scene.add(this.output);
-      }
-      addScene(mesh: THREE.Object3D) {
-        this.scene.add(mesh);
+        this.output = new Mesh(gl, { geometry: makePlane(2, 2), program });
+        this.output.setParent(this.scene);
       }
       resize() {
         this.simulation.resize();
       }
       render() {
         if (!Common.renderer) return;
-        Common.renderer.setRenderTarget(null);
-        Common.renderer.render(this.scene, this.camera);
+        Common.renderer.render({
+          scene: this.scene,
+          sort: false,
+          frustumCull: false,
+        });
       }
       update() {
         this.simulation.update();
@@ -1232,15 +1435,41 @@ export default function LiquidEther({
       }
     }
 
-    // Structural shape the secondary effect below pokes at to update
-    // sim options when props change. Mirrored on WebGLManager.
-    interface WebGLManagerLike {
-      output?: Output;
-      autoDriver?: AutoDriver & { mouse?: MouseClass };
-      start(): void;
-      pause(): void;
-      resize(): void;
-      dispose(): void;
+    // Free everything the sim allocated, detach the canvas and drop
+    // the context. Idempotent, and safe at any point of construction —
+    // the failed-init path below relies on that.
+    function teardownGL() {
+      Mouse.dispose();
+      const gl = Common.gl;
+      if (gl) {
+        try {
+          gpu.programs.forEach((p) => {
+            gl.deleteShader(p.vertexShader);
+            gl.deleteShader(p.fragmentShader);
+            p.remove();
+          });
+          gpu.geometries.forEach((g) => g.remove());
+          gpu.targets.forEach((t) => {
+            t.textures.forEach((tex) => gl.deleteTexture(tex.texture));
+            gl.deleteFramebuffer(t.buffer);
+          });
+          gpu.textures.forEach((tex) => gl.deleteTexture(tex.texture));
+          const canvas = gl.canvas;
+          if (canvas && canvas.parentNode)
+            canvas.parentNode.removeChild(canvas);
+          // ogl has no forceContextLoss — release the context now
+          // rather than whenever GC gets to it.
+          gl.getExtension("WEBGL_lose_context")?.loseContext();
+        } catch {
+          /* canvas already torn down */
+        }
+      }
+      gpu.programs.length = 0;
+      gpu.geometries.length = 0;
+      gpu.targets.length = 0;
+      gpu.textures.length = 0;
+      Common.gl = null;
+      Common.renderer = null;
     }
 
     class WebGLManager implements WebGLManagerLike {
@@ -1271,6 +1500,9 @@ export default function LiquidEther({
           rampDuration: props.autoRampDuration,
         });
         this.init();
+        // Window / document listeners go on last: nothing after this
+        // point can throw, so the failed-init path never has to
+        // unhook them.
         this._loop = this.loop.bind(this);
         this._resize = this.resize.bind(this);
         window.addEventListener("resize", this._resize);
@@ -1285,10 +1517,10 @@ export default function LiquidEther({
         document.addEventListener("visibilitychange", this._onVisibility);
       }
       init() {
-        if (Common.renderer) {
-          this.props.$wrapper.prepend(Common.renderer.domElement);
+        if (Common.gl) {
+          this.props.$wrapper.prepend(Common.gl.canvas);
         }
-        this.output = new Output();
+        this.output = new Output(this.props.simOptions);
       }
       resize() {
         Common.resize();
@@ -1302,7 +1534,15 @@ export default function LiquidEther({
       }
       loop() {
         if (!this.running) return;
-        this.render();
+        // A GL error mid-frame (lost context, bad state) stops the
+        // loop instead of throwing out of rAF every frame.
+        try {
+          this.render();
+        } catch (error) {
+          console.warn("LiquidEther rendering error:", error);
+          this.pause();
+          return;
+        }
         rafRef.current = requestAnimationFrame(this._loop);
       }
       start() {
@@ -1318,20 +1558,11 @@ export default function LiquidEther({
         }
       }
       dispose() {
-        try {
-          window.removeEventListener("resize", this._resize);
-          document.removeEventListener("visibilitychange", this._onVisibility);
-          Mouse.dispose();
-          if (Common.renderer) {
-            const canvas = Common.renderer.domElement;
-            if (canvas && canvas.parentNode)
-              canvas.parentNode.removeChild(canvas);
-            Common.renderer.dispose();
-            Common.renderer.forceContextLoss();
-          }
-        } catch {
-          /* canvas already torn down */
-        }
+        this.pause();
+        window.removeEventListener("resize", this._resize);
+        document.removeEventListener("visibilitychange", this._onVisibility);
+        teardownGL();
+        this.output = undefined;
       }
     }
 
@@ -1343,6 +1574,18 @@ export default function LiquidEther({
     try {
       webgl = new WebGLManager({
         $wrapper: container,
+        simOptions: {
+          mouse_force: mouseForce,
+          cursor_size: cursorSize,
+          isViscous,
+          viscous,
+          iterations_viscous: iterationsViscous,
+          iterations_poisson: iterationsPoisson,
+          dt,
+          BFECC,
+          resolution,
+          isBounce,
+        },
         autoDemo,
         autoSpeed,
         autoIntensity,
@@ -1350,36 +1593,17 @@ export default function LiquidEther({
         autoResumeDelay,
         autoRampDuration,
       });
-    } catch {
-      // three.js throws when no WebGL context can be created (WebGL
-      // disabled / blocklisted GPU). Skip the fluid — the country's
-      // hover fill still shows — instead of crashing the page.
+    } catch (error) {
+      // No WebGL context (disabled / blocklisted GPU — ogl throws on
+      // the null context), no float render targets, or a shader that
+      // failed to link. Undo whatever got built — mouse listeners,
+      // the prepended canvas, GL objects — and skip the fluid; the
+      // country's hover fill still shows.
+      console.warn("LiquidEther disabled:", error);
+      teardownGL();
       return;
     }
     webglRef.current = webgl;
-
-    const applyOptionsFromProps = () => {
-      if (!webglRef.current) return;
-      const sim = webglRef.current.output?.simulation;
-      if (!sim) return;
-      const prevRes = sim.options.resolution;
-      Object.assign(sim.options, {
-        mouse_force: mouseForce,
-        cursor_size: cursorSize,
-        isViscous,
-        viscous,
-        iterations_viscous: iterationsViscous,
-        iterations_poisson: iterationsPoisson,
-        dt,
-        BFECC,
-        resolution,
-        isBounce,
-      });
-      if (resolution !== prevRes) {
-        sim.resize();
-      }
-    };
-    applyOptionsFromProps();
 
     webgl.start();
 
@@ -1414,6 +1638,10 @@ export default function LiquidEther({
 
     return () => {
       if (rafRef.current !== null) cancelAnimationFrame(rafRef.current);
+      if (resizeRafRef.current !== null) {
+        cancelAnimationFrame(resizeRafRef.current);
+        resizeRafRef.current = null;
+      }
       if (resizeObserverRef.current) {
         try {
           resizeObserverRef.current.disconnect();
@@ -1453,56 +1681,6 @@ export default function LiquidEther({
     autoRampDuration,
   ]);
 
-  useEffect(() => {
-    const webgl = webglRef.current;
-    if (!webgl) return;
-    const sim = webgl.output?.simulation;
-    if (!sim) return;
-    const prevRes = sim.options.resolution;
-    Object.assign(sim.options, {
-      mouse_force: mouseForce,
-      cursor_size: cursorSize,
-      isViscous,
-      viscous,
-      iterations_viscous: iterationsViscous,
-      iterations_poisson: iterationsPoisson,
-      dt,
-      BFECC,
-      resolution,
-      isBounce,
-    });
-    if (webgl.autoDriver) {
-      webgl.autoDriver.enabled = autoDemo;
-      webgl.autoDriver.speed = autoSpeed;
-      webgl.autoDriver.resumeDelay = autoResumeDelay;
-      webgl.autoDriver.rampDurationMs = autoRampDuration * 1000;
-      if (webgl.autoDriver.mouse) {
-        webgl.autoDriver.mouse.autoIntensity = autoIntensity;
-        webgl.autoDriver.mouse.takeoverDuration = takeoverDuration;
-      }
-    }
-    if (resolution !== prevRes) {
-      sim.resize();
-    }
-  }, [
-    mouseForce,
-    cursorSize,
-    isViscous,
-    viscous,
-    iterationsViscous,
-    iterationsPoisson,
-    dt,
-    BFECC,
-    resolution,
-    isBounce,
-    autoDemo,
-    autoSpeed,
-    autoIntensity,
-    takeoverDuration,
-    autoResumeDelay,
-    autoRampDuration,
-  ]);
-
   return (
     <div
       ref={mountRef}
@@ -1512,29 +1690,10 @@ export default function LiquidEther({
   );
 }
 
-// Structural shape for `webglRef`. Mirrors the WebGLManager class
-// defined inside the useEffect closure; defined at module scope so
-// useRef can be statically typed without leaking class internals.
+// Structural shape for `webglRef` — the lifecycle surface of the
+// WebGLManager class defined inside the useEffect closure; defined
+// at module scope so useRef can be statically typed.
 interface WebGLManagerLike {
-  output?: {
-    simulation: {
-      options: {
-        resolution: number;
-        [key: string]: unknown;
-      };
-      resize(): void;
-    };
-  };
-  autoDriver?: {
-    enabled: boolean;
-    speed: number;
-    resumeDelay: number;
-    rampDurationMs: number;
-    mouse?: {
-      autoIntensity: number;
-      takeoverDuration: number;
-    };
-  };
   start(): void;
   pause(): void;
   resize(): void;
