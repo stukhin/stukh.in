@@ -92,7 +92,7 @@ const COMPONENTS = [
   { path: "components/GalleryModal", purpose: "Full-screen photo zoom with FLIP morph" },
   { path: "components/ChainBridge", purpose: "Multi-step page transition overlay" },
   { path: "components/Grainient", purpose: "ogl shader bg on /walls and /blog (pans with the map in-shader)" },
-  { path: "components/GridDistortion", purpose: "three.js mouse-warp on home hero (desktop only)" },
+  { path: "components/GridDistortion", purpose: "ogl mouse-warp on home hero (desktop only)" },
   { path: "components/LightRays", purpose: "ogl light-rays bg on /nature & /city" },
   { path: "components/EdgeNav", purpose: "Top/bottom click zones for adjacent page nav" },
   { path: "components/Cursor", purpose: "Custom ring/dot/arrow/picture/magnifier cursor" },
@@ -173,7 +173,7 @@ export default function SystemPage() {
       </Section>
 
       <footer className={styles.footer}>
-        Built with Next.js {`16.x`} · App Router · CSS Modules · ogl + three.
+        Built with Next.js {`16.x`} · App Router · CSS Modules · ogl.
         Hosted on the same git → main branch as the public site.
       </footer>
     </main>

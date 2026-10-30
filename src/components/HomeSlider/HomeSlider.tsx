@@ -9,7 +9,7 @@ import styles from "./HomeSlider.module.css";
 
 const slides = HOME_SLIDES.map((s) => s.landscape);
 
-// three.js only ships to wide desktops, where the warp is mounted.
+// The WebGL warp only ships to wide desktops, where it is mounted.
 const GridDistortion = dynamic(
   () => import("../GridDistortion/GridDistortion"),
   { ssr: false },
@@ -201,7 +201,7 @@ export default function HomeSlider() {
           {/* Both crops handed to CSS, which picks one by orientation —
               no hydration mismatch, and the browser only downloads the
               one it paints. Also sits under the WebGL canvas so the
-              photo shows while three.js loads (or if WebGL fails). */}
+              photo shows while the WebGL chunk loads (or if WebGL fails). */}
           <div
             className={styles.fallback}
             style={

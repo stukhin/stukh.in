@@ -1,14 +1,25 @@
 /**
  * GLSL shaders + uniform shape for <GridDistortion>. Pulled out of
  * the component to keep the render lifecycle file focused on React +
- * THREE plumbing rather than scrolling through ~80 lines of shader
+ * ogl plumbing rather than scrolling through ~80 lines of shader
  * source. The uniforms type mirrors the fragment shader's `uniform`
  * declarations — keep them in lock-step.
+ *
+ * ogl prepends nothing (three's ShaderMaterial injected precision,
+ * the position / uv attributes and the matrix uniforms), so all of
+ * it is declared here. GLSL ES 1.00 — runs on WebGL2 and WebGL1.
+ * Avoid GLSL ES 3.00 reserved words (`sample`, `packed`, …) as
+ * identifiers.
  */
 
-import type { DataTexture, Texture, Vector4 } from "three";
+import type { Texture } from "ogl";
 
 export const vertexShader = `
+precision highp float;
+attribute vec3 position;
+attribute vec2 uv;
+uniform mat4 modelViewMatrix;
+uniform mat4 projectionMatrix;
 uniform float time;
 varying vec2 vUv;
 varying vec3 vPosition;
@@ -28,6 +39,7 @@ void main() {
 // wave-front travels leftward. fbm jitter on the threshold per
 // pixel keeps the leading edge organic instead of a hard line.
 export const fragmentShader = `
+precision highp float;
 uniform sampler2D uDataTexture;
 uniform sampler2D uTexture;
 uniform sampler2D uTexture2;
@@ -99,10 +111,11 @@ void main() {
 
 export type GridDistortionUniforms = {
   time: { value: number };
-  resolution: { value: Vector4 };
+  /** [width, height, 1, 1] in CSS px (three's Vector4, as a tuple). */
+  resolution: { value: [number, number, number, number] };
   uTexture: { value: Texture | null };
   uTexture2: { value: Texture | null };
-  uDataTexture: { value: DataTexture | null };
+  uDataTexture: { value: Texture };
   uProgress: { value: number };
   uDispIntensity: { value: number };
   uAxisFlip: { value: number };

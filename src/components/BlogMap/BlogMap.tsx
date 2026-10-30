@@ -22,7 +22,7 @@ import { buildMapProjection, type Projection } from "./mapProjection";
 import { VISIT_BY_ISO } from "./visits";
 import styles from "./BlogMap.module.css";
 
-// three.js stays out of the /blog chunk: touch never renders the
+// The fluid sim stays out of the /blog chunk: touch never renders the
 // hover fluid, and desktop warms the import on mount (below).
 const loadLiquidEther = () => import("../LiquidEther/LiquidEther");
 const LiquidEther = dynamic(loadLiquidEther, { ssr: false });
