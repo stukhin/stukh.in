@@ -108,21 +108,13 @@ inventing.
 
 ## What's actually open
 
-### 🟡 GridDistortion → ogl (drops `three` entirely)
-Since Oct 30 GridDistortion (home hero warp) is the **only** `three`
-importer — LiquidEther runs on ogl. three ships only to ≥1280px
-desktops on `/` (lazy, ~130 KB gz). Porting it removes the package.
-Lessons from the earlier failed attempt ("GridDistortion ogl saga"
-below, and the LiquidEther port in `5cde0f3`): declare every
-attribute / uniform / varying, no GLSL reserved words (`packed`,
-`sample`, …), try/catch around render, keep float textures, and check
-three's implicit defaults (sRGB→linear colour conversion, premultiplied
-alpha, blend modes) — the LiquidEther port had to replicate all three.
-
 ### 🟡 Needs a real-device pass
 - Safari / iOS: LiquidEther's half-float path, pinch-zoom now enabled,
   per-route root bg in landscape (safe-area bars), pre-hydration
   preloader gate. Chromium only so far.
+- Home warp feel after the GridDistortion ogl port (same maths; the
+  earlier failed port was rejected for feeling laggy) — try it by hand.
+  WebGL1 path and the `onError` CSS fallback not forced in a test.
 - iPad: focus glide is now on for touch tablets — check the 60vw
   panel framing and rotation re-focus on a real device.
 
@@ -146,6 +138,12 @@ alpha, blend modes) — the LiquidEther port had to replicate all three.
 
 Grouped by area, newest-first within each group. Commits are at
 `https://github.com/stukhin/stukh.in/commit/<sha>`.
+
+**`three` removed (Oct 30)**
+- ✅ GridDistortion on ogl: colour (no conversion, flipY on) and
+  orientation pixel-checked against the source webps; home warp
+  chunk 130 → 19 KB gz. `three` / `@types/three` uninstalled — the
+  whole WebGL stack is ogl now.
 
 **Backlog close-out (Oct 30, second batch)**
 - ✅ LiquidEther on ogl (`5cde0f3`): hover no longer pulls three

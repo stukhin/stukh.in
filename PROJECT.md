@@ -19,12 +19,12 @@ them here, link out.
 - **motion** (Framer Motion) for the /walls grid layout animations
   and per-card tilt springs (gated on IntersectionObserver — see
   `WallpaperCard`).
-- **ogl** for `LightRays` (/nature, /city).
-- **three** for `GridDistortion` (home hero photo warp) and
-  `LiquidEther` (/blog fluid sim). AUDIT.md tracks ogl ports for
-  both — porting LiquidEther alone is enough to drop the `three`
-  package since GridDistortion's ogl attempt has been rolled back.
-- **d3-geo** + **topojson-client** + **world-atlas** for the /blog
+- **ogl** for all WebGL: `LightRays` (/nature, /city), `Grainient`
+  (/walls, /blog), `GridDistortion` (home hero warp, lazy, ≥1280px)
+  and `LiquidEther` (/blog hover fluid, lazy, desktop). `three` was
+  removed on Oct 30.
+- **d3-geo** (+ **topojson-client** / **world-atlas** at build time
+  only, `scripts/build-map.mjs` → `mapData.json`) for the /blog
   world map (50m TopoJSON).
 - CSS Modules for everything; one global stylesheet at
   `src/app/globals.css` (resets + `* { cursor: none }` rule +
@@ -429,8 +429,7 @@ calmest possible entrance.
   rewritten as first-class site components: `LiquidEther`
   (`/blog`), `LightRays` (`/nature`, `/city`), and `GridDistortion`
   (home hero) are `.tsx` with typed props, uniforms, and refs.
-  LightRays runs on ogl; the other two on three.js. AUDIT.md
-  tracks ogl ports for both. Don't refer back to upstream React
+  All three run on ogl. Don't refer back to upstream React
   Bits parity — the in-tree versions are the canonical source.
 - **Animations** prefer GPU-friendly properties (`transform`,
   `opacity`). For the few places we use the **individual
