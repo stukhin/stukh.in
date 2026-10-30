@@ -128,7 +128,7 @@
   border: 1px solid rgba(255, 255, 255, 0.18);
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.22);
   color: var(--opt-color, #fff);
-  font-family: "Inter", "Rubik", sans-serif;
+  font-family: var(--font-inter), var(--font-rubik), sans-serif;
   font-size: 14px;
   font-weight: 200;
   text-transform: lowercase;
@@ -237,7 +237,7 @@
   background: transparent;
   border: none;
   color: hsla(0, 0%, 100%, 0.65);
-  font-family: "Inter", "Rubik", sans-serif;
+  font-family: var(--font-inter), var(--font-rubik), sans-serif;
   font-size: 14px;
   font-weight: 200;
   text-transform: lowercase;
@@ -647,7 +647,7 @@
   backdrop-filter: blur(20px) saturate(160%);
   border: 1px solid rgba(255, 255, 255, 0.16);
   color: #fff;
-  font-family: "Rubik", "Inter", sans-serif;
+  font-family: var(--font-rubik), var(--font-inter), sans-serif;
   font-weight: 300;
   animation: zoomInfoIn 0.22s cubic-bezier(0.4, 0, 0.2, 1) both;
   max-width: 440px;

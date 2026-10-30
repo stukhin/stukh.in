@@ -63,12 +63,6 @@ function buildCriticalUrls(): string[] {
   list.push("/images/misc/picture_frame_w.webp");
   list.push("/images/misc/tile.webp");
 
-  // All walls thumbnails (small webps, ~10-25KB each). Lets the walls
-  // grid render instantly the moment the user navigates in.
-  (wallsData as { id: string }[]).forEach((w) => {
-    list.push(`/images/walls/${w.id}_thumb.webp`);
-  });
-
   return list;
 }
 
@@ -80,15 +74,20 @@ function buildCriticalUrls(): string[] {
  */
 function buildBackgroundUrls(): string[] {
   const list: string[] = [];
-  // Nature has 21 vertical photos in the gallery; city has 5.
+  // Vertical crops shown by the /nature (21) and /city (7) sliders.
   for (let i = 1; i <= 21; i++) {
     const num = String(i).padStart(2, "0");
     list.push(`/images/gallery/nature/vertical/${num}.jpg`);
   }
-  for (let i = 1; i <= 5; i++) {
+  for (let i = 1; i <= 7; i++) {
     const num = String(i).padStart(2, "0");
     list.push(`/images/gallery/city/vertical/${num}.jpg`);
   }
+  // Walls thumbnails (~1.7 MB in all) — warmed for the grid, but no
+  // longer gating the loader on every entry route.
+  (wallsData as { id: string }[]).forEach((w) => {
+    list.push(`/images/walls/${w.id}_thumb.webp`);
+  });
   return list;
 }
 

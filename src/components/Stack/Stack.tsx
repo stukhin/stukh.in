@@ -182,7 +182,8 @@ export default function Stack({
           >
             <motion.div
               className={styles.card}
-              onClick={() => shouldEnableClick && sendToBack(card.id)}
+              // onTap, not onClick: a cancelled drag still fires click.
+              onTap={() => shouldEnableClick && sendToBack(card.id)}
               animate={{
                 rotateZ: (stack.length - index - 1) * 4 + randomRotate,
                 scale: 1 + index * 0.06 - stack.length * 0.06,

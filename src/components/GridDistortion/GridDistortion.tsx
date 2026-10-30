@@ -73,6 +73,8 @@ type Props = {
    */
   direction?: "forward" | "backward";
   className?: string;
+  /** Called when WebGL can't start; the parent shows a plain photo. */
+  onError?: () => void;
 };
 
 /**
@@ -102,6 +104,7 @@ export default function GridDistortion({
   dispIntensity = 0.5,
   direction = "forward",
   className = "",
+  onError,
 }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
   // Uniforms shape mirrors the GLSL fragment shader — each entry is
@@ -112,6 +115,8 @@ export default function GridDistortion({
   const imageAspectRef = useRef(1);
   const handleResizeRef = useRef<(() => void) | null>(null);
   const transitionRafRef = useRef<number | null>(null);
+  const onErrorRef = useRef(onError);
+  onErrorRef.current = onError;
 
   // Renderer / scene / loop. Re-runs only when grid params change.
   useEffect(() => {
@@ -120,11 +125,18 @@ export default function GridDistortion({
 
     const scene = new Scene();
 
-    const renderer = new WebGLRenderer({
-      antialias: true,
-      alpha: true,
-      powerPreference: "high-performance",
-    });
+    // three r18x needs WebGL2; without it the constructor throws.
+    let renderer: WebGLRenderer;
+    try {
+      renderer = new WebGLRenderer({
+        antialias: true,
+        alpha: true,
+        powerPreference: "high-performance",
+      });
+    } catch {
+      onErrorRef.current?.();
+      return;
+    }
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.setClearColor(0x000000, 0);
     container.innerHTML = "";
@@ -194,15 +206,7 @@ export default function GridDistortion({
       // showing transparent edges. Default texture-loader sets the
       // aspect via imageAspectRef once a texture is in.
       const imageAspect = imageAspectRef.current;
-      let planeW = containerAspect;
-      let planeH = 1;
-      if (containerAspect / imageAspect > 1) {
-        planeH = containerAspect / imageAspect;
-      } else {
-        planeW = imageAspect * (1 / (containerAspect / imageAspect));
-      }
-      // Simpler cover formula: take the max of width-driven and
-      // height-driven scales.
+      // Cover formula: the max of width-driven and height-driven scales.
       const sx = Math.max(containerAspect, imageAspect);
       const sy = sx / imageAspect;
       plane.scale.set(sx, sy, 1);

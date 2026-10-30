@@ -1,8 +1,24 @@
 import type { Metadata, Viewport } from "next";
+import { Inter, Rubik } from "next/font/google";
 import ChainBridge from "@/components/ChainBridge/ChainBridge";
 import ClickSpark from "@/components/ClickSpark/ClickSpark";
 import Preloader from "@/components/Preloader/Preloader";
 import "./globals.css";
+
+// Self-hosted by next/font: no render-blocking request to Google,
+// CSS references the families through these variables.
+const rubik = Rubik({
+  subsets: ["latin", "cyrillic"],
+  weight: ["300", "400"],
+  variable: "--font-rubik",
+  display: "swap",
+});
+const inter = Inter({
+  subsets: ["latin", "cyrillic"],
+  weight: ["200", "300"],
+  variable: "--font-inter",
+  display: "swap",
+});
 
 export const metadata: Metadata = {
   title: "Sasha Stukhin — Photography",
@@ -28,7 +44,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
+    <html lang="en" className={`${rubik.variable} ${inter.variable}`}>
       <body>
         {/* Preloader is mounted at the layout level so it gates the
             first render of *any* entry route (not just /), but

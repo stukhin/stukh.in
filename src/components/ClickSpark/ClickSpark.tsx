@@ -66,6 +66,7 @@ export default function ClickSpark({
 }: Props) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const sparksRef = useRef<Spark[]>([]);
+  const kickRef = useRef<(() => void) | null>(null);
 
   // Size the canvas backing-store to viewport × DPR. The CSS size
   // stays at viewport pixels (set in JSX via style); the buffer is
@@ -110,9 +111,8 @@ export default function ClickSpark({
   );
 
   // Render loop. Iterates sparksRef, advances each by elapsed time,
-  // drops finished sparks, draws the survivors. Loop runs forever
-  // (cheap when sparksRef is empty — just clearRect on an empty
-  // canvas).
+  // drops finished sparks, draws the survivors. Runs only while sparks
+  // are alive — a spawn kicks it via kickRef, the last spark stops it.
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -157,12 +157,15 @@ export default function ClickSpark({
         document.documentElement.classList.remove(ACTIVE_CLASS);
       }
 
-      raf = requestAnimationFrame(draw);
+      raf = sparksRef.current.length > 0 ? requestAnimationFrame(draw) : 0;
     };
 
-    raf = requestAnimationFrame(draw);
+    kickRef.current = () => {
+      if (!raf) raf = requestAnimationFrame(draw);
+    };
     return () => {
       cancelAnimationFrame(raf);
+      kickRef.current = null;
       // Effect tears down (component unmounts or deps change) while
       // sparks are still alive — make sure the cursor-dissolve class
       // isn't left stuck on <html>.
@@ -214,6 +217,7 @@ export default function ClickSpark({
         color,
       }));
       sparksRef.current.push(...sparks);
+      kickRef.current?.();
       // Cursor.module.css watches this class to fade the custom
       // cursor to opacity 0 while sparks are flying. The render
       // loop above strips the class when the last spark dies.

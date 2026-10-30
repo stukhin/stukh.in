@@ -243,7 +243,7 @@ export default function LiquidEther({
         this.pixelRatio = Math.min(window.devicePixelRatio || 1, 2);
         this.resize();
         this.renderer = new THREE.WebGLRenderer({
-          antialias: true,
+          antialias: false,
           alpha: true,
         });
         this.renderer.autoClear = false;

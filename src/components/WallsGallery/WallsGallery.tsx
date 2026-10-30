@@ -138,7 +138,12 @@ export default function WallsGallery({ items }: Props) {
 
   // Persist download counts in localStorage so they grow over visits.
   useEffect(() => {
-    const saved = JSON.parse(localStorage.getItem("walls.downloads") || "{}");
+    // Storage can throw (blocked site data, some in-app webviews) or
+    // hold junk — fall back to the seeded counts either way.
+    let saved: Record<string, number> = {};
+    try {
+      saved = JSON.parse(localStorage.getItem("walls.downloads") || "{}");
+    } catch {}
     const initial: Record<string, number> = {};
     for (const w of items) {
       initial[w.id] = saved[w.id] ?? w.downloads;
@@ -147,7 +152,9 @@ export default function WallsGallery({ items }: Props) {
   }, [items]);
 
   const persist = (next: Record<string, number>) => {
-    localStorage.setItem("walls.downloads", JSON.stringify(next));
+    try {
+      localStorage.setItem("walls.downloads", JSON.stringify(next));
+    } catch {}
   };
 
   const download = async (w: Wallpaper) => {
@@ -157,6 +164,7 @@ export default function WallsGallery({ items }: Props) {
       // Serve JPG: more phone OSes accept it as a wallpaper file
       // (notably iOS, which won't take .webp).
       const res = await fetch(`/images/walls/${w.id}.jpg`);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const blob = await res.blob();
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
@@ -165,7 +173,8 @@ export default function WallsGallery({ items }: Props) {
       document.body.appendChild(a);
       a.click();
       a.remove();
-      URL.revokeObjectURL(url);
+      // Revoking in the same tick can cancel the save in Safari / Firefox.
+      window.setTimeout(() => URL.revokeObjectURL(url), 1000);
       setCounts((c) => {
         const next = { ...c, [w.id]: (c[w.id] || w.downloads) + 1 };
         persist(next);

@@ -1,5 +1,3 @@
-@import url("https://fonts.googleapis.com/css2?family=Rubik:wght@300;400&display=swap");
-@import url("https://fonts.googleapis.com/css2?family=Inter:wght@200;300&display=swap");
 
 /* Theme tokens for the persistent shell (logo, top-nav, socials).
    Pages flip <html data-theme="..."> to switch every shell element
@@ -73,7 +71,7 @@ table {
 
 /* Base */
 html, body {
-  font-family: "Rubik", sans-serif;
+  font-family: var(--font-rubik), sans-serif;
   background-color: #fff;
   color: #000;
   min-height: 100%;

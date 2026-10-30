@@ -1,13 +1,19 @@
 "use client";
 
 import { useCallback, useEffect, useState, type CSSProperties } from "react";
-import GridDistortion from "../GridDistortion/GridDistortion";
+import dynamic from "next/dynamic";
 import { useVerticalPageSwipe } from "@/lib/useVerticalPageSwipe";
 import { MQ, useMediaQuery } from "@/lib/useMediaQuery";
 import { HOME_SLIDES, setRouteBg } from "@/lib/pageVisuals";
 import styles from "./HomeSlider.module.css";
 
 const slides = HOME_SLIDES.map((s) => s.landscape);
+
+// three.js only ships to wide desktops, where the warp is mounted.
+const GridDistortion = dynamic(
+  () => import("../GridDistortion/GridDistortion"),
+  { ssr: false },
+);
 
 const AUTOPLAY_MS = 7000;
 // sessionStorage key for the active slide so navigating away from /
@@ -167,6 +173,10 @@ export default function HomeSlider() {
     document.documentElement.dataset.theme = "dark";
   }, []);
 
+  // WebGL unavailable (disabled / blocklisted GPU) → stay on the CSS photo.
+  const [webglFailed, setWebglFailed] = useState(false);
+  const onWebglError = useCallback(() => setWebglFailed(true), []);
+
   // GridDistortion is desktop-only: it's a heavy WebGL effect and the
   // mouse-warp idea doesn't translate to touch input anyway. Below the
   // desktop breakpoint we fall back to a plain background-image div so
@@ -177,7 +187,7 @@ export default function HomeSlider() {
     <div className={styles.wrap}>
       <div className={styles.slider}>
         <div className={styles.canvas}>
-          {isDesktop ? (
+          {isDesktop && !webglFailed ? (
             <GridDistortion
               imageSrc={slides[active]}
               direction={direction}
@@ -185,21 +195,22 @@ export default function HomeSlider() {
               mouse={0.10}
               strength={0.02}
               relaxation={0.92}
+              onError={onWebglError}
             />
-          ) : (
-            /* Both crops handed to CSS, which picks one by
-               orientation — no hydration mismatch, and the browser
-               only downloads the one it paints. */
-            <div
-              className={styles.fallback}
-              style={
-                {
-                  "--slide-landscape": `url(${HOME_SLIDES[active].landscape})`,
-                  "--slide-portrait": `url(${HOME_SLIDES[active].portrait})`,
-                } as CSSProperties
-              }
-            />
-          )}
+          ) : null}
+          {/* Both crops handed to CSS, which picks one by orientation —
+              no hydration mismatch, and the browser only downloads the
+              one it paints. Also sits under the WebGL canvas so the
+              photo shows while three.js loads (or if WebGL fails). */}
+          <div
+            className={styles.fallback}
+            style={
+              {
+                "--slide-landscape": `url(${HOME_SLIDES[active].landscape})`,
+                "--slide-portrait": `url(${HOME_SLIDES[active].portrait})`,
+              } as CSSProperties
+            }
+          />
         </div>
       </div>
 

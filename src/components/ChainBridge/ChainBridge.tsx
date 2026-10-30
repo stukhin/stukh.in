@@ -216,8 +216,8 @@ export default function ChainBridge() {
   }, [router]);
 
   const style: CSSProperties = {
-    "--bridge-from": `${-fromIdx * 100}vh`,
-    "--bridge-to": `${-toIdx * 100}vh`,
+    "--bridge-from": `${-fromIdx * 100}dvh`,
+    "--bridge-to": `${-toIdx * 100}dvh`,
     "--bridge-duration": `${duration}ms`,
     "--bridge-fade-in": `${FADE_IN_MS}ms`,
     "--bridge-fade-out": `${FADE_OUT_MS}ms`,

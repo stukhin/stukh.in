@@ -28,9 +28,9 @@ export default function OrderLink({
           {children}
         </a>
       ) : (
-        <a role="button" onClick={onClick}>
+        <button type="button" onClick={onClick}>
           {children}
-        </a>
+        </button>
       )}
     </div>
   );

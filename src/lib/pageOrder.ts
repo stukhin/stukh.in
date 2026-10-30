@@ -48,6 +48,18 @@ export function pageNavBlocked(): boolean {
  *
  * Off-strip navigations (e.g. /order, /system) just hard-push.
  */
+/** True for a plain primary click — leave Cmd/Ctrl/Shift/middle
+ *  clicks to the browser so "open in new tab" keeps working. */
+export function isPlainClick(e: {
+  button: number;
+  metaKey: boolean;
+  ctrlKey: boolean;
+  shiftKey: boolean;
+  altKey: boolean;
+}): boolean {
+  return e.button === 0 && !e.metaKey && !e.ctrlKey && !e.shiftKey && !e.altKey;
+}
+
 export function navigateChained(
   router: ChainRouter,
   from: string,
@@ -63,6 +75,9 @@ export function navigateChained(
     fromIdx !== toIdx &&
     typeof window !== "undefined"
   ) {
+    // One slide at a time — a double-click or a second link mid-slide
+    // would otherwise schedule two router pushes.
+    if (document.documentElement.classList.contains("chain-pending")) return;
     // Stash the from-path on a window key so TopNav (which
     // remounts on every chain navigation because AppShell is
     // per-page) can render with the OLD active link initially and

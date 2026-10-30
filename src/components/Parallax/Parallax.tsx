@@ -14,20 +14,27 @@ export default function Parallax() {
   const mouseTargetRef = useRef(0);
 
   useEffect(() => {
+    const current = { x: 0 };
+    // Ease toward the cursor, then stop — no 60fps re-render while idle.
+    const loop = () => {
+      const next =
+        current.x + (mouseTargetRef.current - current.x) * 0.07;
+      const settled = Math.abs(mouseTargetRef.current - next) < 0.001;
+      current.x = settled ? mouseTargetRef.current : next;
+      setMouseX(current.x);
+      frameRef.current = settled ? null : requestAnimationFrame(loop);
+    };
     const onMove = (e: MouseEvent) => {
       const cx = window.innerWidth / 2;
       mouseTargetRef.current = (e.clientX - cx) / cx; // -1..1
+      if (frameRef.current === null) {
+        frameRef.current = requestAnimationFrame(loop);
+      }
     };
     const onScroll = () => setScrollY(window.scrollY);
 
     window.addEventListener("mousemove", onMove);
     window.addEventListener("scroll", onScroll, { passive: true });
-
-    const loop = () => {
-      setMouseX((prev) => prev + (mouseTargetRef.current - prev) * 0.07);
-      frameRef.current = requestAnimationFrame(loop);
-    };
-    frameRef.current = requestAnimationFrame(loop);
 
     return () => {
       window.removeEventListener("mousemove", onMove);

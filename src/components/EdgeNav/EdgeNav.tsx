@@ -23,7 +23,9 @@ export default function EdgeNav() {
   const router = useRouter();
 
   const idx = PAGE_ORDER.indexOf(pathname);
-  if (idx === -1) return null;
+  // /walls is a scrolling grid: the bands would sit over cards and
+  // page away on a click meant to open one. Wheel / TopNav cover it.
+  if (idx === -1 || pathname === "/walls") return null;
 
   const prevHref = idx > 0 ? PAGE_ORDER[idx - 1] : null;
   const nextHref = idx < PAGE_ORDER.length - 1 ? PAGE_ORDER[idx + 1] : null;

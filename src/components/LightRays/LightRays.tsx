@@ -146,11 +146,19 @@ export default function LightRays({
       cleanupFunctionRef.current = null;
     }
 
+    // Cleanup can land during the await below (Strict Mode, quick
+    // visibility flips) — without this flag init would still build a
+    // second renderer whose loop and context are never released.
+    let cancelled = false;
+    const reduceMotion = window.matchMedia(
+      "(prefers-reduced-motion: reduce)",
+    ).matches;
+
     const initializeWebGL = async () => {
       if (!containerRef.current) return;
 
       await new Promise((resolve) => setTimeout(resolve, 10));
-      if (!containerRef.current) return;
+      if (cancelled || !containerRef.current) return;
 
       const renderer = new Renderer({
         dpr: Math.min(window.devicePixelRatio, 2),
@@ -316,7 +324,13 @@ void main() {
         if (!rendererRef.current || !uniformsRef.current || !meshRef.current) {
           return;
         }
-        uniforms.iTime.value = t * 0.001;
+        // Full-screen shader under an opaque zoom modal — skip the draw.
+        if (document.documentElement.classList.contains("zoom-open")) {
+          animationIdRef.current = requestAnimationFrame(loop);
+          return;
+        }
+        // Reduced motion: rays hold still at a fixed phase.
+        uniforms.iTime.value = reduceMotion ? 12 : t * 0.001;
         if (followMouse && mouseInfluence > 0.0) {
           const smoothing = 0.92;
           smoothMouseRef.current.x =
@@ -372,6 +386,7 @@ void main() {
     initializeWebGL();
 
     return () => {
+      cancelled = true;
       if (cleanupFunctionRef.current) {
         cleanupFunctionRef.current();
         cleanupFunctionRef.current = null;

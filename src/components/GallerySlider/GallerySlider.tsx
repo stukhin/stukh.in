@@ -9,7 +9,7 @@ import {
   type TouchEvent as ReactTouchEvent,
 } from "react";
 import { Swiper, SwiperSlide } from "swiper/react";
-import { Keyboard, Mousewheel } from "swiper/modules";
+import { Mousewheel } from "swiper/modules";
 import type { Swiper as SwiperType } from "swiper";
 import "swiper/css";
 import GalleryModal from "../GalleryModal/GalleryModal";
@@ -114,12 +114,15 @@ export default function GallerySlider({ category, items }: Props) {
    * FLIP animation can morph back to whatever slide is currently
    * active when the user closes (in case they navigate while the
    * modal is open). */
-  const getActiveImgRect = (): DOMRect | null => {
+  // Stable identities: both sit in GalleryModal effect deps, and a
+  // fresh function per render restarted its open / close effects.
+  const getActiveImgRect = useCallback((): DOMRect | null => {
     const el = document
       .querySelector(".swiper-slide-active img")
       ?.getBoundingClientRect();
     return el || null;
-  };
+  }, []);
+  const closeModal = useCallback(() => setModalOpen(false), []);
 
   const markLoaded = (i: number) =>
     setLoadedImages((prev) => {
@@ -261,12 +264,11 @@ export default function GallerySlider({ category, items }: Props) {
       <div className={styles.frame} />
 
       <Swiper
-        modules={[Keyboard, Mousewheel]}
+        modules={[Mousewheel]}
         className={styles.swiper}
         slidesPerView="auto"
         centeredSlides
         spaceBetween={0}
-        keyboard
         loop
         mousewheel={{ forceToAxis: true, sensitivity: 0.6 }}
         speed={650}
@@ -407,6 +409,8 @@ export default function GallerySlider({ category, items }: Props) {
         aria-valuemin={0}
         aria-valuemax={Math.max(0, total - 1)}
         aria-valuenow={activeIndex}
+        aria-valuetext={`${activeIndex + 1} of ${total}`}
+        tabIndex={0}
       >
         <div className={styles.sliderTrack} />
         <div
@@ -434,7 +438,7 @@ export default function GallerySlider({ category, items }: Props) {
         hasHorizontal={availableHorizontal}
         fromRect={modalFromRect}
         getCurrentRect={getActiveImgRect}
-        onClose={() => setModalOpen(false)}
+        onClose={closeModal}
         onOrientationChange={setModalOrientation}
       />
     </div>

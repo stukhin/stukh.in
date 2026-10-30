@@ -9,7 +9,7 @@ import {
   useRef,
   useState,
 } from "react";
-import { navigateChained } from "@/lib/pageOrder";
+import { navigateChained, isPlainClick } from "@/lib/pageOrder";
 import styles from "./TopNav.module.css";
 
 type Props = {
@@ -177,7 +177,7 @@ export default function TopNav({ className = "" }: Props) {
       e.preventDefault();
       return;
     }
-    if (pathname === href) return;
+    if (pathname === href || !isPlainClick(e)) return;
     e.preventDefault();
     navigateChained(router, pathname, href);
   };

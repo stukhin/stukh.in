@@ -111,7 +111,8 @@ inventing.
 
 ### 🔴 LiquidEther port to ogl
 `src/components/LiquidEther/LiquidEther.tsx` — 1175 lines, 39
-`new THREE.*` call sites. The only remaining `three.js` consumer
+`new THREE.*` call sites. One of two `three.js` consumers (GridDistortion
+is the other; both now load lazily, desktop only). The remaining consumer
 in the codebase. Porting it lets us drop the `three` package
 entirely (~140–200 KB minified gzipped saved on `/blog`). Sized
 for its own session.
@@ -180,11 +181,9 @@ Needs a decision from the user first:
 Perf / polish, no decision needed:
 - **LiquidEther** sizes its canvas to the whole map (~9 MP at
   1440×900) for a ~60px country; size the foreignObject to the
-  hovered country's bounds, pixel ratio 1, lazy-load three.js.
+  hovered country's bounds, pixel ratio 1 (lazy-load + no MSAA done Oct 30).
 - **GridDistortion** (home) renders every frame even when idle and
   its warp never relaxes under a resting cursor.
-- **ClickSpark** clears a full-viewport canvas every frame forever.
-- **Fonts** come in through render-blocking CSS `@import`s.
 - **Preloader** flashes its white "0%" sheet on every reload until
   hydration (SSR always renders the loading phase); TopNav's typing
   intro plays hidden under it on first visit.
@@ -210,6 +209,28 @@ Perf / polish, no decision needed:
 
 Grouped by area, newest-first within each group. Commits are at
 `https://github.com/stukhin/stukh.in/commit/<sha>`.
+
+**Full audit pass (Oct 30)**
+- ✅ Fonts via `next/font` (self-hosted, `--font-rubik` / `--font-inter`).
+- ✅ three.js lazy: GridDistortion via `next/dynamic` (home JS 339 → 207 KB
+  gz), LiquidEther warmed on desktop only; WebGL failure on home falls
+  back to the CSS photo instead of crashing the page.
+- ✅ Chain nav: one slide at a time (`chain-pending` guard); Cmd/Ctrl/
+  middle-click open new tabs again (TopNav, Logo, Menu).
+- ✅ EdgeNav off on /walls (bands sat over cards).
+- ✅ Idle loops stopped: ClickSpark, /order Parallax; LightRays skips
+  frames under the zoom modal, honours reduced motion, no double
+  renderer on fast remount.
+- ✅ Preloader no longer gates on 67 walls thumbs (moved to background);
+  city 06/07 warmed.
+- ✅ Gallery: Swiper keyboard off (arrows changed the slide behind the
+  modal), stable modal callbacks, slider focusable + valuetext.
+- ✅ /walls: storage + download hardened, hover plate off on touch.
+- ✅ Stack `onTap` (cancelled drag no longer sends a print back); BlogMap
+  keeps zoom when `(hover:none)` flips; ChainBridge on `dvh`.
+- ✅ /order: own `<title>`, scroll links are real `<button>`s.
+- ✅ Data: Latin "x" in print sizes, "Kyrgyzstan"; dropped unused
+  `next-view-transitions` + `public/fonts`.
 
 **Review follow-ups (Oct 7, user decisions)**
 - ✅ Letter-spacing folded into the 3-value scale site-wide

@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
 import { MouseEvent } from "react";
-import { navigateChained } from "@/lib/pageOrder";
+import { navigateChained, isPlainClick } from "@/lib/pageOrder";
 import styles from "./Logo.module.css";
 
 type Props = {
@@ -42,7 +42,7 @@ export default function Logo({ noClick = false, className = "" }: Props) {
   }
 
   const handleClick = (e: MouseEvent<HTMLAnchorElement>) => {
-    if (pathname === "/") return;
+    if (pathname === "/" || !isPlainClick(e)) return;
     e.preventDefault();
     navigateChained(router, pathname, "/");
   };

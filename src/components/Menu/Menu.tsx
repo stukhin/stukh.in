@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
 import { MouseEvent } from "react";
-import { navigateChained } from "@/lib/pageOrder";
+import { navigateChained, isPlainClick } from "@/lib/pageOrder";
 import styles from "./Menu.module.css";
 
 type Props = {
@@ -42,7 +42,7 @@ export default function Menu({
     .join(" ");
 
   const handleClick = (e: MouseEvent<HTMLAnchorElement>, href: string) => {
-    if (pathname === href) return;
+    if (pathname === href || !isPlainClick(e)) return;
     e.preventDefault();
     onNavigate?.();
     const navigate = () => navigateChained(router, pathname, href);

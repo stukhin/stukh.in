@@ -40,7 +40,7 @@
 
 /* Percentage counter, sitting above and right-aligned to the bar. */
 .percent {
-  font-family: "Rubik", "Inter", sans-serif;
+  font-family: var(--font-rubik), var(--font-inter), sans-serif;
   font-weight: 300;
   font-size: 14px;
   letter-spacing: -0.02em;

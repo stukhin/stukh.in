@@ -10,7 +10,7 @@ import {
 } from "react";
 import { MQ, useMediaQuery } from "@/lib/useMediaQuery";
 import { pageNavBlocked } from "@/lib/pageOrder";
-import LiquidEther from "../LiquidEther/LiquidEther";
+import dynamic from "next/dynamic";
 import BlogCountryPlate, {
   type CountryHoverState,
 } from "./BlogCountryPlate";
@@ -20,6 +20,11 @@ import DotLayer, { DotHits } from "./DotLayer";
 import { buildMapProjection, type Projection } from "./mapProjection";
 import { VISIT_BY_ISO } from "./visits";
 import styles from "./BlogMap.module.css";
+
+// three.js stays out of the /blog chunk: touch never renders the
+// hover fluid, and desktop warms the import on mount (below).
+const loadLiquidEther = () => import("../LiquidEther/LiquidEther");
+const LiquidEther = dynamic(loadLiquidEther, { ssr: false });
 
 // Zoom. Floor at 1.0 = the map sized to fill the viewport
 // vertically with no parallax slack. Default ZOOM_INITIAL is 1.2
@@ -98,6 +103,10 @@ export default function BlogMap() {
    *  touch gestures) and the country-tap path (mobile = open the
    *  full-screen modal directly, skip the focus-mode glide). */
   const isTouch = useMediaQuery(MQ.TOUCH);
+  useEffect(() => {
+    // Read the media query directly — the hook starts at false.
+    if (!window.matchMedia(MQ.TOUCH).matches) void loadLiquidEther();
+  }, []);
   const [hover, setHover] = useState<CountryHoverState | null>(null);
   // Mirror of `hover` for the imperatively-updated coords readout.
   // The coords flush() runs in a useEffect closure and can't read
@@ -179,7 +188,8 @@ export default function BlogMap() {
     if (!wrap) return;
     if (typeof window === "undefined") return;
 
-    wrap.style.setProperty("--zoom", String(ZOOM_INITIAL));
+    // Effect re-runs when isTouch flips — keep the current zoom.
+    wrap.style.setProperty("--zoom", String(zoomRef.current));
 
     /**
      * Pan vars are written to BOTH the map wrap (consumed by the

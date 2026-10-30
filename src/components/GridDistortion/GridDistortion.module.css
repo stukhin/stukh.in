@@ -1,6 +1,8 @@
 .container {
-  width: 100%;
-  height: 100%;
+  /* Stacked over HomeSlider's CSS photo, which shows until the
+     first frame paints. */
+  position: absolute;
+  inset: 0;
   overflow: hidden;
   /* Pointer events disabled so the existing edge-click zones / nav
      buttons / cursor system underneath stay clickable. The mousemove
